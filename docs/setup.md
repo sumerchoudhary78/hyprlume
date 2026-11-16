@@ -50,7 +50,7 @@ model = "local"
 timeout_seconds = 20
 ```
 
-The endpoint must be an HTTP loopback IP address. Redirects are disabled.
+The endpoint must be an HTTP loopback IP address. Redirects and proxy use are disabled.
 Requests contain the user's command, allowed app names, and an action schema;
 they do not include screenshots, audio, clipboard contents, or files.
 Each generated plan is validated again in Rust and requires confirmation,

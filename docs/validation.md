@@ -69,6 +69,13 @@ python3 scripts/voice-smoke.py
 The second command supplies synthetic PCM through a test capture executable;
 it does not use the microphone or apply a desktop action.
 
+## Packaging
+
+The AUR recipe disables makepkg's GCC LTO for native dependencies, following
+[Arch's Rust packaging guidance](https://wiki.archlinux.org/title/Rust_package_guidelines).
+Cargo's release profile retains Rust thin LTO. Dependencies are fetched during
+`prepare`; build and package tests use `--frozen`.
+
 ## Still requires real-session testing
 
 Physical microphone routing, false-wake rates, noisy rooms, accents, sleep and
