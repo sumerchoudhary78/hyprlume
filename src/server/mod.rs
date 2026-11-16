@@ -23,7 +23,9 @@ pub const MAX_FRAME: usize = 8192;
 async fn session(stream: UnixStream, app: Arc<App>) -> Result<()> {
     let mut framed = Framed::new(stream, LinesCodec::new_with_max_length(MAX_FRAME));
     let mut state = app.subscribe();
+    let mut connectivity = app.connectivity.subscribe();
     let mut subscribed = false;
+    let mut connectivity_subscribed = false;
     loop {
         let output = tokio::select! {
             input = framed.next() => {
@@ -32,6 +34,7 @@ async fn session(stream: UnixStream, app: Arc<App>) -> Result<()> {
                 match serde_json::from_str::<Request>(&input) {
                     Ok(request) => {
                         if matches!(request.operation, Operation::Subscribe) { subscribed = true; state.borrow_and_update(); }
+                        if matches!(request.operation, Operation::ConnectivitySubscribe) { connectivity_subscribed = true; connectivity.borrow_and_update(); }
                         match app.handle(request.operation).await {
                             Ok(result) => json!({"id":request.id,"result":result}),
                             Err(e) => json!({"id":request.id,"error":e.to_string()}),
@@ -45,6 +48,11 @@ async fn session(stream: UnixStream, app: Arc<App>) -> Result<()> {
                 let snapshot = state.borrow_and_update().clone();
                 json!({"event":"state","state":snapshot})
             }
+            change = connectivity.changed(), if connectivity_subscribed => {
+                change?;
+                let snapshot = connectivity.borrow_and_update().clone();
+                json!({"event":"connectivity","state":snapshot})
+            }
         };
         timeout(Duration::from_secs(2), framed.send(output.to_string())).await??;
     }
@@ -54,7 +62,9 @@ pub async fn serve(path: PathBuf, config: Config, demo: bool) -> Result<()> {
     config.validate()?;
     let (listener, _guard) = socket::bind(&path)?;
     let app = App::new(config, demo);
-    let events = tokio::spawn(app.clone().watch_desktop());
+    let mut services = tokio::task::JoinSet::new();
+    services.spawn(app.clone().watch_desktop());
+    services.spawn(app.connectivity.clone().run());
     let connections = Arc::new(Semaphore::new(16));
     let mut terminate = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())?;
     tracing::info!(socket = %path.display(), "hyprlume ready; microphone off");
@@ -75,6 +85,6 @@ pub async fn serve(path: PathBuf, config: Config, demo: bool) -> Result<()> {
     })
     .await
     .ok();
-    events.abort();
+    services.abort_all();
     Ok(())
 }

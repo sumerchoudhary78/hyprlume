@@ -38,6 +38,7 @@ GlassSurface {
                     onClicked: {
                         root.state.mode = index;
                         if (index === 3) root.backend.send({op:"toggle"});
+                        if (index === 5) root.backend.send({op:"connectivity",request:{action:"toggle"}});
                     }
                 }
             }
@@ -53,9 +54,12 @@ GlassSurface {
             Accessible.name: "Toggle microphone"
         }
         Rectangle {
+            objectName: "openConnectivity"
             width: 35; height: 35; radius: 18; color: "#071633"; border.width: 1; border.color: Theme.violet
             Icon { anchors.centerIn: parent; name: "globe"; color: "#9cd7ff"; size: 26 }
-            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.backend.send({op:"toggle"}) }
+            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.backend.send({op:"connectivity",request:{action:"toggle"}}) }
+            Accessible.role: Accessible.Button
+            Accessible.name: "Open Wi-Fi and Bluetooth"
         }
     }
 }

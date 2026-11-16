@@ -4,5 +4,6 @@ pub mod desktop;
 pub mod planner;
 pub mod protocol;
 pub mod server;
+pub mod services;
 #[cfg(feature = "voice")]
 pub mod voice;

@@ -146,3 +146,107 @@ async fn a_client_must_subscribe_before_receiving_state_events() {
     assert_eq!(reply["result"]["panel_open"], true);
     daemon.stop().await;
 }
+
+#[tokio::test]
+async fn wireless_events_are_opt_in_and_both_topics_share_one_socket() {
+    let daemon = Daemon::start().await;
+    let mut agent = Framed::new(
+        UnixStream::connect(&daemon.path).await.unwrap(),
+        LinesCodec::new(),
+    );
+    agent.send(r#"{"id":1,"op":"subscribe"}"#).await.unwrap();
+    agent.next().await.unwrap().unwrap();
+    let mut wireless = Framed::new(
+        UnixStream::connect(&daemon.path).await.unwrap(),
+        LinesCodec::new(),
+    );
+    wireless
+        .send(r#"{"id":2,"op":"connectivity_subscribe"}"#)
+        .await
+        .unwrap();
+    let initial: Value = serde_json::from_str(&wireless.next().await.unwrap().unwrap()).unwrap();
+    assert_eq!(initial["id"], 2);
+    assert_eq!(initial["result"]["panel_open"], false);
+
+    let toggle = || Operation::Connectivity {
+        request: hyprlume::services::connectivity::Request::Toggle,
+    };
+    server::call(&daemon.path, toggle()).await.unwrap();
+    let event: Value = serde_json::from_str(&wireless.next().await.unwrap().unwrap()).unwrap();
+    assert_eq!(event["event"], "connectivity");
+    assert_eq!(event["state"]["panel_open"], true);
+    // Opening wireless hides the agent overlay, but legacy clients still get only agent state.
+    let event: Value = serde_json::from_str(&agent.next().await.unwrap().unwrap()).unwrap();
+    assert_eq!(event["event"], "state");
+    assert!(
+        tokio::time::timeout(Duration::from_millis(50), agent.next())
+            .await
+            .is_err()
+    );
+
+    agent
+        .send(r#"{"id":3,"op":"connectivity_subscribe"}"#)
+        .await
+        .unwrap();
+    let reply: Value = serde_json::from_str(&agent.next().await.unwrap().unwrap()).unwrap();
+    assert_eq!(reply["id"], 3);
+    assert_eq!(reply["result"]["panel_open"], true);
+    server::call(&daemon.path, Operation::Toggle).await.unwrap();
+    let mut events = Vec::new();
+    for _ in 0..2 {
+        let event: Value = serde_json::from_str(&agent.next().await.unwrap().unwrap()).unwrap();
+        assert_eq!(event["state"]["panel_open"], event["event"] == "state");
+        events.push(event["event"].as_str().unwrap().to_owned());
+    }
+    events.sort();
+    assert_eq!(events, ["connectivity", "state"]);
+    let event: Value = serde_json::from_str(&wireless.next().await.unwrap().unwrap()).unwrap();
+    assert_eq!(event["event"], "connectivity");
+    assert_eq!(event["state"]["panel_open"], false);
+    assert!(
+        tokio::time::timeout(Duration::from_millis(50), wireless.next())
+            .await
+            .is_err()
+    );
+    daemon.stop().await;
+}
+
+#[tokio::test]
+async fn wireless_validation_cannot_replace_an_agent_confirmation() {
+    let daemon = Daemon::start().await;
+    server::call(
+        &daemon.path,
+        Operation::Command {
+            text: "workspace 2".into(),
+            dry_run: true,
+        },
+    )
+    .await
+    .unwrap();
+    let before = server::call(&daemon.path, Operation::Status).await.unwrap();
+    assert!(before["confirmation"].is_number());
+    server::call(
+        &daemon.path,
+        Operation::Connectivity {
+            request: hyprlume::services::connectivity::Request::Toggle,
+        },
+    )
+    .await
+    .unwrap();
+    let rejected = server::call(
+        &daemon.path,
+        Operation::Connectivity {
+            request: hyprlume::services::connectivity::Request::WifiConnect {
+                network: "stale-network".into(),
+                password: None,
+            },
+        },
+    )
+    .await;
+    assert!(rejected.is_err());
+    let after = server::call(&daemon.path, Operation::Status).await.unwrap();
+    assert_eq!(after["confirmation"], before["confirmation"]);
+    assert_eq!(after["actions"], before["actions"]);
+    assert_eq!(after["panel_open"], false);
+    daemon.stop().await;
+}

@@ -27,6 +27,9 @@ Delivered in the current tree:
   used by the live shell and native input tests.
 - Physical-session checks for wallpaper/bar layers, workspace switching, focus,
   window moves and dashboard hide/restore on Hyprland 0.57.1 Lua.
+- The first desktop-service panel: Wi-Fi/Bluetooth through Rust NetworkManager
+  and BlueZ adapters, with scans, connection controls and explicit pairing
+  prompts. See [supported modes and qualification](connectivity.md).
 
 Still open:
 
@@ -35,9 +38,27 @@ Still open:
   field.
 - Full task-specific pages and persisted workflows behind navigation. Existing
   tabs select the console, action activity, assistant focus or live system data.
-- Audio/network/power panels through native services.
+- Remaining desktop services in the implementation sequence below.
 - A compositor adapter boundary if niri support becomes useful. Hyprland is
   the only implemented compositor backend today.
+
+## Desktop-service sequence
+
+Each service gets a Rust owner, an independent state topic, themed QML controls,
+unavailable/busy/error states and native UI tests before the next one starts.
+No custom C++ service code is needed. User-selected priority is connectivity:
+
+1. **Wi-Fi/Bluetooth:** implemented; physical connection/pairing qualification,
+   hidden/enterprise profile editing and Bluetooth battery indicators remain.
+2. **Notifications:** D-Bus notification ownership, actions, dismissal and history.
+3. **Audio/media:** PipeWire devices/routing, volume and MPRIS playback.
+4. **Power/session:** battery, brightness, power profiles, suspend and logout.
+5. **System tray:** StatusNotifier items and menus.
+6. **App launcher:** desktop-entry indexing, search and app/window activation.
+7. **Clipboard/capture:** Wayland clipboard history, screenshots and recording.
+8. **Settings:** persisted preferences, effects/motion and service configuration.
+9. **Screen locking:** a real session-lock integration with authentication and
+   recovery qualification; a fullscreen panel alone cannot provide a lock.
 
 ## Agent work
 

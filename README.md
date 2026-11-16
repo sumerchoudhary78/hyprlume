@@ -3,11 +3,11 @@
 # Hyprlume
 
 A glass command shell and local English voice companion for **Hyprland**.
-Rust handles the agent and audio; Quickshell / Qt Quick renders the interface;
+Rust handles desktop services, the agent and audio; Quickshell / Qt Quick renders the interface;
 [HyprPilot](https://github.com/sumerchoudhary78/HyprPilot) supplies typed desktop control.
 
-**v0.3.0 is a desktop-shell preview:** a cinematic liquid-glass dashboard, persistent
-room wallpaper, real 3D holograms, command console and local speech pipeline.
+**v0.4.0 is a desktop-shell preview:** a cinematic liquid-glass dashboard, persistent
+room wallpaper, real 3D holograms, Wi-Fi/Bluetooth controls, command console and local speech pipeline.
 It does not yet replace every desktop service. See [roadmap](docs/roadmap.md)
 and [validation](docs/validation.md) for implemented behavior and remaining work.
 
@@ -25,6 +25,10 @@ The panels, text and controls are QML; the room is a cached wallpaper asset.*
 - Real 3D globe/city geometry, refracted glass edges, pointer lighting, liquid
   CPU/RAM/GPU vessels, a perspective action deck, compact layout and
   reduced-effects mode.
+- A glass Connections overlay backed by NetworkManager and BlueZ over D-Bus:
+  Wi-Fi scans, saved/open/WPA2/WPA3 connections, radio controls, Bluetooth
+  discovery, pairing-code prompts, reconnect/disconnect and forgetting devices.
+  See [wireless setup and limits](docs/connectivity.md).
 - Direct commands for workspaces, window moves/focus, allowlisted app launches,
   volume, and mute. Direct commands do not need an LLM.
 - Streaming English speech recognition, a separate **“Hey Pilot”** wake model,
@@ -50,6 +54,8 @@ The shell is Hyprland-native rather than a standalone bar:
   state, a workspace rail, and a voice/command ring.
 - **Command panel**, an overlay with exclusive keyboard focus, loaded only while
   the daemon reports it open.
+- **Connections**, a separate overlay opened from Network/the globe button in the
+  bar or `hyprlume connectivity`. Wireless requests stay separate from AI plans.
 
 Dashboard glass uses a cached wallpaper capture and precompiled Qt Quick
 shaders for blur, curved edges and reflections. Hyprland layer blur is optional
@@ -86,6 +92,8 @@ hyprlume toggle
 hyprlume send 'workspace 2'            # preview
 hyprlume send 'workspace 2' --execute  # apply a direct command
 hyprlume status
+hyprlume connectivity                 # open/close Wi-Fi and Bluetooth
+hyprlume connectivity --status        # read-only service snapshot
 ```
 
 `send` returns after the daemon accepts a request. Its result appears in the UI
@@ -119,10 +127,12 @@ hyprlume transcribe /path/to/english-speech.wav
 
 ## Build from source
 
-Requires a current Rust toolchain. The checked-in lockfile pins the Rust
+Requires Rust 1.90 or newer. The checked-in lockfile pins the Rust
 dependencies and the exact HyprPilot commit. On Linux, install Quickshell,
 Qt 6 Quick/Controls/Wayland, **Qt Quick 3D (6.9+)**, Hyprland, PipeWire tools, and
-WirePlumber separately. Tested with Quickshell 0.3.2 and Qt 6.12 on Arch.
+WirePlumber separately. Native wireless builds also need D-Bus development
+headers and `pkg-config` (`dbus` and `pkgconf` on Arch); NetworkManager and BlueZ
+are optional runtime services. Tested with Quickshell 0.3.2 and Qt 6.12 on Arch.
 
 ```sh
 git clone https://github.com/sumerchoudhary78/hyprlume.git
@@ -151,6 +161,7 @@ Quickshell / QML ← private Unix socket → Rust daemon
                                              ├─ direct command parser
                                              ├─ optional local LLM → review
                                              ├─ validated actions → HyprPilot / PipeWire
+                                             ├─ wireless service → NetworkManager / BlueZ
                                              └─ bounded audio worker → wake / ASR / Piper
 ```
 
@@ -160,7 +171,9 @@ Glass captures the local room plate at half resolution and reuses it between
 geometry changes. Its optical background is cached separately from controls.
 One 16 Hz clock drives all three water gauges after a reading changes or while
 hovered, then settles after 3.2 seconds. Hidden dashboards and open command
-overlays stop that clock. The 3D view has no continuous animation loop. Use
+or Connections overlays stop that clock. Wireless state follows D-Bus events;
+Bluetooth discovery runs only on request and stops after 15 seconds or panel
+closure. The 3D view has no continuous animation loop. Use
 `HYPRLUME_REDUCED_EFFECTS=1 hyprlume shell` for static fills without 3D, glass
 refraction/blur or rim bloom.
 
@@ -185,6 +198,7 @@ python3 scripts/build-shaders.py --check
 python3 scripts/qa/check-effects.py
 python3 scripts/qa/render-desktop.py
 python3 scripts/qa/render-desktop.py --interact
+python3 scripts/qa/render-desktop.py --connectivity --interact
 ```
 
 Shader binaries are checked in, so source users need no shader compiler at

@@ -30,22 +30,36 @@ STATE = {
     "active_app": "kitty",
 }
 
-CLIENTS = set()
+CONNECTIVITY = {
+    "panel_open": False,
+    "busy": False,
+    "message": "Synthetic wireless services are unavailable in this IPC fixture.",
+    "error": "",
+    "wifi": {"available": False, "enabled": False, "hardware_enabled": False,
+             "interfaces": [], "networks": [], "error": "No fixture Wi-Fi adapter"},
+    "bluetooth": {"available": False, "adapters": [], "devices": [],
+                  "error": "No fixture Bluetooth adapter"},
+    "prompt": None,
+}
+
+CLIENTS = {}
 PLAN_TASK = None
 
 
-def wire(state):
-    return (json.dumps({"event": "state", "state": state}) + "\n").encode()
+def wire(state, topic="state"):
+    return (json.dumps({"event": topic, "state": state}) + "\n").encode()
 
 
-async def broadcast():
-    payload = wire(STATE)
-    for writer in list(CLIENTS):
+async def broadcast(topic="state"):
+    payload = wire(STATE if topic == "state" else CONNECTIVITY, topic)
+    for writer, topics in list(CLIENTS.items()):
+        if topic not in topics:
+            continue
         try:
             writer.write(payload)
             await writer.drain()
         except (ConnectionError, RuntimeError):
-            CLIENTS.discard(writer)
+            CLIENTS.pop(writer, None)
 
 
 def reset_plan():
@@ -82,7 +96,7 @@ async def plan_later(dry_run):
 
 async def handle(reader, writer):
     global PLAN_TASK
-    CLIENTS.add(writer)
+    CLIENTS[writer] = set()
     try:
         while True:
             line = await reader.readline()
@@ -98,13 +112,37 @@ async def handle(reader, writer):
             operation = request.get("op")
             request_id = request.get("id")
 
-            if operation == "subscribe":
-                writer.write(wire(STATE))
+            if operation in ("subscribe", "connectivity_subscribe", "connectivity_status"):
+                wireless = operation != "subscribe"
+                if operation.endswith("subscribe"):
+                    CLIENTS[writer].add("connectivity" if wireless else "state")
+                writer.write((json.dumps({"id": request_id, "result": CONNECTIVITY if wireless else STATE}) + "\n").encode())
                 await writer.drain()
+                continue
+
+            if operation == "connectivity":
+                action = request.get("request", {}).get("action")
+                if action == "toggle":
+                    CONNECTIVITY["panel_open"] = not CONNECTIVITY["panel_open"]
+                    if CONNECTIVITY["panel_open"]:
+                        STATE["panel_open"] = False
+                elif action == "close":
+                    CONNECTIVITY["panel_open"] = False
+                elif action != "refresh":
+                    writer.write((json.dumps({"id": request_id, "error": "No wireless hardware in this fixture"}) + "\n").encode())
+                    await writer.drain()
+                    continue
+                writer.write((json.dumps({"id": request_id, "result": CONNECTIVITY}) + "\n").encode())
+                await writer.drain()
+                await broadcast("connectivity")
+                await broadcast()
                 continue
 
             if operation == "toggle":
                 STATE["panel_open"] = not STATE["panel_open"]
+                if STATE["panel_open"]:
+                    CONNECTIVITY["panel_open"] = False
+                    await broadcast("connectivity")
             elif operation == "command":
                 reset_plan()
                 dry_run = request.get("dry_run", True)
@@ -158,7 +196,7 @@ async def handle(reader, writer):
     except (ConnectionError, asyncio.CancelledError):
         pass
     finally:
-        CLIENTS.discard(writer)
+        CLIENTS.pop(writer, None)
         writer.close()
 
 

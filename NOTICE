@@ -7,6 +7,13 @@ Local speech inference uses sherpa-onnx (Apache-2.0) and ONNX Runtime (MIT):
 https://github.com/k2-fsa/sherpa-onnx
 https://github.com/microsoft/onnxruntime
 
+Native wireless adapters use nmrs 3.5.12 (MIT) and BlueR 0.17.4
+(BSD-2-Clause, with separately attributed assigned-number data). Their full
+upstream notices are retained in docs/third-party/ and installed with the docs:
+https://github.com/freedesktop-rs/nmrs
+https://github.com/bluez/bluer
+libdbus is a dynamically linked system library and is installed separately.
+
 Quickshell/Qt and espeak-ng are separately installed programs. Their licenses
 apply to those programs. Hyprlume does not link espeak-ng or piper-phonemize.
 

@@ -1,6 +1,18 @@
 # Changelog
 
-## Unreleased
+## 0.4.0 — 2026-11-17
+
+- Add a liquid-glass Connections overlay with responsive Wi-Fi/Bluetooth panes,
+  password entry, adapter selection, explicit pairing prompts and target-bound
+  forget confirmations. Share the existing theme and reduced-effects profile.
+- Add Rust NetworkManager/BlueZ adapters with event-driven snapshots, bounded
+  requests, one operation at a time, timed discovery and cancellable pairing.
+  Keep credentials and service requests separate from AI plans and transcripts.
+- Add opt-in connectivity subscriptions and read-only CLI status without
+  changing the existing agent subscription topic.
+- Exercise synthetic wireless actions, credential redaction, stale targets,
+  prompt expiry/replay, cancellation and protocol isolation; render compact,
+  absent-adapter and pairing states with the actual QML components.
 
 - Separate application workflows, socket transport, command parsing, local
   model requests, concrete desktop adapters and native speech modules.

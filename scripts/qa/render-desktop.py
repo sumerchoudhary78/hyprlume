@@ -9,17 +9,16 @@ Requires quickshell, Qt Quick 3D, xvfb-run, xauth, dbus-run-session; xdotool for
 from __future__ import annotations
 
 import argparse
-import json
 import os
 from pathlib import Path
-import queue
 import re
 import shutil
 import subprocess
 import sys
 import tempfile
-import threading
-import time
+
+from ui_driver import UiDriver
+from cases import commands as command_case, connectivity as connectivity_case
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -31,10 +30,12 @@ def main():
     parser.add_argument('--height', type=int, default=945)
     parser.add_argument('--reduced-effects', action='store_true')
     parser.add_argument('--interact', action='store_true')
+    parser.add_argument('--connectivity', action='store_true', help='render or exercise the Wi-Fi/Bluetooth panel')
+    parser.add_argument('--connectivity-state', choices=['normal', 'unavailable', 'pairing', 'pin'], default='normal')
     parser.add_argument('--effects', action='store_true', help='render isolated liquid materials and test their motion clock')
     parser.add_argument('--inside-display', action='store_true', help=argparse.SUPPRESS)
     args = parser.parse_args()
-    if args.effects and args.interact:
+    if args.effects and (args.interact or args.connectivity):
         parser.error('--effects and --interact are separate checks')
     if min(args.width, args.height) < 400:
         parser.error('preview dimensions must be at least 400 pixels')
@@ -58,126 +59,41 @@ def main():
                HYPRLUME_REDUCED_EFFECTS='1' if args.reduced_effects else '0',
                HYPRLUME_SCREENSHOT='' if args.interact else str(args.output),
                HYPRLUME_QA='1' if args.interact else '0',
-               HYPRLUME_EFFECTS_QA='1' if args.effects else '0')
+               HYPRLUME_EFFECTS_QA='1' if args.effects else '0',
+               HYPRLUME_CONNECTIVITY_PREVIEW='1' if args.connectivity and not args.interact else '0',
+               HYPRLUME_CONNECTIVITY_STATE=args.connectivity_state)
     proc = subprocess.Popen(['quickshell', '-p', str(ROOT/'shell/design-preview.qml')], cwd=ROOT, env=env,
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
-    events = queue.Queue()
-    logs = []
-    controls = {}
-
-    def read_logs():
-        for line in proc.stdout:
-            logs.append(line)
-            match = re.search(r'HYPRLUME_QA (\{.*\})', line)
-            if match:
-                events.put(json.loads(match.group(1)))
-    thread = threading.Thread(target=read_logs, daemon=True)
-    thread.start()
-
-    def wait_event(predicate, timeout=6):
-        end = time.monotonic()+timeout
-        while time.monotonic()<end:
-            if proc.poll() is not None:
-                raise AssertionError('QML exited before the interaction completed')
-            try:
-                event = events.get(timeout=0.1)
-            except queue.Empty:
-                continue
-            if event['kind'] == 'controls':
-                controls.clear()
-                controls.update(event['controls'])
-            if predicate(event):
-                return event
-        raise AssertionError('timed out waiting for a UI event')
-
-    def xdo(*parts):
-        return subprocess.check_output(['xdotool', *map(str, parts)], text=True).strip()
-
-    def wait_controls(name, present=True):
-        wait_event(lambda e: e['kind']=='controls' and ((name in e['controls']) == present))
-
-    def click(name):
-        if name not in controls:
-            raise AssertionError(f'control missing: {name}; found {list(controls)}')
-        position = controls[name]
-        if not position['enabled']:
-            raise AssertionError(f'control is disabled: {name}')
-        xdo('mousemove', '--sync', round(position['x']), round(position['y']), 'click', '1')
-
-    def request(op):
-        return wait_event(lambda e:e['kind']=='request' and e['operation']['op']==op)['operation']
-
+    driver = UiDriver(proc)
     try:
         if not args.interact:
             code = proc.wait(timeout=40)
-            thread.join(timeout=2)
-            if code != 0 or not args.output.exists() or 'HYPRLUME_RENDER_PASS' not in ''.join(logs):
+            driver.thread.join(timeout=2)
+            if code != 0 or not args.output.exists() or 'HYPRLUME_RENDER_PASS' not in ''.join(driver.logs):
                 raise AssertionError('desktop screenshot failed')
             print(f'RENDER PASS {args.width}x{args.height}: {args.output}')
             if args.effects:
-                result = next((line.split('HYPRLUME_EFFECTS_RESULT ', 1)[1].strip() for line in logs if 'HYPRLUME_EFFECTS_RESULT ' in line), None)
+                result = next((line.split('HYPRLUME_EFFECTS_RESULT ', 1)[1].strip() for line in driver.logs if 'HYPRLUME_EFFECTS_RESULT ' in line), None)
                 if result is None:
                     raise AssertionError('liquid shader/motion checks did not complete')
                 print('HYPRLUME_EFFECTS_RESULT '+result)
         else:
             if not shutil.which('xdotool'):
                 raise AssertionError('xdotool is required for --interact')
-            wait_controls('quickCommand')
-            window_id = xdo('search', '--onlyvisible', '--name', '^Hyprlume Design Preview$').splitlines()[0]
-            xdo('windowfocus', '--sync', window_id)
-            click('quickCommand'); request('toggle'); wait_controls('commandInput')
-            xdo('type', '--clearmodifiers', '--delay', '25', 'workspace 2'); xdo('key', 'Return')
-            r = request('command')
-            assert r['text']=='workspace 2' and r['dry_run'] is True, r
-            wait_event(lambda e:e['kind']=='controls' and 'commandInput' in e['controls'] and not e['controls']['commandInput']['enabled'] and 'confirmPlan' not in e['controls'])
-            assert not controls['previewCommand']['enabled'] and not controls['runDirect']['enabled'], 'busy controls remained enabled'
-            wait_controls('confirmPlan')
-            assert not controls['commandInput']['enabled'], 'review allowed a replacement command'
-            click('confirmPlan'); r=request('confirm'); assert r['token']==42, r
-            xdo('key','Escape'); request('toggle'); wait_controls('commandInput',False)
-            print('PASS keyboard entry previews; busy controls disable; review locks input; confirmation carries the token')
-            click('quickCommand'); request('toggle'); wait_controls('commandInput')
-            xdo('type', '--clearmodifiers', '--delay', '25', 'volume 30')
-            wait_event(lambda e:e['kind']=='controls' and e['controls'].get('runDirect',{}).get('enabled',False))
-            click('runDirect'); r=request('command'); assert r['text']=='volume 30' and r['dry_run'] is False,r
-            wait_event(lambda e:e['kind']=='controls' and 'commandInput' in e['controls'] and e['controls']['commandInput']['enabled'])
-            xdo('key','Escape'); request('toggle'); wait_controls('commandInput',False)
-            print('PASS direct execution requires the explicit Run direct button')
-            click('toggleVoice'); r=request('voice'); assert r['mode']=='wake',r
-            wait_event(lambda e:e['kind']=='controls')
-            click('toggleVoice'); r=request('voice'); assert r['mode']=='off',r
-            wait_event(lambda e:e['kind']=='controls')
-            print('PASS wake-word control sends wake/off; fixture never opens a microphone')
-            click('workspaceRow2'); e=wait_event(lambda e:e['kind']=='workspace'); assert e['name']=='Operations',e
-            click('mode4'); e=wait_event(lambda e:e['kind']=='mode'); assert e['mode']==4,e
-            print('PASS transformed workspace rows and top-bar navigation receive real pointer input')
-            if not args.reduced_effects:
-                click('hologramGlobeRegion'); e=wait_event(lambda e:e['kind']=='mode'); assert e['mode']==5,e
-                click('hologramCityRegion'); e=wait_event(lambda e:e['kind']=='mode'); assert e['mode']==4,e
-                print('PASS real 3D globe and city route to network and container views')
+            if args.connectivity:
+                connectivity_case.run(driver)
             else:
-                assert 'hologramGlobeRegion' not in controls and 'hologramCityRegion' not in controls
-            click('agentVolume'); r=request('command'); assert r['text']=='volume 35' and r['dry_run'] is True,r
-            wait_controls('cancelPlan'); click('cancelPlan'); request('cancel')
-            xdo('key','Escape'); request('toggle'); wait_controls('commandInput',False)
-            click('launcherterminal'); r=request('command'); assert r['text']=='launch terminal' and r['dry_run'] is True,r
-            print('PASS agent shortcut previews; dismissal cancels; spatial terminal launcher previews an allowlisted app')
-            print('INTERACTION PASS: desktop controls and confirmation flow')
-        text = ''.join(logs)
+                command_case.run(driver, args.reduced_effects)
+        text = ''.join(driver.logs)
         if re.search(r'(ReferenceError:|TypeError:|Unable to assign|Cannot assign|Failed to load|Failed to deserialize|HYPRLUME_EFFECTS_FAIL|ERROR:)', text):
             raise AssertionError('runtime QML errors in log')
         return 0
     except (AssertionError, subprocess.SubprocessError, KeyError, IndexError) as error:
-        print(f'FAIL: {error}\n'+''.join(logs[-70:]), file=sys.stderr)
+        print(f'FAIL: {error}\n'+''.join(driver.logs[-70:]), file=sys.stderr)
         return 1
     finally:
-        if proc.poll() is None:
-            proc.terminate()
-            try:
-                proc.wait(timeout=5)
-            except subprocess.TimeoutExpired:
-                proc.kill(); proc.wait()
-        thread.join(timeout=2)
+        driver.stop()
+
 
 
 if __name__=='__main__':

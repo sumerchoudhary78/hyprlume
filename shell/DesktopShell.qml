@@ -4,13 +4,14 @@ import Quickshell.Hyprland
 import Quickshell.Wayland
 import qs.components
 import qs.modules.command
+import qs.modules.connectivity
 import qs.modules.home
 import qs.modules.scene
 import qs.modules.topbar
 import qs.theme
 
 // Composition root: one bar per monitor, plus the desktop dashboard on the
-// focused monitor, plus the command panel overlay.
+// focused monitor, plus mutually exclusive command and connectivity overlays.
 Item {
     id: desktop
 
@@ -65,7 +66,7 @@ Item {
     }
 
     Loader {
-        active: desktop.backend.snapshot.panel_open
+        active: desktop.backend.online && desktop.backend.snapshot.panel_open && !desktop.backend.connectivity.panel_open
 
         sourceComponent: PanelWindow {
             screen: desktop.focusedScreen
@@ -86,6 +87,22 @@ Item {
             CommandOverlay {
                 anchors.fill: parent
                 backend: desktop.backend
+            }
+        }
+    }
+
+    Loader {
+        active: desktop.backend.online && desktop.backend.connectivity.panel_open
+        sourceComponent: PanelWindow {
+            screen: desktop.focusedScreen
+            anchors { top: true; bottom: true; left: true; right: true }
+            exclusiveZone: 0; color: "transparent"
+            WlrLayershell.namespace: "hyprlume-connectivity"
+            WlrLayershell.layer: WlrLayer.Overlay
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+            ConnectivityOverlay {
+                anchors.fill: parent; backend: desktop.backend
+                reducedEffects: desktop.state.reducedEffects
             }
         }
     }

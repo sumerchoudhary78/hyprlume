@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import qs.modules.home
 import qs.modules.command
+import qs.modules.connectivity
 
 // Ordinary-window host for the same live dashboard used by layer-shell.
 FloatingWindow {
@@ -22,10 +23,17 @@ FloatingWindow {
     }
     Loader {
         anchors.fill: parent
-        active: window.backend.snapshot.panel_open
+        active: window.backend.online && window.backend.snapshot.panel_open && !window.backend.connectivity.panel_open
         sourceComponent: CommandOverlay {
             anchors.fill: parent
             backend: window.backend
+        }
+    }
+    Loader {
+        anchors.fill: parent
+        active: window.backend.online && window.backend.connectivity.panel_open
+        sourceComponent: ConnectivityOverlay {
+            anchors.fill: parent; backend: window.backend; reducedEffects: window.state.reducedEffects
         }
     }
 }

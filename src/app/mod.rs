@@ -19,6 +19,7 @@ use tokio::sync::{watch, Mutex, Semaphore};
 pub struct App {
     pub config: Config,
     pub desktop: Desktop,
+    pub(crate) connectivity: Arc<crate::services::connectivity::Controller>,
     state: watch::Sender<State>,
     pending: Mutex<Option<commands::Pending>>,
     busy: Arc<Semaphore>,
@@ -41,6 +42,7 @@ impl App {
         Arc::new(Self {
             config,
             desktop: Desktop::new(demo),
+            connectivity: crate::services::connectivity::Controller::new(demo),
             state,
             pending: Mutex::new(None),
             busy: Arc::new(Semaphore::new(1)),
@@ -69,7 +71,21 @@ impl App {
     pub async fn handle(self: &Arc<Self>, operation: Operation) -> Result<Value> {
         match operation {
             Operation::Status | Operation::Subscribe => Ok(json!(self.state())),
+            Operation::ConnectivityStatus | Operation::ConnectivitySubscribe => {
+                Ok(json!(self.connectivity.state()))
+            }
+            Operation::Connectivity { request } => {
+                if matches!(request, crate::services::connectivity::Request::Toggle)
+                    && !self.connectivity.state().panel_open
+                {
+                    self.update(|state| state.panel_open = false);
+                }
+                self.connectivity.handle(request).await
+            }
             Operation::Toggle => {
+                if !self.state().panel_open {
+                    self.connectivity.close().await;
+                }
                 self.update(|state| state.panel_open = !state.panel_open);
                 Ok(json!(self.state()))
             }

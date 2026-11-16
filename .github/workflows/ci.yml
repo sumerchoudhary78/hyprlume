@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Install native D-Bus development headers
+        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev pkg-config
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
@@ -43,13 +45,21 @@ jobs:
           python3 scripts/build-shaders.py --check
           python3 scripts/build-shaders.py
           python3 scripts/build-shaders.py --check
-          python3 -m py_compile scripts/build-shaders.py scripts/qa/check-effects.py scripts/qa/render-desktop.py scripts/qa/profile-live.py scripts/qa/mock-daemon.py scripts/benchmark.py
+          python3 -m compileall -q scripts
       - name: Check liquid volume and paused motion
         run: python3 scripts/qa/check-effects.py
       - name: Render the desktop with real Qt Quick 3D
         run: python3 scripts/qa/render-desktop.py --width 1920 --height 1080 --output output/design/desktop.png
       - name: Exercise pointer, keyboard, preview and confirmation
         run: python3 scripts/qa/render-desktop.py --interact
+      - name: Exercise Wi-Fi and Bluetooth with synthetic hardware
+        run: python3 scripts/qa/render-desktop.py --connectivity --interact
+      - name: Render wireless and pairing states
+        run: |
+          python3 scripts/qa/render-desktop.py --connectivity --output output/design/connections.png
+          python3 scripts/qa/render-desktop.py --connectivity --connectivity-state pairing --output output/design/pairing.png
+          python3 scripts/qa/render-desktop.py --connectivity --connectivity-state pin --width 700 --height 680 --output output/design/pairing-pin.png
+          python3 scripts/qa/render-desktop.py --connectivity --connectivity-state unavailable --width 960 --height 640 --output output/design/wireless-unavailable.png
       - name: Check compact and reduced-effects compositions
         run: |
           python3 scripts/qa/render-desktop.py --width 960 --height 640 --output output/design/compact.png

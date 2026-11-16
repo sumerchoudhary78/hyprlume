@@ -18,7 +18,8 @@ shell/
 │   ├── scene/                wallpaper, Qt Quick 3D view and geometry generation
 │   ├── home/                 dashboard composition, console, cards and action deck
 │   ├── topbar/               bar content and navigation primitives
-│   └── command/              panel composition, editor, plan review and overlay
+│   ├── command/              panel composition, editor, plan review and overlay
+│   └── connectivity/         Wi-Fi, Bluetooth and modal pairing prompts
 ├── services/                 daemon socket, metrics, clock, workspace state
 ├── fixtures/                 synthetic data and UI-control probe; QA only
 └── theme/Theme.qml           shared palette, typography and interaction timing
@@ -37,6 +38,13 @@ and emits confirm/dismiss signals. `CommandPanel.qml` composes those pieces
 and maps their intent to the existing protocol. None of the editor/review
 components opens a socket or starts a process. The native input suite exercises
 these exact components in both effects profiles.
+
+`modules/connectivity/` follows the same boundary: its panes own selection and
+temporary input, emit action objects, and never access D-Bus or start processes.
+`Backend.qml` subscribes to the independent connectivity topic alongside agent
+state. Pairing is a modal child with a single-use token. `PreviewData.qml`
+supplies explicit fake wireless records; `scripts/qa/cases/connectivity.py`
+drives these same controls with real pointer/keyboard input.
 
 `qs.*` imports are resolved by Quickshell relative to the entry's shell root.
 Keep entry files at that root. The AUR package excludes fixtures and QA entries.

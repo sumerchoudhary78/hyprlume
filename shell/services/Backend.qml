@@ -8,6 +8,7 @@ Item {
     property string error: ""
     property int sequence: 0
     property var snapshot: ({phase: "offline", message: "Start hyprlume daemon to connect", transcript: "", actions: [], receipts: [], confirmation: null, panel_open: false, voice: "off", workspace: null, active_app: ""})
+    property var connectivity: ({panel_open:false,busy:false,message:"Connecting to desktop services",error:"",wifi:{available:false,enabled:false,hardware_enabled:false,interfaces:[],networks:[],error:""},bluetooth:{available:false,adapters:[],devices:[],error:""},prompt:null})
     readonly property string socketPath: Quickshell.env("HYPRLUME_SOCKET") || (Quickshell.env("XDG_RUNTIME_DIR") + "/hyprlume/control.sock")
 
     function send(operation) {
@@ -31,6 +32,7 @@ Item {
                 reconnect.stop()
                 reconnect.interval = 500
                 backend.send({op: "subscribe"})
+                backend.send({op: "connectivity_subscribe"})
             } else {
                 reconnect.restart()
             }
@@ -44,7 +46,9 @@ Item {
                 try {
                     const data = JSON.parse(message)
                     if (data.event === "state") backend.snapshot = data.state
+                    else if (data.event === "connectivity") backend.connectivity = data.state
                     else if (data.result && data.result.phase) backend.snapshot = data.result
+                    else if (data.result && data.result.wifi && data.result.bluetooth) backend.connectivity = data.result
                     else if (data.error) backend.error = data.error
                 } catch (error) {
                     backend.error = "Invalid daemon response"

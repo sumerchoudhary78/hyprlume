@@ -14,6 +14,8 @@ Item {
     implicitHeight: size
     readonly property string path: {
         const n = name;
+        if (n === "wifi") return "M2 8C7 2 17 2 22 8M5 12C9 7 15 7 19 12M8 16C10 13 14 13 16 16M12 20V20.2";
+        if (n === "bluetooth") return "M12 2V22L19 16L5 5M5 19L19 8L12 2";
         if (n.indexOf("terminal") >= 0) return "M4 6L10 12L4 18M13 18H21";
         if (n.indexOf("flash") >= 0 || n === "bolt") return "M14 2L4 14H11L10 22L21 9H14Z";
         if (n.indexOf("home") >= 0) return "M3 11L12 3L21 11M6 9V21H10V15H14V21H18V9";

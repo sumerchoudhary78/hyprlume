@@ -12,6 +12,11 @@ pub struct Request {
 pub enum Operation {
     Status,
     Subscribe,
+    ConnectivitySubscribe,
+    ConnectivityStatus,
+    Connectivity {
+        request: crate::services::connectivity::Request,
+    },
     Command {
         text: String,
         #[serde(default = "yes")]

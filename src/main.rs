@@ -39,6 +39,11 @@ enum Commands {
         execute: bool,
     },
     Status,
+    /// Open the wireless panel, or print its current state without changing connections.
+    Connectivity {
+        #[arg(long)]
+        status: bool,
+    },
     Toggle,
     Cancel,
     /// Confirm a specific preview token (expires after 30 seconds).
@@ -155,6 +160,15 @@ async fn main() -> Result<()> {
                     dry_run: !execute,
                 },
                 Commands::Status => Operation::Status,
+                Commands::Connectivity { status } => {
+                    if status {
+                        Operation::ConnectivityStatus
+                    } else {
+                        Operation::Connectivity {
+                            request: hyprlume::services::connectivity::Request::Toggle,
+                        }
+                    }
+                }
                 Commands::Toggle => Operation::Toggle,
                 Commands::Cancel => Operation::Cancel,
                 Commands::Confirm { token } => Operation::Confirm { token },

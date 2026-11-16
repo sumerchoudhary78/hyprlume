@@ -26,6 +26,9 @@ src/
 │   ├── hyprland.rs           workspace/window actions and Lua compatibility
 │   ├── applications.rs       independent systemd application launches
 │   └── audio.rs              checked PipeWire volume/mute actions
+├── services/
+│   └── connectivity/         wireless state, validation, admission and pairing
+│       └── native/           NetworkManager/BlueZ adapters and event streams
 └── voice/
     ├── mod.rs                public speech API and events
     ├── models.rs             model discovery and recognizer configuration
@@ -60,14 +63,15 @@ socket is mode 0600. A file lock prevents a second daemon replacing a live
 instance. Only a socket, never a regular file or symlink, can be replaced on
 restart. At most 16 clients connect, with bounded frames and write deadlines.
 
-The UI subscribes once. A Tokio watch channel coalesces state into the latest
+The UI uses one socket with agent and connectivity subscriptions. Independent
+Tokio watch channels coalesce state into the latest
 snapshot rather than retaining an unbounded event queue. Reconnect timers run
 only while disconnected. The daemon reads Hyprland's event socket through
 HyprPilot, without a polling loop for desktop status.
 
 ## Shell surfaces
 
-Quickshell renders four layer-shell surface roles and one ordinary window for
+Quickshell renders five layer-shell surface roles and one ordinary window for
 preview:
 
 - `hyprlume-wallpaper`, one per monitor, Background layer with no input region.
@@ -78,6 +82,8 @@ preview:
   ordinary windowed session pays no rendering cost for it.
 - `hyprlume-command`, `WlrLayer.Overlay` with exclusive keyboard focus, loaded
   only while `snapshot.panel_open` is true.
+- `hyprlume-connectivity`, a separate Overlay loaded only while Connections is
+  open. Command and wireless overlays exclude each other.
 - `PreviewWindow`, a `FloatingWindow` used by `hyprlume shell --preview`.
 
 Surfaces contain no protocol logic. `services/Backend.qml` owns the socket and
@@ -91,6 +97,13 @@ blur is optional for the bar/command surfaces; application contents are never
 captured by the glass renderer. One Qt Quick 3D viewport holds the globe and city.
 The reduced-effects profile skips that viewport and local blur. See
 [homescreen](homescreen.md) for composition, responsiveness and data ownership.
+
+Wireless state and commands have a dedicated controller under `services`,
+outside the planner. NetworkManager and BlueZ supply event-driven hardware
+observations. A semaphore rejects overlapping wireless operations, discovery is
+timed, and pairing uses an expiring response broker. Credentials stay out of
+published snapshots and AI state. Details and extension points are in
+[connectivity](connectivity.md).
 
 ## HyprPilot integration
 

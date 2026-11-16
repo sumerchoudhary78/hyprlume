@@ -119,10 +119,10 @@ empty input region. It persists behind apps and does not reserve screen space.
 The dashboard samples this same room asset inside QML for its own glass blur.
 It does not need a full-screen compositor blur rule.
 
-For optional blur behind the small bar and command overlay on Lua Hyprland:
+For optional blur behind the bar, command and Connections overlays on Lua Hyprland:
 
 ```lua
-hl.layer_rule({ match = { namespace = "^hyprlume-(bar|command)$" }, blur = true, ignore_alpha = 0.1 })
+hl.layer_rule({ match = { namespace = "^hyprlume-(bar|command|connectivity)$" }, blur = true, ignore_alpha = 0.1 })
 ```
 
 Refer to your version's [layer-rule documentation](https://wiki.hypr.land/configuring/core/rules/layer-rules/).

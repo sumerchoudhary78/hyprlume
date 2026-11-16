@@ -5,18 +5,22 @@ approximately 15 GiB usable RAM, Quickshell 0.3.2, Qt 6.12 and Hyprland 0.57.1
 with a Lua configuration. The physical output was 1920×1080 in its 144 Hz mode.
 No physical microphone recording or speaker playback was used.
 
-The source refactor was rechecked on **17 November 2026** with the native Arch
-runtime and macOS arm64 development builds. The physical-session and overhead
+The source refactor and Wi-Fi/Bluetooth service were checked on **17 November
+2026** with the native Arch runtime and macOS arm64 development builds. The older physical-session and overhead
 samples below describe the desktop releases measured on 16 November.
 
 ## Automated checks
 
-- **29 Rust checks** (25 integration tests and four voice/PCM unit tests) cover bounded commands, reviewed local model
+- **38 Rust checks** (27 integration tests and 11 unit tests) cover bounded commands, reviewed local model
   plans, single-use confirmations, private sockets, single-instance ownership,
   allowlists, classic/Lua dispatch and checked desktop postconditions.
 - Voice-event tests protect pending reviews and running commands from later
   wake/partial/final events, and ensure dictation remains text. Socket tests
   cover invalid/oversized frames and clients that have not subscribed.
+- Wireless tests cover stale targets, credential/debug/error redaction, bounded
+  snapshots, concurrent-operation rejection, discovery cleanup, cancellation
+  before a prompt, expiring/single-use pairing tokens and independent socket
+  topics. Wireless requests preserve an AI command's pending confirmation.
 - The complete core suite also passes without the optional voice feature;
   that configuration is exercised in CI.
 - The Lua tests include bound-window moves, unique focus, malformed provider
@@ -32,6 +36,11 @@ samples below describe the desktop releases measured on 16 November.
   on a private Xvfb display. Checks cover Enter-to-preview, busy controls, review
   locking, explicit Run direct, confirmation tokens, dismissal, wake/off mode
   requests, workspace rows, navigation, 3D globe/city actions and the launcher.
+- Wireless pointer/keyboard fixtures exercise scans, busy controls, password
+  submission, device-bound forgetting, matching-code confirmation and PIN entry
+  during unrelated service updates, with redacted logs. Normal,
+  absent-adapter and pairing/PIN layouts render through the actual QML/RHI path,
+  including a 700×680 tabbed panel.
 - Fixtures are clearly labelled and never access a microphone, real desktop,
   local model server or cloud provider. Production packaging excludes them.
 - Static QML checks validate import directories, delimiters and duplicate ids.
@@ -160,6 +169,21 @@ python3 scripts/voice-smoke.py
 
 The second voice command supplies synthetic PCM through a capture fixture.
 Neither is a physical microphone benchmark.
+
+## Wireless qualification
+
+On 17 November, a separate native daemon read system D-Bus on the Arch host.
+Its snapshot found the connected Wi-Fi interface, observed the active network,
+matched NetworkManager's enabled state and found the powered Bluetooth adapter.
+No scan, radio toggle, connection handoff, forget or pairing action was sent to
+real hardware. Live network identifiers are excluded from public fixtures.
+
+Physical Wi-Fi credential failures/retries, driver handoff, Bluetooth pairing
+methods/devices, authorization policies and service restart/recovery still need
+hardware qualification. Connection and pairing UI tests use synthetic data;
+they verify intent, state and protocol behavior rather than a physical radio.
+Supported modes and current profile-editor limits are in
+[connectivity](connectivity.md).
 
 ## Packaging and remaining qualification
 

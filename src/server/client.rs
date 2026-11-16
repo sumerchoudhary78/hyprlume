@@ -1,5 +1,4 @@
 //! One-shot CLI requests over the same bounded wire protocol as the shell.
-use super::MAX_FRAME;
 use crate::protocol::{Operation, Request};
 use anyhow::{bail, Context, Result};
 use futures_util::{SinkExt, StreamExt};
@@ -12,7 +11,7 @@ pub async fn call(path: &Path, operation: Operation) -> Result<Value> {
     let stream = timeout(Duration::from_secs(2), UnixStream::connect(path))
         .await?
         .with_context(|| format!("connect {}; start ‘hyprlume daemon’ first", path.display()))?;
-    let mut framed = Framed::new(stream, LinesCodec::new_with_max_length(MAX_FRAME));
+    let mut framed = Framed::new(stream, LinesCodec::new_with_max_length(64 * 1024));
     framed
         .send(serde_json::to_string(&Request { id: 1, operation })?)
         .await?;
