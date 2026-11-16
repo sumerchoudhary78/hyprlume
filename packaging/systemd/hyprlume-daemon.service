@@ -2,7 +2,7 @@
 Description=Hyprlume desktop and local voice daemon
 Documentation=https://github.com/sumerchoudhary78/hyprlume
 PartOf=graphical-session.target
-After=graphical-session.target
+After=graphical-session-pre.target
 
 [Service]
 Type=simple

@@ -15,6 +15,11 @@ physical speaker playback were not used for validation.
 - An actual Quickshell `Backend.qml` connection to a simulated Rust daemon,
   including subscription and pushed action-review state (`shell/ipc-test.qml`).
 - Native Qt Quick panel rendered and visually inspected (`assets/preview.png`).
+- The enabled user-service dependency graph is verified independently with
+  `systemd-analyze`, without starting the graphical session or its services.
+- An actual systemd user-manager test launches a non-interactive process from
+  the daemon, stops the daemon, and verifies the app remains active in a
+  separate control group; the test process is then stopped explicitly.
 - Opt-in speech-model test: Piper-generated English → streaming ASR → typed
   workspace action; positive “Hey Pilot” detection and a negative wake example.
   This synthetic test is not a physical microphone/noise benchmark.
@@ -57,6 +62,7 @@ cargo clippy --locked --all-targets -- -D warnings
 QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software \
   qmltestrunner -input tests/qml -o -,txt
 python3 scripts/benchmark.py
+python3 scripts/check-units.py
 ```
 
 After explicitly installing the models and `espeak-ng`:

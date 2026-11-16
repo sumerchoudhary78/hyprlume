@@ -50,6 +50,12 @@ Batch execution is not transactional, and previous effects are not rolled back
 when a later action fails. Preview dismissal is available before execution;
 in-flight cancellation and undo are roadmap work.
 
+App launches go through `systemd-run --user` with type `exec` and literal
+argument arrays. The user manager owns each app in a separate transient unit,
+so restarting the assistant does not kill applications it launched. Display,
+session, locale, and selected toolkit environment variables are forwarded by
+name; shell/environment expansion of command arguments is disabled.
+
 ## Voice
 
 A dedicated blocking worker owns the native speech objects. The async reader

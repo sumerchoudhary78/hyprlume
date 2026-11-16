@@ -35,6 +35,9 @@ threads = 2
 App names must be lowercase. Launchers are argument arrays, passed directly
 to the executable without shell interpolation. Only configure programs you
 trust. Then `open browser` resolves to your configured launcher.
+Application launches use the systemd user manager in a separate transient unit;
+restarting the assistant leaves those applications running. A working user bus
+and `systemd-run` are required for app launch actions.
 
 ## Optional local decision model
 

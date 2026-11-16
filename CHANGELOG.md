@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.2 — 2026-11-16
+
+- Fix the graphical-session autostart ordering cycle in the user units.
+- Launch apps through separate systemd user units, preserving their lifetime
+  across assistant restarts and checking that process execution succeeded.
+- Remove unused runtime TLS from the loopback-only model client.
+
 ## 0.1.1 — 2026-11-16
 
 - Fix clean Arch package builds by disabling makepkg's GCC LTO for native Cargo
