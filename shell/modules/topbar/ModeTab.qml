@@ -15,7 +15,7 @@ Item {
 
     signal clicked()
 
-    implicitWidth: content.implicitWidth + Theme.px(22)
+    implicitWidth: content.implicitWidth + Theme.px(18)
     implicitHeight: Theme.px(38)
 
     Rectangle {
@@ -25,13 +25,13 @@ Item {
             GradientStop {
                 position: 0.0
                 color: root.active
-                    ? Qt.rgba(0.99, 0.73, 0.43, 0.95)
+                    ? Qt.rgba(0.99, 0.60, 0.31, 0.18)
                     : (mouse.containsMouse ? Theme.hover : "transparent")
             }
             GradientStop {
                 position: 1.0
                 color: root.active
-                    ? Qt.rgba(0.93, 0.56, 0.26, 0.88)
+                    ? Qt.rgba(0.93, 0.56, 0.26, 0.07)
                     : (mouse.containsMouse ? Theme.hover : "transparent")
             }
         }
@@ -47,15 +47,15 @@ Item {
         Icon {
             name: root.iconName
             size: Theme.px(15)
-            color: root.active ? "#1b1206" : (mouse.containsMouse ? Theme.ink : Theme.inkDim)
+            color: root.active ? Theme.amber : (mouse.containsMouse ? Theme.ink : Theme.inkDim)
         }
 
         Text {
             visible: root.showLabel
             text: root.label
-            color: root.active ? "#1b1206" : (mouse.containsMouse ? Theme.ink : Theme.inkDim)
+            color: root.active ? Theme.amber : (mouse.containsMouse ? Theme.ink : Theme.inkDim)
             font.family: Theme.fontSans
-            font.pixelSize: Theme.fontBody
+            font.pixelSize: Theme.px(13)
             font.weight: root.active ? Font.DemiBold : Font.Medium
         }
     }

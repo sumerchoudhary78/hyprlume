@@ -3,8 +3,8 @@ pragma Singleton
 import QtQuick
 import Quickshell
 
-// Design tokens. Everything visual in the shell reads from here; component
-// files must not carry raw colours, durations, or font sizes.
+// Shared palette, typography and interaction timing. Spatial landmarks live
+// together in Dashboard.qml; component geometry stays with its component.
 //
 // Sizes are logical pixels for a 1920x1080 workspace. Hyprland already applies
 // the monitor scale factor, so a 4K screen at scale 2 needs no extra maths.
@@ -24,19 +24,19 @@ Singleton {
     // reference: cyan for structure, amber for the active element, violet for
     // the agent, mint for healthy state, rose for failure.
 
-    readonly property color ink: "#e9f3fb"
-    readonly property color inkDim: "#9fb2c6"
-    readonly property color inkFaint: "#6b8095"
+    readonly property color ink: "#edf4ff"
+    readonly property color inkDim: "#bbc9e2"
+    readonly property color inkFaint: "#7f94b5"
 
-    readonly property color cyan: "#5fd8ff"
-    readonly property color amber: "#f2a65a"
-    readonly property color violet: "#a48bff"
-    readonly property color mint: "#74e3b5"
+    readonly property color cyan: "#5ce1ff"
+    readonly property color amber: "#ffb66e"
+    readonly property color violet: "#b497ff"
+    readonly property color mint: "#68f0b1"
     readonly property color rose: "#ff8f9e"
 
-    readonly property color glassTop: Qt.rgba(0.18, 0.28, 0.38, 0.55)
-    readonly property color glass: Qt.rgba(0.06, 0.10, 0.15, 0.78)
-    readonly property color glassDeep: Qt.rgba(0.03, 0.06, 0.10, 0.86)
+    readonly property color glassTop: Qt.rgba(0.08, 0.12, 0.22, 0.86)
+    readonly property color glass: Qt.rgba(0.025, 0.045, 0.095, 0.84)
+    readonly property color glassDeep: Qt.rgba(0.03, 0.045, 0.10, 0.91)
     readonly property color glassInset: Qt.rgba(0.02, 0.05, 0.08, 0.55)
 
     readonly property color rim: Qt.rgba(0.47, 0.74, 0.86, 0.26)
@@ -54,10 +54,10 @@ Singleton {
     readonly property string fontMono: "JetBrains Mono"
 
     readonly property int fontMicro: px(10)
-    readonly property int fontCaption: px(11)
-    readonly property int fontBody: px(13)
-    readonly property int fontLabel: px(14)
-    readonly property int fontTitle: px(17)
+    readonly property int fontCaption: px(12)
+    readonly property int fontBody: px(14)
+    readonly property int fontLabel: px(15)
+    readonly property int fontTitle: px(18)
     readonly property int fontHeadline: px(22)
     readonly property int fontDisplay: px(56)
 

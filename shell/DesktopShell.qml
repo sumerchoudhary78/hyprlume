@@ -3,9 +3,10 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Wayland
 import qs.components
+import qs.modules.command
 import qs.modules.home
+import qs.modules.scene
 import qs.modules.topbar
-import qs.services
 import qs.theme
 
 // Composition root: one bar per monitor, plus the desktop dashboard on the
@@ -13,11 +14,11 @@ import qs.theme
 Item {
     id: desktop
 
-    required property Backend backend
-    required property Clock clock
-    required property Metrics metrics
-    required property Workspaces workspaces
-    required property ShellState state
+    required property var backend
+    required property var clock
+    required property var metrics
+    required property var workspaces
+    required property var state
 
     // The dashboard belongs to the monitor holding the active workspace.
     // Falling back to the first screen keeps single-monitor sessions simple
@@ -41,13 +42,16 @@ Item {
     Variants {
         model: Quickshell.screens
 
-        delegate: TopBar {
+        delegate: Item {
+            id: output
             required property var modelData
-
-            screen: modelData
-            backend: desktop.backend
-            workspaces: desktop.workspaces
-            state: desktop.state
+            WallpaperSurface { screen: output.modelData }
+            TopBar {
+                screen: output.modelData
+                backend: desktop.backend
+                workspaces: desktop.workspaces
+                state: desktop.state
+            }
         }
     }
 
@@ -65,26 +69,23 @@ Item {
 
         sourceComponent: PanelWindow {
             screen: desktop.focusedScreen
-            anchors.top: true
-            margins.top: Theme.px(84)
-            implicitWidth: desktop.focusedScreen
-                ? Math.min(620, desktop.focusedScreen.width - 32)
-                : 620
-            implicitHeight: nativePanel.implicitHeight
+
+            anchors {
+                top: true
+                bottom: true
+                left: true
+                right: true
+            }
+
             exclusiveZone: 0
             color: "transparent"
             WlrLayershell.namespace: "hyprlume-command"
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
 
-            GlassPanel {
-                id: nativePanel
+            CommandOverlay {
                 anchors.fill: parent
-                snapshot: desktop.backend.snapshot
-                connectionError: desktop.backend.error
-                onRequest: operation => desktop.backend.send(operation)
-                onDismissed: desktop.backend.send({ op: "toggle" })
-                Component.onCompleted: focusInput()
+                backend: desktop.backend
             }
         }
     }

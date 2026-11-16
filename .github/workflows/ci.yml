@@ -30,12 +30,27 @@ jobs:
       - run: python3 -m py_compile scripts/hyprlume-models
   qml:
     runs-on: ubuntu-latest
+    container: archlinux:base
     steps:
+      - name: Install the native shell and isolated display tools
+        run: pacman -Syu --noconfirm --needed git python quickshell qt6-quick3d qt6-shadertools xorg-server-xvfb xorg-xauth dbus xdotool inter-font ttf-jetbrains-mono
       - uses: actions/checkout@v4
-      - name: Static QML checks (imports, brackets, duplicate ids)
-        run: python3 scripts/check-qml.py shell
-      - run: sudo apt-get update && sudo apt-get install -y qt6-declarative-dev-tools qml6-module-qttest qml6-module-qtquick-controls qml6-module-qtquick-layouts qml6-module-qtquick-window qml6-module-qtqml-workerscript
-      - run: /usr/lib/qt6/bin/qmltestrunner -input tests/qml -o -,txt
-        env:
-          QT_QPA_PLATFORM: offscreen
-          QT_QUICK_BACKEND: software
+      - name: Record graphics runtime versions
+        run: pacman -Q quickshell qt6-declarative qt6-quick3d mesa
+      - name: Check QML imports and Python tools
+        run: |
+          python3 scripts/check-qml.py shell
+          python3 -m py_compile scripts/qa/render-desktop.py scripts/qa/mock-daemon.py scripts/benchmark.py
+      - name: Render the desktop with real Qt Quick 3D
+        run: python3 scripts/qa/render-desktop.py --width 1920 --height 1080 --output output/design/desktop.png
+      - name: Exercise pointer, keyboard, preview and confirmation
+        run: python3 scripts/qa/render-desktop.py --interact
+      - name: Check compact and reduced-effects compositions
+        run: |
+          python3 scripts/qa/render-desktop.py --width 960 --height 640 --output output/design/compact.png
+          python3 scripts/qa/render-desktop.py --reduced-effects --output output/design/reduced.png
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: native-desktop-previews
+          path: output/design/*.png

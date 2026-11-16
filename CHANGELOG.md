@@ -1,6 +1,18 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 — 2026-11-16
+
+- Rebuild the desktop around the supplied observatory reference: cached room
+  art, layered glass with directional edge lighting, a floating assistant,
+  central live console and perspective action deck.
+- Add real Qt Quick 3D globe/city geometry, attributed Natural Earth coastlines,
+  a compact layout and a reduced-effects profile.
+- Keep wallpaper visible behind apps; stop metrics sampling when the dashboard
+  is hidden, align the clock to minute boundaries, and bound NVIDIA queries.
+- Consolidate command UI and replace tests of a separate old palette with
+  native pointer/keyboard tests of the actual dashboard and command component.
+- Add Lua-mode Rust dispatch support with mode detection, bound address
+  validation and classic/Lua regression tests.
 
 - Add a Hyprland-native desktop shell: a bar on every monitor, a bottom-layer
   dashboard that maps only on an empty workspace, and the existing command panel

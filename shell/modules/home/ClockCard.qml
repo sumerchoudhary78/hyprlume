@@ -1,61 +1,28 @@
 import QtQuick
-import QtQuick.Layouts
 import qs.components
-import qs.services
 import qs.theme
 
-// Time, date, and machine uptime. Sized to sit over the stage's top-right
-// corner the way the reference does.
-GlassSurface {
+Item {
     id: root
-
-    required property Clock clock
-    required property Metrics metrics
-
-    implicitWidth: Theme.px(186)
-    implicitHeight: Theme.px(126)
-    radius: Theme.radiusCard
-
-    ColumnLayout {
+    required property var clock
+    required property var metrics
+    implicitWidth: 165
+    implicitHeight: 145
+    Canvas {
         anchors.fill: parent
-        anchors.margins: Theme.px(16)
-        spacing: Theme.px(2)
-
-        Text {
-            Layout.fillWidth: true
-            text: root.clock.time
-            color: Theme.ink
-            font.family: Theme.fontMono
-            font.pixelSize: Theme.fontDisplay
-            font.weight: Font.Light
-            horizontalAlignment: Text.AlignRight
+        onPaint: {
+            const c = getContext("2d");c.clearRect(0,0,width,height);
+            c.beginPath();c.moveTo(30,1);c.lineTo(77,1);c.moveTo(15,16);c.lineTo(1,31);
+            c.lineTo(1,height-22);c.lineTo(13,height-10);c.lineTo(83,height-10);c.lineTo(94,height-1);c.lineTo(width,height-1);
+            c.strokeStyle="#7cccf4";c.lineWidth=0.8;c.stroke();
         }
-
-        Text {
-            Layout.fillWidth: true
-            text: root.clock.date
-            color: Theme.inkDim
-            font.family: Theme.fontSans
-            font.pixelSize: Theme.fontCaption
-            horizontalAlignment: Text.AlignRight
-        }
-
-        Item { Layout.fillHeight: true }
-
-        Rectangle {
-            Layout.fillWidth: true
-            height: 1
-            color: Theme.divider
-        }
-
-        Text {
-            Layout.fillWidth: true
-            text: "UP " + root.metrics.formatUptime(root.metrics.uptimeMinutes)
-                + "   LOAD " + root.metrics.load
-            color: Theme.inkFaint
-            font.family: Theme.fontMono
-            font.pixelSize: Theme.fontMicro
-            horizontalAlignment: Text.AlignRight
-        }
+    }
+    Text { anchors.right: parent.right; y: 7; text: root.clock.time; color: Theme.ink; font.family: Theme.fontSans; font.pixelSize: 48; font.weight: Font.ExtraLight }
+    Text { anchors.right: parent.right; y: 67; text: root.clock.date; color: Theme.inkDim; font.family: Theme.fontSans; font.pixelSize: 14 }
+    Rectangle { x: 25; y: 96; width: parent.width - 25; height: 1; color: Theme.divider }
+    Row {
+        anchors.right: parent.right; y: 108; spacing: 8
+        Icon { name: "cpu"; size: 15; color: Theme.inkDim }
+        Text { text: "Up " + root.metrics.formatUptime(root.metrics.uptimeMinutes); color: Theme.inkDim; font.family: Theme.fontSans; font.pixelSize: 12 }
     }
 }

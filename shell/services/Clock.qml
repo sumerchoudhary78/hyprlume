@@ -1,7 +1,6 @@
 import QtQuick
 
-// Wall clock for the stage and the bar. One timer at 1 Hz; the rendered text
-// only changes once a minute.
+// Minute-aligned wall clock. No second-by-second wakeups for minute text.
 Item {
     id: root
 
@@ -12,7 +11,7 @@ Item {
     readonly property string iso: Qt.formatDateTime(now, "yyyy-MM-dd")
 
     Timer {
-        interval: 1000
+        interval: 60000 - root.now.getSeconds() * 1000 - root.now.getMilliseconds()
         repeat: true
         running: true
         onTriggered: root.now = new Date()

@@ -1,5 +1,5 @@
 #!/bin/sh
-# One compact metrics line per second on stdout, consumed by
+# One compact metrics line every two seconds on stdout, consumed by
 # shell/services/Metrics.qml.
 #
 # Every field is best-effort. A missing file, GPU vendor, or container runtime
@@ -27,6 +27,7 @@ prev_total=0
 prev_idle=0
 prev_rx=""
 prev_tx=""
+prev_sample_time=0
 rx=0
 tx=0
 gpu_value=-1
@@ -89,8 +90,8 @@ while :; do
     # -- GPU -------------------------------------------------------------
     if [ -n "$gpu_sysfs" ]; then
         gpu_value=$(cat "$gpu_sysfs" 2>/dev/null) || gpu_value=-1
-    elif [ "$have_nvidia" = 1 ] && [ $((tick % 2)) -eq 0 ]; then
-        gpu_value=$(nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits 2>/dev/null | head -n 1)
+    elif [ "$have_nvidia" = 1 ] && [ $((tick % 5)) -eq 1 ]; then
+        gpu_value=$(timeout 2 nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits 2>/dev/null | head -n 1)
     fi
     case "$gpu_value" in
         ''|*[!0-9]*) gpu_value=-1 ;;
@@ -99,24 +100,31 @@ while :; do
     # -- Network throughput ---------------------------------------------
     rx=0
     tx=0
-    sample=$(awk 'NR > 2 && $1 !~ /^lo:/ { rx += $2; tx += $10 } END { printf "%d %d", rx, tx }' /proc/net/dev 2>/dev/null)
-    if [ -n "$sample" ]; then
-        rx=${sample% *}
-        tx=${sample#* }
-    fi
+    # Include the monotonic sample time so a slow runtime/GPU query cannot
+    # turn a two-second byte delta into an incorrect per-second rate.
+    sample=$(awk -v oldrx="$prev_rx" -v oldtx="$prev_tx" -v oldtime="$prev_sample_time" '
+        FILENAME == ARGV[1] { now = $1; next }
+        FNR > 2 && $1 !~ /^lo:/ { rx += $2; tx += $10 }
+        END {
+            elapsed = now - oldtime; up = 0; down = 0
+            if (oldtime > 0 && elapsed > 0) {
+                up = (tx - oldtx) / 1024 / elapsed
+                down = (rx - oldrx) / 1024 / elapsed
+            }
+            printf "%.0f %.0f %.2f %.0f %.0f", rx, tx, now, up > 0 ? up : 0, down > 0 ? down : 0
+        }' /proc/uptime /proc/net/dev 2>/dev/null)
     up=0
     down=0
-    if [ -n "$prev_rx" ]; then
-        up=$(((tx - prev_tx) / 1024))
-        down=$(((rx - prev_rx) / 1024))
-        [ "$up" -lt 0 ] && up=0
-        [ "$down" -lt 0 ] && down=0
+    if [ -n "$sample" ]; then
+        read -r rx tx prev_sample_time up down <<RATES
+$sample
+RATES
     fi
     prev_rx=$rx
     prev_tx=$tx
 
     # -- Disk: refreshed every 30 s -------------------------------------
-    if [ $((tick % 30)) -eq 1 ]; then
+    if [ $((tick % 15)) -eq 1 ]; then
         disk=$(df -P -B1 / 2>/dev/null | awk 'NR == 2 { print $3 " " $2 }')
         if [ -n "$disk" ]; then
             disk_used=${disk% *}
@@ -135,7 +143,7 @@ while :; do
         "$cpu" "$mem_pct" "$mem_used" "$gpu_value" "$up" "$down" \
         "$disk_used" "$disk_total" "$load1" "$uptime_minutes"
 
-    # -- Containers: refreshed every 5 s ---------------------------------
+    # -- Containers: refreshed every 10 s ---------------------------------
     # Always emits a line so the UI can tell "no runtime" from "runtime, no
     # containers running".
     if [ $((tick % 5)) -eq 1 ]; then
@@ -158,5 +166,5 @@ while :; do
             "$count" "$first" "$cpu_c" "$mem_c" "$runtime"
     fi
 
-    sleep 1
+    sleep 2
 done

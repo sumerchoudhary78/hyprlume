@@ -34,7 +34,12 @@ impl Desktop {
                     .connection
                     .as_ref()
                     .context("No Hyprland session; start hyprlume inside your own session")?;
-                conn.switch_workspace(&WorkspaceRef::Id(*id)).await?;
+                if uses_lua(conn).await? {
+                    conn.dispatch(&format!("hl.dsp.focus({{ workspace = {id} }})"))
+                        .await?;
+                } else {
+                    conn.switch_workspace(&WorkspaceRef::Id(*id)).await?;
+                }
                 if conn.active_workspace().await?.id != *id {
                     bail!("Hyprland did not confirm the requested workspace");
                 }
@@ -50,11 +55,19 @@ impl Desktop {
                     .find(|w| w.address == target)
                     .context("The target window is no longer open")?;
                 // Bind to this address; an overlay or a focus event must not change the target.
-                conn.dispatch(&format!(
-                    "movetoworkspace {id},{}",
-                    WindowSelector::Address(window.address.clone()).encode()
-                ))
-                .await?;
+                if uses_lua(conn).await? {
+                    let selector = lua_window(&window.address)?;
+                    conn.dispatch(&format!(
+                        "hl.dsp.window.move({{ workspace = {id}, window = {selector}, follow = true }})"
+                    ))
+                    .await?;
+                } else {
+                    conn.dispatch(&format!(
+                        "movetoworkspace {id},{}",
+                        WindowSelector::Address(window.address.clone()).encode()
+                    ))
+                    .await?;
+                }
                 let moved = conn
                     .clients()
                     .await?
@@ -80,8 +93,14 @@ impl Desktop {
                     );
                 }
                 let target = &matches[0];
-                conn.focus_window(&WindowSelector::Address(target.address.clone()))
-                    .await?;
+                if uses_lua(conn).await? {
+                    let selector = lua_window(&target.address)?;
+                    conn.dispatch(&format!("hl.dsp.focus({{ window = {selector} }})"))
+                        .await?;
+                } else {
+                    conn.focus_window(&WindowSelector::Address(target.address.clone()))
+                        .await?;
+                }
                 if !conn
                     .active_window()
                     .await?
@@ -180,6 +199,36 @@ impl Desktop {
             }
         }
     }
+}
+
+// The pinned HyprPilot transport predates Lua dispatchers. Detect the same
+// configProvider as Quickshell, while retaining its typed legacy operations.
+// Read at action time so a config reload cannot leave a stale mode cached.
+async fn uses_lua(conn: &Connection) -> Result<bool> {
+    let response = conn.send_raw("j/status").await?;
+    if response.trim() == "unknown request" {
+        return Ok(false);
+    }
+    #[derive(serde::Deserialize)]
+    struct Status {
+        #[serde(rename = "configProvider")]
+        provider: String,
+    }
+    let status: Status =
+        serde_json::from_str(&response).context("Hyprland returned invalid config status")?;
+    match status.provider.as_str() {
+        "lua" => Ok(true),
+        "hyprlang" => Ok(false),
+        other => bail!("Unsupported Hyprland config provider: {other}"),
+    }
+}
+
+fn lua_window(address: &str) -> Result<String> {
+    let hex = address.strip_prefix("0x").unwrap_or("");
+    if hex.is_empty() || hex.len() > 16 || !hex.bytes().all(|ch| ch.is_ascii_hexdigit()) {
+        bail!("Hyprland returned an invalid window address");
+    }
+    Ok(format!("\"address:{address}\""))
 }
 
 async fn run(program: &str, args: &[&str]) -> Result<String> {

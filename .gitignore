@@ -12,3 +12,5 @@ __pycache__/
 /packaging/aur/src/
 /packaging/aur/pkg/
 /packaging/aur/hyprlume/
+
+/output/

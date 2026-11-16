@@ -1,215 +1,73 @@
 import QtQuick
 import QtQuick.Layouts
 import qs.components
-import qs.services
 import qs.theme
 
-// Assistant panel: identity orb, the daemon's latest message, prompt
-// shortcuts, and the microphone state.
 GlassSurface {
     id: root
-
-    required property Backend backend
+    required property var backend
     property bool focused: false
-
-    radius: Theme.radiusCard
-    glowing: root.focused
-    glowColor: Theme.violet
-
+    onFocusedChanged: { if (focused) agentInput.forceActiveFocus(); }
     readonly property string voice: backend.snapshot.voice ?? "off"
-    readonly property bool showShortcuts: height >= Theme.px(380)
+    readonly property bool blocked: ["planning", "executing", "speaking"].indexOf(backend.snapshot.phase) >= 0
+        || (backend.snapshot.confirmation !== null && backend.snapshot.confirmation !== undefined)
+    glowColor: root.focused ? Theme.violet : Theme.cyan
+    secondaryColor: Theme.violet
 
     function ask(text) {
-        backend.send({ op: "command", text: text, dry_run: true });
+        if (!blocked && text.trim().length > 0) backend.send({op:"command",text:text.trim(),dry_run:true});
     }
+    PanelHeader {
+        x: 17; y: 17; width: parent.width - 130
+        title: "Shell Agent"; iconName: "sparkles"; accent: Theme.cyan
 
-    ColumnLayout {
-        anchors.fill: parent
-        anchors.margins: Theme.px(16)
-        spacing: Theme.px(10)
-
-        PanelHeader {
-            Layout.fillWidth: true
-            title: "Shell Agent"
-            iconName: "applications-science"
-            accent: Theme.violet
-
-            StatusDot {
-                Layout.alignment: Qt.AlignVCenter
-                size: Theme.px(7)
-                color: root.backend.online ? Theme.mint : Theme.rose
-            }
-
-            Text {
-                Layout.alignment: Qt.AlignVCenter
-                text: root.backend.online ? "Online" : "Offline"
-                color: Theme.inkDim
-                font.family: Theme.fontSans
-                font.pixelSize: Theme.fontCaption
-            }
-        }
-
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: Theme.px(12)
-
-            AgentOrb {
-                Layout.alignment: Qt.AlignTop
-                active: root.voice !== "off"
-            }
-
-            Rectangle {
-                Layout.fillWidth: true
-                implicitHeight: messageLabel.implicitHeight + Theme.px(20)
-                radius: Theme.radiusTile
-                color: Qt.rgba(1, 1, 1, 0.045)
-                border.width: 1
-                border.color: Theme.divider
-
-                Text {
-                    id: messageLabel
-                    anchors.fill: parent
-                    anchors.margins: Theme.px(10)
-                    text: root.backend.snapshot.message
-                    color: Theme.ink
-                    font.family: Theme.fontSans
-                    font.pixelSize: Theme.fontBody
-                    wrapMode: Text.Wrap
-                    verticalAlignment: Text.AlignVCenter
-                    maximumLineCount: 3
-                    elide: Text.ElideRight
-                }
-            }
-        }
-
-        ActionRow {
-            Layout.fillWidth: true
-            visible: root.showShortcuts
-            iconName: "utilities-terminal"
-            label: "Analyze this codebase"
-            onClicked: root.ask("analyze this codebase and summarize the architecture")
-        }
-
-        ActionRow {
-            Layout.fillWidth: true
-            visible: root.showShortcuts
-            iconName: "dialog-warning-symbolic"
-            label: "Find issues and fix them"
-            onClicked: root.ask("find issues in this project and propose fixes")
-        }
-
-        ActionRow {
-            Layout.fillWidth: true
-            visible: root.showShortcuts
-            iconName: "go-up-symbolic"
-            label: "Create a deployment flow"
-            onClicked: root.ask("create a deployment flow for this project")
-        }
-
-        Item { Layout.fillHeight: true }
-
-        Rectangle {
-            Layout.fillWidth: true
-            height: 1
-            color: Theme.divider
-        }
-
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: Theme.px(10)
-
-            Item {
-                Layout.fillWidth: true
-                implicitHeight: Theme.px(24)
-
-                WaveBars {
-                    anchors.left: parent.left
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: Math.min(parent.width, Theme.px(150))
-                    active: root.voice !== "off"
-                    accent: root.voice === "dictate" ? Theme.violet : Theme.mint
-                }
-            }
-
-            Text {
-                text: root.voice === "off" ? "MICROPHONE OFF"
-                    : root.voice === "wake" ? "WAKE WORD"
-                    : "DICTATING"
-                color: Theme.inkFaint
-                font.family: Theme.fontMono
-                font.pixelSize: Theme.fontMicro
-            }
-
-            IconTile {
-                iconName: root.voice === "off" ? "audio-input-microphone-symbolic" : "audio-volume-high-symbolic"
-                active: root.voice !== "off"
-                accent: Theme.mint
-                size: Theme.px(34)
-                iconSize: Theme.px(15)
-                onClicked: root.backend.send({
-                    op: "voice",
-                    mode: root.voice === "off" ? "wake" : "off"
-                })
-            }
+    }
+    Text { x: 138; y: 20; text: root.backend.online ? "● Online" : "● Offline"; color: root.backend.online ? Theme.mint : Theme.rose; font.family: Theme.fontSans; font.pixelSize: 10 }
+    Image {
+        x: parent.width - 140; y: -52; width: 153; height: 149
+        source: "../../assets/mascot/pilot.png"
+        sourceSize: Qt.size(360, 360)
+        fillMode: Image.PreserveAspectFit
+        asynchronous: true
+        transform: Rotation { origin.x: 80; origin.y: 80; angle: mascotHover.hovered ? -4 : 0 }
+        HoverHandler { id: mascotHover }
+    }
+    Rectangle {
+        x: 17; y: 55; width: parent.width - 34; height: 35
+        radius: 13; color: "#78081221"; border.width: 1; border.color: "#637dc8ee"
+        TextInput {
+            id: agentInput; objectName: "agentInput"
+            anchors.fill: parent; anchors.leftMargin: 12; anchors.rightMargin: 55
+            verticalAlignment: TextInput.AlignVCenter
+            color: Theme.ink; font.family: Theme.fontSans; font.pixelSize: 13
+            clip: true; maximumLength: 512; selectByMouse: true
+            enabled: !root.blocked && root.backend.online
+            onAccepted: { root.ask(text.trim()); text = ""; }
+            Text { anchors.verticalCenter: parent.verticalCenter; visible: !agentInput.text; text: "How can I help today?"; color: Theme.inkDim; font: agentInput.font }
+            Accessible.name: "Ask the local desktop agent"
         }
     }
-
-    component AgentOrb: Item {
-        id: orb
-
-        property bool active: false
-
-        implicitWidth: Theme.px(54)
-        implicitHeight: Theme.px(54)
-
-        Rectangle {
-            anchors.centerIn: parent
-            width: parent.width + Theme.px(10)
-            height: width
-            radius: width / 2
-            color: Qt.rgba(0.64, 0.55, 1.0, orb.active ? 0.26 : 0.12)
+    Column {
+        x: 31; y: 103; width: parent.width - 62; spacing: 6
+        ActionRow { width: parent.width; label: "Open my terminal"; iconName: "code"; enabled: !root.blocked; onClicked: root.ask("launch terminal") }
+        ActionRow { width: parent.width; label: "Switch to workspace two"; iconName: "workflow"; enabled: !root.blocked; onClicked: root.ask("workspace 2") }
+        ActionRow { width: parent.width; objectName: "agentVolume"; label: "Set volume to 35%"; iconName: "audio-volume-high"; enabled: !root.blocked; onClicked: root.ask("volume 35") }
+        ActionRow { width: parent.width; label: "Dictate a note"; iconName: "text-x-script"; onClicked: root.backend.send({op:"voice",mode:"dictate"}) }
+    }
+    Rectangle {
+        x: 35; y: parent.height - 48; width: parent.width - 70; height: 36
+        radius: 18; color: "#8c051326"; border.width: 1; border.color: "#435894c4"
+        WaveBars { x: 39; y: 6; width: parent.width - 55; height: 24; barCount: 44; barWidth: 2; barSpacing: 2; animated: !root.reducedEffects; active: root.voice !== "off"; accent: Theme.violet }
+        IconTile {
+            x: -5; y: -1; size: 38; iconSize: 19
+            iconName: "audio-input-microphone"; active: root.voice !== "off"; accent: Theme.violet
+            onClicked: root.backend.send({op:"voice",mode:root.voice === "off" ? "wake" : "off"})
+            Accessible.name: root.voice === "off" ? "Enable wake word" : "Turn microphone off"
         }
-
-        Rectangle {
-            anchors.fill: parent
-            radius: width / 2
-            gradient: Gradient {
-                GradientStop { position: 0.0; color: Qt.rgba(0.55, 0.62, 0.92, 1.0) }
-                GradientStop { position: 0.55; color: Qt.rgba(0.22, 0.26, 0.48, 1.0) }
-                GradientStop { position: 1.0; color: Qt.rgba(0.06, 0.08, 0.16, 1.0) }
-            }
-            border.width: 1
-            border.color: Qt.rgba(0.70, 0.72, 1.0, 0.45)
-        }
-
-        // Face plate.
-        Rectangle {
-            anchors.centerIn: parent
-            width: parent.width * 0.62
-            height: width * 0.78
-            radius: width / 2
-            color: Qt.rgba(0.04, 0.07, 0.13, 0.9)
-            border.width: 1
-            border.color: Qt.rgba(0.55, 0.90, 1.0, 0.35)
-        }
-
-        Rectangle {
-            anchors.centerIn: parent
-            width: parent.width * 0.5
-            height: Theme.px(2)
-            radius: height / 2
-            color: orb.active ? Theme.cyan : Qt.rgba(0.55, 0.90, 1.0, 0.5)
-        }
-
-        Rectangle {
-            anchors.left: parent.left
-            anchors.top: parent.top
-            anchors.leftMargin: Theme.px(9)
-            anchors.topMargin: Theme.px(8)
-            width: Theme.px(12)
-            height: Theme.px(7)
-            radius: width / 2
-            color: Qt.rgba(1, 1, 1, 0.35)
-        }
+    }
+    Text {
+        anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.bottom; anchors.bottomMargin: 4
+        text: root.voice === "off" ? "MIC OFF · LOCAL VOICE" : root.voice === "wake" ? "HEY PILOT · WAKE WORD" : "DICTATION · TEXT ONLY"
+        color: Theme.inkFaint; font.family: Theme.fontMono; font.pixelSize: 7; font.letterSpacing: 1
     }
 }

@@ -1,0 +1,12 @@
+{
+  "environment": "physical Hyprland 0.57.1 Lua session; 1920x1080 at 144 Hz display mode; Qt Quick RHI; full effects; microphone off; two-second telemetry",
+  "duration_seconds": 20.0,
+  "process_tree_cpu_percent_one_core": {
+    "daemon": 0.0,
+    "shell": 0.6
+  },
+  "rss_mib": {
+    "daemon": 23.24,
+    "shell": 620.41
+  }
+}

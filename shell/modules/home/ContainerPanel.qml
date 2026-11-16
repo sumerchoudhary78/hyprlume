@@ -1,119 +1,35 @@
 import QtQuick
 import QtQuick.Layouts
 import qs.components
-import qs.services
 import qs.theme
 
-// Container state from docker or podman, whichever the sampler found.
-// With neither installed the card says so instead of showing fake runtime
-// numbers.
+// Local runtime information only; no invented cloud server or capacity.
 GlassSurface {
     id: root
-
-    required property Metrics metrics
-
-    radius: Theme.radiusCard
-
+    required property var metrics
     readonly property bool hasRuntime: metrics.containerRuntime.length > 0
     readonly property bool running: metrics.containerCount > 0
-
     ColumnLayout {
-        anchors.fill: parent
-        anchors.margins: Theme.px(16)
-        spacing: Theme.px(8)
-
+        anchors.fill: parent; anchors.margins: 14; spacing: 5
         PanelHeader {
             Layout.fillWidth: true
-            title: "Containers"
-            iconName: "package-x-generic"
-            accent: Theme.cyan
-
-            StatusDot {
-                Layout.alignment: Qt.AlignVCenter
-                size: Theme.px(7)
-                halo: root.running
-                color: root.running ? Theme.mint : Theme.inkFaint
-            }
-
-            Text {
-                Layout.alignment: Qt.AlignVCenter
-                text: !root.hasRuntime ? "No runtime"
-                    : root.running ? "Running" : "Idle"
-                color: root.running ? Theme.mint : Theme.inkDim
-                font.family: Theme.fontSans
-                font.pixelSize: Theme.fontCaption
-            }
+            title: root.running ? root.metrics.containerName : "Local Runtime"
+            iconName: "package-x-generic"; accent: Theme.cyan
+            Text { text: root.running ? "● Running" : root.hasRuntime ? "● Idle" : "● Not installed"; color: root.running ? Theme.mint : Theme.inkFaint; font.family: Theme.fontSans; font.pixelSize: 10 }
         }
-
-        Text {
-            Layout.fillWidth: true
-            visible: root.hasRuntime
-            text: root.running
-                ? root.metrics.containerName
-                : "No containers running"
-            color: root.running ? Theme.ink : Theme.inkFaint
-            font.family: Theme.fontSans
-            font.pixelSize: Theme.fontTitle
-            font.weight: Font.Medium
-            elide: Text.ElideRight
+        RowLayout {
+            Layout.fillWidth: true; spacing: 10
+            Icon { name: "cpu"; size: 15; color: Theme.inkDim }
+            Text { text: root.running ? root.metrics.containerCpu.toFixed(1) + "% CPU" : "No active containers"; color: Theme.inkDim; font.family: Theme.fontSans; font.pixelSize: 11 }
+            Item { Layout.fillWidth: true }
+            Text { visible: root.running; text: root.metrics.containerMem; color: Theme.inkDim; font.family: Theme.fontSans; font.pixelSize: 11 }
         }
-
+        Sparkline { Layout.fillWidth: true; Layout.fillHeight: true; Layout.minimumHeight: 25; values: root.metrics.cpuHistory; accent: Theme.cyan }
         RowLayout {
             Layout.fillWidth: true
-            visible: root.running
-            spacing: Theme.px(8)
-
-            Chip {
-                text: Math.round(root.metrics.containerCpu) + "% cpu"
-                textColor: Theme.inkDim
-            }
-
-            Chip {
-                text: (root.metrics.containerMem.length > 0 ? root.metrics.containerMem : "—") + " mem"
-                textColor: Theme.inkDim
-            }
-
+            Text { text: root.hasRuntime ? root.metrics.containerRuntime + " · local" : "docker / podman"; color: Theme.inkFaint; font.family: Theme.fontMono; font.pixelSize: 9 }
             Item { Layout.fillWidth: true }
-
-            Text {
-                text: root.metrics.containerCount + " total"
-                color: Theme.inkFaint
-                font.family: Theme.fontMono
-                font.pixelSize: Theme.fontMicro
-            }
-        }
-
-        Item { Layout.fillHeight: true }
-
-        Text {
-            Layout.fillWidth: true
-            visible: !root.hasRuntime
-            text: "Install docker or podman to populate this card."
-            color: Theme.inkFaint
-            font.family: Theme.fontSans
-            font.pixelSize: Theme.fontCaption
-            wrapMode: Text.Wrap
-        }
-
-        RowLayout {
-            Layout.fillWidth: true
-            visible: root.hasRuntime
-
-            Text {
-                text: "runtime  " + root.metrics.containerRuntime
-                color: Theme.inkFaint
-                font.family: Theme.fontMono
-                font.pixelSize: Theme.fontMicro
-            }
-
-            Item { Layout.fillWidth: true }
-
-            Text {
-                text: "disk  " + root.metrics.formatBytes(root.metrics.diskUsed)
-                color: Theme.inkFaint
-                font.family: Theme.fontMono
-                font.pixelSize: Theme.fontMicro
-            }
+            Text { text: "HOST CPU TREND"; color: Theme.inkFaint; font.family: Theme.fontMono; font.pixelSize: 8 }
         }
     }
 }

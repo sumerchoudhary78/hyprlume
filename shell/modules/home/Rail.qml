@@ -1,49 +1,31 @@
 import QtQuick
-import QtQuick.Layouts
 import qs.components
-import qs.services
 import qs.theme
 
-// Vertical dock bound to workspaces. The reference's app icons are replaced
-// by workspace tiles, so every button has a real target.
 GlassSurface {
     id: root
-
-    required property Workspaces workspaces
-
-    radius: Theme.radiusPanel
-
-    readonly property int maxRows: Math.max(1, Math.min(8,
-        Math.floor((height - Theme.px(28)) / Theme.px(52))))
-
-    readonly property var rows: {
-        const list = (root.workspaces.all ?? []).slice();
-        list.sort((a, b) => a.id - b.id);
-        return list.slice(0, root.maxRows);
-    }
-
+    required property var workspaces
+    property var backend
+    radius: 35
+    secondaryColor: Theme.amber
+    glowColor: Theme.amber
+    tintTop: "#be251b29"
+    tint: "#d0101423"
     Column {
-        anchors.top: parent.top
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.topMargin: Theme.px(14)
-        spacing: Theme.px(8)
-
+        anchors.horizontalCenter: parent.horizontalCenter; y: 35; spacing: 17
         Repeater {
-            model: root.rows
-
-            delegate: IconTile {
-                required property var modelData
-
-                id: tile
-
-                iconName: Theme.workspaceIcon(tile.modelData && Number.isInteger(tile.modelData.id) ? tile.modelData.id - 1 : -1)
-                active: tile.modelData && tile.modelData.id === root.workspaces.focusedId
+            model: ["user-home","view-grid","utilities-terminal","package-x-generic","cloud","layers","preferences-system"]
+            IconTile {
+                required property string modelData
+                required property int index
+                iconName: modelData; size: 48; iconSize: 23
+                active: index === 0
                 accent: Theme.amber
-                size: Theme.px(44)
-                iconSize: Theme.px(19)
                 onClicked: {
-                    if (tile.modelData)
-                        root.workspaces.focus(tile.modelData);
+                    if (index === 0 && root.workspaces.all.length) root.workspaces.focus(root.workspaces.all[0]);
+                    else if (index === 2 && root.backend) root.backend.send({op:"command",text:"launch terminal",dry_run:true});
+                    else if (index === 6 && root.backend) root.backend.send({op:"toggle"});
+                    else if (root.workspaces.all.length) root.workspaces.focus(root.workspaces.all[index % root.workspaces.all.length]);
                 }
             }
         }

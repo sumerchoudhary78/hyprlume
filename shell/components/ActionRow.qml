@@ -15,14 +15,14 @@ Item {
 
     signal clicked()
 
-    implicitHeight: Theme.px(38)
+    implicitHeight: Theme.px(31)
 
     Rectangle {
         anchors.fill: parent
-        radius: Theme.radiusTile
-        color: mouse.containsMouse || root.active ? Theme.hover : "transparent"
-        border.width: root.active ? 1 : 0
-        border.color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.35)
+        radius: Theme.px(12)
+        color: mouse.containsMouse || root.active ? "#4a5e547f" : "#382d2b46"
+        border.width: 1
+        border.color: root.active ? root.accent : "#1c99c9ed"
     }
 
     RowLayout {

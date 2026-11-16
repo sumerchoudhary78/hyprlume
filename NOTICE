@@ -14,3 +14,11 @@ Speech weights are not included in this repository or package. The opt-in
 model installer downloads upstream archives, verifies pinned SHA-256 digests,
 and retains upstream model cards and attribution. Model licenses remain
 independent of Hyprlume's source license.
+
+Desktop visual assets
+---------------------
+The observatory backdrop and transparent assistant are generated project assets.
+Prompts and origins are documented in shell/assets/README.md and docs/design/.
+The globe uses public-domain Natural Earth land geometry. No third-party 3D
+model pack is bundled. Qt Quick 3D and other runtime packages retain their own
+licenses and are installed separately.

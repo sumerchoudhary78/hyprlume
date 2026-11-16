@@ -6,17 +6,15 @@ A glass command shell and local English voice companion for **Hyprland**.
 Rust handles the agent and audio; Quickshell / Qt Quick renders the interface;
 [HyprPilot](https://github.com/sumerchoudhary78/HyprPilot) supplies typed desktop control.
 
-**v0.1.2 is an early preview:** a working command palette, a first-pass glass
-desktop dashboard, local speech pipeline, and foundation for a larger desktop
-shell. It does not yet replace an entire desktop environment. See
-[roadmap](docs/roadmap.md) and [validation](docs/validation.md) for what is
-implemented and what remains open.
+**v0.2.0 is a desktop-shell preview:** a cinematic glass dashboard, persistent
+room wallpaper, real 3D holograms, command console and local speech pipeline.
+It does not yet replace every desktop service. See [roadmap](docs/roadmap.md)
+and [validation](docs/validation.md) for implemented behavior and remaining work.
 
-![Native Qt Quick command panel](assets/preview.png)
+![Native Quickshell desktop render](assets/desktop-preview.png)
 
-*Native Qt Quick render of the command panel with an example action. Compositor
-background blur is not present in this offscreen test image, and it predates the
-desktop dashboard.*
+*Actual Quickshell/Qt Quick 3D render with explicitly labelled sample data.
+The panels, text and controls are QML; the room is a cached wallpaper asset.*
 
 ## What works
 
@@ -24,6 +22,8 @@ desktop dashboard.*
   on-demand command panel. The dashboard carries quick actions, live workspace
   flow, a command stage, the shell agent panel, and CPU/memory/GPU/network/disk
   and container readouts.
+- Real 3D globe/city geometry, directional glass lighting, a perspective action
+  deck, compact layout and reduced-effects mode.
 - Direct commands for workspaces, window moves/focus, allowlisted app launches,
   volume, and mute. Direct commands do not need an LLM.
 - Streaming English speech recognition, a separate **“Hey Pilot”** wake model,
@@ -119,7 +119,8 @@ hyprlume transcribe /path/to/english-speech.wav
 
 Requires a current Rust toolchain. The checked-in lockfile pins the Rust
 dependencies and the exact HyprPilot commit. On Linux, install Quickshell,
-Qt 6 Quick/Controls/Wayland, Hyprland, PipeWire tools, and WirePlumber separately.
+Qt 6 Quick/Controls/Wayland, **Qt Quick 3D (6.9+)**, Hyprland, PipeWire tools, and
+WirePlumber separately. Tested with Quickshell 0.3.2 and Qt 6.12 on Arch.
 
 ```sh
 git clone https://github.com/sumerchoudhary78/hyprlume.git
@@ -151,14 +152,17 @@ Quickshell / QML ← private Unix socket → Rust daemon
                                              └─ bounded audio worker → wake / ASR / Piper
 ```
 
-The bar is persistent but static; the command panel exists only while open, and
-the dashboard unmaps as soon as a window appears. Healthy UI connections have no
-polling timer: the daemon consumes compositor events and pushes state changes
-over a persistent socket. The shell starts one child process, a 1 Hz system
-sampler; its container query runs every fifth tick behind `timeout`. Audio
-inference runs on a dedicated worker with a bounded queue of 20 ms frames.
-Keyword spotting uses one CPU thread; ASR/TTS default to two. There are no
-shader effects, overlays above application windows, or looping animations.
+Wallpaper and the bar persist; the dashboard unmaps when an app opens. Metrics
+sampling pauses while it is hidden. The clock updates on minute boundaries.
+Glass captures the local room plate at half resolution and reuses it between
+geometry changes. The 3D view has no continuous animation loop. Use
+`HYPRLUME_REDUCED_EFFECTS=1 hyprlume shell` to skip 3D, glass blur and rim bloom.
+
+The daemon pushes state over one persistent socket. Audio inference runs on a
+dedicated worker with a bounded 20 ms frame queue; no inference runs on the UI
+thread. Wake spotting uses one CPU thread; ASR/TTS default to two. The visible
+voice illustration animates only with voice enabled. See [the desktop guide](docs/homescreen.md)
+for rendering details, real controls, source layout and asset provenance.
 
 Performance goals and measured limits belong in [validation](docs/validation.md).
 UI feedback under 50 ms and idle shell CPU under 1% are targets to verify on
@@ -171,8 +175,8 @@ cargo fmt --all --check
 cargo clippy --locked --all-targets -- -D warnings
 cargo test --locked --all-targets
 python3 scripts/check-qml.py shell
-QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software \
-  qmltestrunner -input tests/qml
+python3 scripts/qa/render-desktop.py
+python3 scripts/qa/render-desktop.py --interact
 ```
 
 After opting in to the English model downloads and installing `espeak-ng`:

@@ -11,5 +11,5 @@ QtObject {
     property int mode: 0
 
     // Reserved for the reduced-effects setting (no bloom, no reflow motion).
-    property bool reducedEffects: false
+    property bool reducedEffects: Quickshell.env("HYPRLUME_REDUCED_EFFECTS") === "1"
 }

@@ -1,150 +1,97 @@
-# Home screen
+# Cinematic desktop shell
 
-The desktop shell is a Hyprland-native dashboard: a bar that is always there,
-and a home surface that appears when the focused workspace is empty. It targets
-the layered-glass look of the concept render in the design brief, with every
-element bound to state Hyprlume actually has.
+Hyprlume's desktop follows the observatory reference: a planetary backdrop,
+asymmetric floating glass cards, a central console, a right-side assistant,
+and a holographic action deck. The screenshot in the README is rendered by
+Quickshell, not a painted UI mockup.
 
-This document explains what maps to what, why the surfaces are layered the way
-they are, what the compositor does versus what QML paints, and what was
-deliberately left out.
+## Rendering and depth
 
-## Surfaces
+The room is a generated, cached wallpaper plate. Text, controls, gauges, charts,
+workspaces, the command graph and the launcher are QML items. The robot is a
+transparent, shaded image. The globe and city are real **Qt Quick 3D** geometry:
+coastlines, land points, latitude/longitude lines and shaded building meshes.
+Moving over the globe changes its orientation; clicking the globe or city
+selects the network or container view.
 
-| Surface | Type | Layer | Visible when |
-| --- | --- | --- | --- |
-| `hyprlume-bar` | `PanelWindow`, one per screen | Top | Always |
-| `hyprlume-home` | `PanelWindow`, focused screen | Bottom | Focused workspace has no windows |
-| `hyprlume-command` | `PanelWindow` overlay | Overlay | `snapshot.panel_open` |
+`GlassSurface.qml` captures only the scene's wallpaper behind each card at half
+resolution, freezes that capture between geometry changes, and applies a local
+blur. It adds tint, a directional multicolour rim, an inner reflection and a
+clipped sheen. It never samples application windows or screenshots. Compositor
+blur is optional for the small top-bar and command surfaces; no full-screen
+Hyprland blur is needed for the dashboard.
 
-The home surface being `Bottom` and full-screen is the important decision. It is
-not an overlay above windows, so it never intercepts a click meant for an
-application, and it is not a second compositor feature: while the focused
-workspace has no windows it maps, otherwise it unmaps and costs nothing. A
-bottom-layer surface also lets Hyprland draw windows above it without special
-rules. It does take pointer input while mapped, which is the point — the
-dashboard is clickable — and means the desktop's own context menu is not
-reachable from an empty workspace while the dashboard is visible.
+The terrain is a perspective-projected mesh painted once per resize. The 3D
+viewport has no continuous rotation or frame timer. Wave bars illustrate voice
+state; they are not a measured microphone level. Motion is limited to hover,
+voice-active feedback and actual state changes.
 
-The one bar per monitor uses `Variants` over `Quickshell.screens`, while the
-dashboard explicitly belongs to `Hyprland.focusedMonitor` — mapping a dashboard
-on every monitor would put four copies of the same CPU graph on screen.
+## Window ownership
 
-## Reference mapping
-
-The concept is a dashboard for a fictional deployment product. Panels with no
-data behind them would be theatre, so the layout is kept and the contents are
-replaced with real shell verbs.
-
-| Reference element | Implementation | Data source |
+| Namespace | Layer | Lifetime |
 | --- | --- | --- |
-| Top bar, brand, search, mode chips | `modules/topbar/` | `ShellState.mode`, `Backend.snapshot` |
-| Left quick-action card | `QuickActions.qml` | command open, workspace dispatch, voice modes |
-| Build/test/deploy graph | `WorkspaceFlow.qml` | live Hyprland workspace list |
-| Centre terminal stage | `Stage.qml` + `StageBackdrop.qml` | daemon snapshot: phase, transcript, receipts |
-| Clock / weather card | `ClockCard.qml` | system clock, uptime, load |
-| Assistant panel | `AgentPanel.qml` | daemon message, voice mode, prompt shortcuts |
-| Right workspace list | `WorkspacesPanel.qml` | `Hyprland.workspaces` + toplevel counts |
-| System gauges | `SystemPanel.qml` | `/proc`, sysfs |
-| Container card | `ContainerPanel.qml` | `docker ps` / `podman ps`, if installed |
-| Circular action ring | `ActionRing.qml` | command panel toggle, voice modes, next workspace |
-| Left app-icon rail | `Rail.qml` | workspace tiles, one per workspace |
+| `hyprlume-wallpaper` | Background | One per output; empty input region |
+| `hyprlume-bar` | Top | One per output; reserves its visible height |
+| `hyprlume-home` | Bottom | Focused output, only on an empty workspace |
+| `hyprlume-command` | Overlay | Only while a command panel is open |
 
-Deliberate omissions: weather (no data source), the notification bell (no
-notification backend), and the app-icon dock (icons with no launch semantics are
-decoration; workspace tiles are bound to workspaces instead). See
-[roadmap](roadmap.md) for the surfaces that would need real backends first.
+Wallpaper remains behind ordinary app windows. The dashboard unmaps when an
+app opens and returns when the workspace becomes empty. Metrics sampling stops
+while the live dashboard is hidden. The clock wakes on minute boundaries.
+`PreviewWindow.qml` uses the same dashboard and command components in an ordinary
+window; `design-preview.qml` explicitly supplies synthetic data and labels it.
 
-## What QML paints and what the compositor does
+## Functional controls
 
-QML cannot sample the wallpaper behind a surface, so "real" glass refraction is
-out of scope for a layer-shell client. The look is split in two:
+- Quick actions open the command palette or terminal preview, change workspace,
+  enable the wake word, and start dictation.
+- The console and assistant accept real requests through the Rust daemon.
+  Enter previews. The separate Run direct button explicitly requests execution.
+- Review locks the request field. Confirm sends the current token; Dismiss
+  cancels the pending preview. A busy planner disables replacement commands.
+- The three graph nodes represent intent, review and execution. Execute is
+  enabled only for an existing reviewed plan.
+- Workspace rows use real Hyprland workspaces. System and runtime cards show
+  host/PipeWire/container data; absent GPU/runtime information remains absent.
+- The spatial deck opens terminal previews, command search, voice and workspace
+  actions. The centre is a launcher, not an always-running animation.
 
-- **QML** paints the tint gradient, rim, top sheen, and accent bloom
-  (`components/GlassSurface.qml`). These are cheap rectangles and gradients,
-  not shaders.
-- **Hyprland** blurs whatever is behind the surface. The window only declares a
-  namespace; the compositor rule decides blur. This keeps blur settings in the
-  user's compositor config where they belong, and avoids a per-surface
-  `BackgroundEffect` object that would double-blur when a layer rule exists.
+Configure `[apps].terminal` in `~/.config/hyprlume/config.toml` before using the
+terminal shortcuts, for example `terminal = ["foot"]`. The centre console is
+Hyprlume's desktop-command interface; a full PTY runs in the configured terminal.
+Code execution, deployments, cloud inventories and a general-purpose coding
+agent are not implied by the reference's decorative labels.
 
-Layer rules for the three namespaces are in [setup](setup.md).
+## Layout and effects
 
-Three options were evaluated for blur:
+Spatial landmarks are grouped in `modules/home/Dashboard.qml`, on a 1680×945
+design canvas. It fits the available screen without cropping cards. At widths
+below 1100 or heights below 620, a compact 1000×680 composition keeps the console,
+rail and navigation, removing the side cards and holograms. Command overlays keep
+readable independent dimensions.
 
-1. **Hyprland layer rule (used).** Works on any current Hyprland, no extra
-   packages, controllable through `blur` size/passes. Limitation: it blurs the
-   whole surface, not per-element, so the dashboard's inner cards share one
-   backdrop.
-2. **`ext-background-effect-v1`.** Per-surface background blur through a
-   protocol Hyprland implements behind a flag on some builds. Cleaner blur
-   regions, but support varies by version and by whether the protocol is
-   exposed to layer-shell clients. Not enabled by default.
-3. **`hyprglass`-style shader effects.** Closest to the reference (refraction,
-   per-element distortion). Requires a custom plugin or patched compositor and
-   is not something a package should assume. Documented as optional, not
-   implemented.
+Use `HYPRLUME_REDUCED_EFFECTS=1 hyprlume shell` to skip the 3D viewport, glass blur
+and rim bloom. The backdrop and functional controls remain. This is also the
+profile used by the CPU-software benchmark; it does not characterize GPU mode.
 
-The stage backdrop is procedural (`Canvas`, painted on resize only): horizon
-glow, three ridgelines, deterministic stars. The reference's 3D scene is
-wallpaper, not a render target — putting a live 3D scene inside a QML panel would
-spend the whole frame budget on decoration.
+## Reproduce the design checks
 
-## Responsiveness
+On Arch, install `quickshell`, `qt6-quick3d`, `xorg-server-xvfb`, `xorg-xauth`,
+`dbus`, `xdotool`, `inter-font` and `ttf-jetbrains-mono`. Then:
 
-Breakpoints are logical pixels at `Theme.scale = 1.0`; Hyprland applies monitor
-scale, so a HiDPI screen gets the same layout, not a denser one.
+```sh
+python3 scripts/check-qml.py shell
+python3 scripts/qa/render-desktop.py --width 1920 --height 1080
+python3 scripts/qa/render-desktop.py --interact
+python3 scripts/qa/render-desktop.py --width 960 --height 640 --output output/design/compact.png
+python3 scripts/qa/render-desktop.py --reduced-effects --output output/design/reduced.png
+```
 
-| Width | Result |
-| --- | --- |
-| < 760 | Stage only; no rail, side columns, or bottom band |
-| ≥ 760 | Bottom band (system, ring, containers) when height ≥ 720 |
-| ≥ 880 | Workspace rail |
-| ≥ 1180 | Left column (quick actions, workspace flow) |
-| ≥ 1480 | Right column (agent, workspaces) |
+These use a private Xvfb display, private runtime directory and private D-Bus
+session. Input tests exercise the actual widgets with pointer and keyboard
+input. Fixtures never open a microphone, dispatch to a compositor, or call an
+LLM. GitHub CI runs the same checks on Arch and uploads the rendered images.
+Physical Wayland checks and remaining limits are recorded in [validation](validation.md).
 
-Height is handled inside the columns rather than by dropping them: the
-workspace flow and workspace list shrink their row counts, the agent panel hides
-its prompt shortcuts below 380 px, quick actions drop rows below 286 px, and the
-rail caps its tiles to the available height. Panels whose minimum content no
-longer fits (`WorkspaceFlow` under 260 px, `WorkspacesPanel` under 320 px) are
-hidden entirely, which gives the remaining card the space instead of clipping
-it.
-
-The bar degrades separately: labels below 1380, mode count 3 → 5 → 6 at 980 /
-1240 / 1560, icon-only below 980. The search field shrinks before any control is
-dropped. Panels that disappear are `visible: false`, not merely clipped, so
-their repeaters and bindings stop doing work.
-
-## Performance budget
-
-The shell is idle most of the time and must stay that way.
-
-- One child process total: `services/system-metrics.sh` at 1 Hz, emitting two
-  compact lines. Container stats are sampled every fifth tick, with `timeout`
-  guards so a hung runtime cannot stall the sampler.
-- The home surface unmaps when a window exists; no repaint, no bindings on
-  screen.
-- The stage backdrop repaints on resize only. No shader effects, no looping
-  animations, no frame timers.
-- Gauges and sparklines are `Canvas`/`Shape` items redrawn when values change,
-  not per frame.
-- The daemon snapshot arrives over one persistent socket; the UI has no polling
-  loop of its own.
-
-Targets to verify on a real session: idle shell CPU under 1%, no frame drops
-while the dashboard is mapped, and under 50 ms from click to visible response.
-Those are targets, not measurements — this tree has not been run on a Hyprland
-session yet.
-
-## Verification status
-
-Static checks pass (`python3 scripts/check-qml.py shell`). Runtime verification
-still needs a Linux machine with Quickshell and Hyprland:
-
-- `qs --path ./shell` loads and resolves `qs.*` imports.
-- `ClippingRectangle` needs Qt ≥ 6.7 for the per-corner radius properties.
-- `Hyprland.focusedMonitor`, `Hyprland.toplevels`, and `Hyprland.workspaces`
-  property names match the installed Quickshell version.
-- Fonts: install `inter-font` and `ttf-jetbrains-mono`; otherwise Qt substitutes
-  and metrics shift.
+[Asset origins and licensing](../shell/assets/README.md) ·
+[Generation prompts](design/asset-prompts.md)

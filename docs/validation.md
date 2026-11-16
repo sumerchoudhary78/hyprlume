@@ -1,64 +1,86 @@
 # Validation
 
-Initial checks on 16 November 2026 used Arch Linux x86_64 on a Ryzen 5 5600H,
-about 15 GiB usable RAM, Quickshell 0.3.2, and Qt 6.12. Native speech used CPU
-inference. The installed desktop was left untouched; microphone capture and
-physical speaker playback were not used for validation.
+Checked on **16 November 2026**, on Arch Linux x86_64, Ryzen 5 5600H,
+approximately 15 GiB usable RAM, Quickshell 0.3.2, Qt 6.12 and Hyprland 0.57.1
+with a Lua configuration. The physical output was 1920×1080 in its 144 Hz mode.
+No physical microphone recording or speaker playback was used.
 
-## Functional evidence
+## Automated checks
 
-- 18 Rust command, local-planner, private-socket, and HyprPilot protocol tests.
-  These exercise previews, single-use confirmation, allowlists, failed
-  postconditions, unknown model actions, and bounded responses.
-- Four Qt Quick interaction cases, plus setup/cleanup, under Qt's offscreen
-  software backend: Enter previews, explicit Run, confirmation, and busy state.
-- An actual Quickshell `services/Backend.qml` connection to a simulated Rust daemon,
-  including subscription and pushed action-review state (`shell/ipc-test.qml`).
-- Native Qt Quick panel rendered and visually inspected (`assets/preview.png`).
-- Static QML checks (`python3 scripts/check-qml.py shell`) pass for the module
-  tree. These check imports, bracket balance, and duplicate ids only; they do not
-  parse or render QML.
-- The desktop dashboard surfaces (`hyprlume-bar`, `hyprlume-home`) were added
-  after this validation run. They have not been rendered on a live Hyprland
-  session, and no frame-time or multi-monitor claim is made for them.
-- The enabled user-service dependency graph is verified independently with
-  `systemd-analyze`, without starting the graphical session or its services.
-- An actual systemd user-manager test launches a non-interactive process from
-  the daemon, stops the daemon, and verifies the app remains active in a
-  separate control group; the test process is then stopped explicitly.
-- Opt-in speech-model test: Piper-generated English → streaming ASR → typed
-  workspace action; positive “Hey Pilot” detection and a negative wake example.
-  This synthetic test is not a physical microphone/noise benchmark.
-- Local model-server behavior tested with deterministic HTTP fixtures. No
-  specific decision model's accuracy or latency is claimed.
+- **23 Rust integration tests** cover bounded commands, reviewed local model
+  plans, single-use confirmations, private sockets, single-instance ownership,
+  allowlists, classic/Lua dispatch and checked desktop postconditions.
+- The Lua tests include bound-window moves, unique focus, malformed provider
+  metadata and an address that must never become executable Lua.
+- Native Quickshell/RHI rendering passes at 1920×1080, at 960×640 in the compact
+  composition, and with reduced effects. Exported images are visually inspected.
+- Real pointer/keyboard input drives the actual dashboard and command components
+  on a private Xvfb display. Checks cover Enter-to-preview, busy controls, review
+  locking, explicit Run direct, confirmation tokens, dismissal, wake/off mode
+  requests, workspace rows, navigation, 3D globe/city actions and the launcher.
+- Fixtures are clearly labelled and never access a microphone, real desktop,
+  local model server or cloud provider. Production packaging excludes them.
+- Static QML checks validate import directories, delimiters and duplicate ids.
+  They complement runtime tests; they are not a QML parser.
+- The enabled service dependency graph is checked with `systemd-analyze`.
+  A previous systemd test also verified independent app lifetimes across daemon
+  restarts; the short-lived test process was explicitly stopped afterward.
 
-HyprPilot tests use an isolated mock compositor socket. They verify the actual
-typed dependency's wire requests and checked responses, without changing any
-live windows or claiming real compositor qualification.
+The opt-in synthetic English Piper → ASR → typed-action and wake-word fixtures
+remain available. They passed in the initial voice preview. Speech recognition
+quality, false wakes and real devices require separate physical testing; see
+[voice](voice.md). No decision model's planning quality is claimed from the HTTP
+protocol fixtures.
 
-## Preliminary overhead measurement
+## Physical session checks
 
-`python3 scripts/benchmark.py` runs a release-build demo daemon and the actual
-Quickshell preview UI under Qt's offscreen software renderer. Voice is off.
-One run produced:
+After the user requested replacement, the new shell and real Rust daemon were
+installed as user services in the active account. The previous shell/test daemon
+was stopped. The prior startup configuration was backed up before changes.
 
-| Measurement | Result |
+The following passed against the real compositor:
+
+1. Wallpaper is Background with an empty input region, dashboard is Bottom,
+   and the bar is Top with a 72-pixel reservation at 1920×1080.
+2. Opening a temporary Foot test window hides the dashboard while the wallpaper
+   and bar remain. Closing that specific test window restores the dashboard.
+3. Opening/closing the command palette maps/unmaps its Overlay surface.
+4. Rust commands switch to workspace 10 and restore workspace 1, with observed
+   postconditions, using the actual Lua config provider.
+5. The temporary verification window is focused by its unique app id, moved
+   to workspace 10 and back to 1, and then closed. Other windows are not targeted.
+6. The graphical configuration parses, both user services remain active, and
+   `hyprlume doctor` finds the voice models and required tools. Voice stays off.
+
+These checks do not establish full desktop-environment compatibility, every
+keybinding, lock-screen integration, notification handling or multiple outputs.
+The test window is deliberately temporary; no user's application was closed.
+
+## Current-session overhead sample
+
+A 20-second sample after initialization used the visible full-effects desktop,
+real host telemetry every two seconds, GPU readings at up to ten-second intervals,
+and microphone off. Process-tree CPU includes sampler subprocesses and is a
+percentage of **one core**.
+
+| Measurement | Observed |
 | --- | --- |
-| Status request/response, median | 0.0214 ms |
-| Status request/response, p95 | 0.0234 ms |
-| Status request/response, p99 | 0.0335 ms |
-| Rust daemon RSS | 23.98 MiB |
-| Quickshell UI RSS | 121.79 MiB |
-| Idle CPU ticks during 3-second sample | No ticks observed for either process |
+| Rust daemon process-tree CPU | 0.0% in the short sample |
+| Shell process-tree CPU | 0.6% of one core |
+| Rust daemon RSS | 23.24 MiB |
+| Shell RSS, full 3D profile | 620.41 MiB |
 
-The request sample contains 500 responses after 50 warmups. RSS includes the
-process's resident shared pages, not just unique memory. The short CPU sample
-has scheduler-tick granularity; it does not establish literally zero CPU use.
+RSS includes mapped/shared graphics-runtime pages; this is not unique memory or
+VRAM. The full 3D profile has a material memory cost. The lower-effects profile
+skips 3D, glass blur and rim bloom; its memory benefit has not been quantified
+here. Graphics resources are retained while the home surface is unmapped to
+allow fast return, while host sampling pauses.
 
-These measurements establish low idle overhead for this test configuration.
-They do **not** measure GUI input latency, display frame times, compositor blur,
-GPU power use, active speech cost, or LLM response time. UI feedback under
-50 ms and idle shell CPU under 1% remain live-session qualification targets.
+These are one-machine observations, not guarantees. The display's 144 Hz mode
+is **not** a measured application frame rate. CPU sampling has scheduler-tick
+granularity; 0.0% does not establish literally no work. Input latency, frame
+pacing, GPU power, concurrent speech and LLM cost still need profiling. The
+under-50-ms input-feedback goal remains a measurement target.
 
 ## Reproduce
 
@@ -66,56 +88,36 @@ GPU power use, active speech cost, or LLM response time. UI feedback under
 cargo test --release --locked --all-targets
 cargo clippy --locked --all-targets -- -D warnings
 python3 scripts/check-qml.py shell
-QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software \
-  qmltestrunner -input tests/qml -o -,txt
-python3 scripts/benchmark.py
-python3 scripts/check-units.py
+python3 scripts/qa/render-desktop.py --width 1920 --height 1080
+python3 scripts/qa/render-desktop.py --interact
+python3 scripts/qa/render-desktop.py --width 960 --height 640 --output output/design/compact.png
+python3 scripts/qa/render-desktop.py --reduced-effects --output output/design/reduced.png
+python3 scripts/check-units.py --binary target/release/hyprlume
 ```
 
-After explicitly installing the models and `espeak-ng`:
+`scripts/benchmark.py` measures a simulated daemon and the reduced-effects
+ordinary-window dashboard with Qt's CPU software backend. It does not measure
+the full-effects GPU profile above. Its output describes its own conditions.
+
+After explicitly installing the English models and `espeak-ng`:
 
 ```sh
 cargo test --release --locked --test voice_models -- --ignored --nocapture
 python3 scripts/voice-smoke.py
 ```
 
-The second command supplies synthetic PCM through a test capture executable;
-it does not use the microphone or apply a desktop action.
+The second voice command supplies synthetic PCM through a capture fixture.
+Neither is a physical microphone benchmark.
 
-## Packaging
+## Packaging and remaining qualification
 
-The AUR recipe disables makepkg's GCC LTO for native dependencies, following
-[Arch's Rust packaging guidance](https://wiki.archlinux.org/title/Rust_package_guidelines).
-Cargo's release profile retains Rust thin LTO. Dependencies are fetched during
-`prepare`; build and package tests use `--frozen`.
+The AUR recipe fetches during `prepare` and builds/tests with `--frozen`. GCC
+LTO is disabled for native dependencies; Rust thin LTO remains enabled. The
+runtime includes the whole QML module/asset tree, excluding QA fixtures.
 
-## Desktop shell qualification
-
-The dashboard has not been through a live session yet. The pass conditions are:
-
-1. `hyprlume shell --path ./shell` starts with no QML errors; the bar appears on
-   each monitor and windows tile below its reserved strip.
-2. Switching to an empty workspace maps `hyprlume-home`; opening a window unmaps
-   it. Switching workspaces with windows already open must not leave a stale
-   dashboard on screen.
-3. A workspace click in the rail, flow, or action ring switches to that
-   workspace on both classic `.conf` and Lua (Hyprland 0.55+) sessions; named
-   workspaces are valid targets in both.
-4. On two monitors, focus changes move the dashboard to the focused output and
-   the bar stays on both.
-5. With the layer rules applied, all three surfaces blur; without them, they
-   render flat but readable.
-6. `inter-font` and `ttf-jetbrains-mono` are installed, and no label clips at
-   1920x1080, 2560x1440, or a 1366x768 laptop.
-7. Container numbers match `docker ps`/`podman ps`; the system card shows `—`
-   for GPU on unsupported hardware and the sampler does not exit.
-
-Record results in this file; do not treat the static checks as a substitute.
-
-## Still requires real-session testing
-
-Physical microphone routing, false-wake rates, noisy rooms, accents, sleep and
-device reconnects, simultaneous model workloads, Hyprland/NVIDIA rendering,
-multi-monitor placement, and fractional scaling. aarch64 native archives are
-supported by upstream and described in the recipe, but this release has only
-been built and exercised on Linux x86_64 and development-tested on macOS arm64.
+Still open: long-running reliability, physical audio routing/noise/accents,
+sleep/resume, simultaneous model workloads, NVIDIA/other-driver comparisons,
+fractional scaling and multiple monitors, app-wide theming, notification/power/
+lock integration, and aarch64 build/runtime qualification. The recipe lists the
+upstream aarch64 archive, but this desktop release has been exercised on Linux
+x86_64 and Rust-development-tested on macOS arm64.

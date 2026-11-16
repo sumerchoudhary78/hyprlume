@@ -3,10 +3,13 @@ import Quickshell
 import Quickshell.Io
 
 // Samples CPU, memory, GPU, network, disk, and running containers from one
-// long-lived shell script. One process and one line per second; no polling
+// long-lived shell script. One process and one sample per two seconds; no polling
 // timer per metric and no IPC hop through the Rust daemon.
 Item {
     id: root
+
+    property bool active: true
+    onActiveChanged: { restart.stop(); sampler.running = active; }
 
     // -- Latest sample -------------------------------------------------------
     property int cpu: 0
@@ -116,9 +119,9 @@ Item {
     Process {
         id: sampler
         command: ["sh", root.scriptPath]
-        running: true
+        running: root.active
 
-        onExited: restart.restart()
+        onExited: { if (root.active) restart.restart(); }
 
         stdout: SplitParser {
             onRead: line => root.consume(line)
@@ -129,6 +132,6 @@ Item {
         id: restart
         interval: 2000
         repeat: false
-        onTriggered: sampler.running = true
+        onTriggered: sampler.running = root.active
     }
 }

@@ -10,18 +10,30 @@ QtObject {
 
     readonly property var all: Hyprland.workspaces ? Hyprland.workspaces.values : []
     readonly property var focused: Hyprland.focusedWorkspace ?? null
-    readonly property int focusedId: focused ? focused.id : -1
+
+    // Workspace identity is the name. Hyprland 0.57 gives named workspaces no
+    // numeric id, and Quickshell reports -1 for every one of them, so comparing
+    // ids would treat all named workspaces as the same workspace.
+    function sameWorkspace(a, b) {
+        if (!a || !b)
+            return false;
+        return a.name === b.name;
+    }
+
+    function isFocused(workspace) {
+        return sameWorkspace(workspace, focused);
+    }
 
     readonly property int focusedWindowCount: {
-        if (!Hyprland.toplevels || focusedId < 0)
+        if (!Hyprland.toplevels || !focused)
             return 0;
-        return Hyprland.toplevels.values.filter(t => t.workspace && t.workspace.id === focusedId).length;
+        return Hyprland.toplevels.values.filter(t => t.workspace && sameWorkspace(t.workspace, focused)).length;
     }
 
     // The dashboard only belongs on an empty workspace; with windows open it
     // would sit behind them and blur the wallpaper for nothing. Count only the
     // focused workspace: windows elsewhere must not hide this one.
-    readonly property bool desktopVisible: focusedId >= 0 && focusedWindowCount === 0
+    readonly property bool desktopVisible: focused !== null && focusedWindowCount === 0
 
     function label(workspace) {
         if (!workspace)
@@ -34,7 +46,7 @@ QtObject {
     function countFor(workspace) {
         if (!workspace || !Hyprland.toplevels)
             return 0;
-        return Hyprland.toplevels.values.filter(t => t.workspace && t.workspace.id === workspace.id).length;
+        return Hyprland.toplevels.values.filter(t => t.workspace && sameWorkspace(t.workspace, workspace)).length;
     }
 
     // Hyprland 0.55+ can run from a Lua config, and in that mode the request
@@ -65,17 +77,21 @@ QtObject {
         }
     }
 
+    // Hyprland's `e+1` / `e-1` targets are handled by the classic `workspace`
+    // dispatcher only. Lua's `hl.dsp.focus` treats the string as a workspace
+    // selector, so "e+1" silently resolves to nothing. Relative ids (`+1`,
+    // `-1`) work in both modes and match the user's own keybinds.
     function focusNext() {
         if (Hyprland.usingLua)
-            Hyprland.dispatch("hl.dsp.focus({ workspace = \"e+1\" })");
+            Hyprland.dispatch("hl.dsp.focus({ workspace = \"+1\" })");
         else
-            Hyprland.dispatch("workspace e+1");
+            Hyprland.dispatch("workspace +1");
     }
 
     function focusPrevious() {
         if (Hyprland.usingLua)
-            Hyprland.dispatch("hl.dsp.focus({ workspace = \"e-1\" })");
+            Hyprland.dispatch("hl.dsp.focus({ workspace = \"-1\" })");
         else
-            Hyprland.dispatch("workspace e-1");
+            Hyprland.dispatch("workspace -1");
     }
 }

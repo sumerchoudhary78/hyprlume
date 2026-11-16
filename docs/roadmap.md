@@ -7,8 +7,8 @@ and an unrestricted computer-use agent are larger projects.
 
 - Physical-microphone tests for false wakes, accents, noisy rooms, silence,
   device disconnects, and sleep/resume.
-- Live Hyprland/NVIDIA/fractional-scaling testing, keyboard focus, multi-monitor
-  placement, and compositor frame-time measurements.
+- Longer Hyprland/NVIDIA runs, fractional scaling, multiple monitors and
+  compositor frame-time measurements beyond the verified single-monitor path.
 - Richer target selection and persistent undo/snapshot integration with HyprPilot.
 - Immediate in-flight cancellation and structured progress for longer tasks.
 - Acoustic echo cancellation and TTS barge-in.
@@ -21,22 +21,21 @@ Delivered in the current tree:
   overlay, sharing one design-token module (`shell/theme/Theme.qml`).
 - Live workspace list, window counts, focus switching, quick actions, voice-mode
   controls, CPU/memory/GPU/network/disk readouts, and docker/podman state.
-- Breakpoint-based responsiveness and a single 1 Hz sampler process.
+- A compact layout, reduced-effects mode and one two-second sampler that pauses
+  while the dashboard is hidden.
+- Cached wallpaper glass, procedural 3D globe/city and the same command component
+  used by the live shell and native input tests.
+- Physical-session checks for wallpaper/bar layers, workspace switching, focus,
+  window moves and dashboard hide/restore on Hyprland 0.57.1 Lua.
 
 Still open:
 
 - Launcher search results, task switcher, and notification centre. The bar
   currently opens the command panel; there is no result list behind the search
   field.
-- Full per-mode pages behind the bar's mode strip. Only "Terminal" (the
-  dashboard) exists; other tabs set `ShellState.mode` without changing content.
-- Bring the command panel onto `Theme` and `GlassSurface`. It is still the
-  original plain-Qt component because `tests/qml` runs it without Quickshell
-  imports, so restyling means giving the test harness an explicit theme fixture.
+- Full task-specific pages and persisted workflows behind navigation. Existing
+  tabs select the console, action activity, assistant focus or live system data.
 - Audio/network/power panels through native services.
-- Per-surface blur regions (rather than whole-surface compositor blur) and a
-  documented reduced-effects mode. `ShellState.reducedEffects` is reserved but
-  no module reads it yet.
 - A compositor adapter boundary if niri support becomes useful. Hyprland is
   the only implemented compositor backend today.
 

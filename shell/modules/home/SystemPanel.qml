@@ -8,7 +8,7 @@ import qs.theme
 GlassSurface {
     id: root
 
-    required property Metrics metrics
+    required property var metrics
 
     radius: Theme.radiusCard
 
@@ -21,7 +21,7 @@ GlassSurface {
             Layout.fillWidth: true
             title: "System"
             iconName: "utilities-system-monitor"
-            accent: Theme.mint
+            accent: Theme.amber
 
             Text {
                 text: "load " + root.metrics.load
@@ -42,7 +42,7 @@ GlassSurface {
                 arcSize: Theme.px(74)
                 thickness: Theme.px(5)
                 value: root.metrics.cpu / 100
-                accent: Theme.cyan
+                accent: Theme.mint
                 label: "CPU"
             }
 
@@ -52,9 +52,9 @@ GlassSurface {
                 arcSize: Theme.px(74)
                 thickness: Theme.px(5)
                 value: root.metrics.mem / 100
-                accent: Theme.violet
+                accent: Theme.cyan
                 label: "RAM"
-                valueText: root.metrics.memMb + "M"
+                valueText: root.metrics.mem + "%"
             }
 
             Gauge {
@@ -63,7 +63,7 @@ GlassSurface {
                 arcSize: Theme.px(74)
                 thickness: Theme.px(5)
                 value: root.metrics.gpuAvailable ? root.metrics.gpu / 100 : 0
-                accent: Theme.mint
+                accent: Theme.violet
                 label: "GPU"
                 valueText: root.metrics.gpuAvailable
                     ? root.metrics.gpu + "%"

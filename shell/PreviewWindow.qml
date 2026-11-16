@@ -1,21 +1,30 @@
 import QtQuick
 import Quickshell
-import qs.services
+import qs.modules.home
+import qs.modules.command
 
+// Ordinary-window host for the same live dashboard used by layer-shell.
 FloatingWindow {
     id: window
-    required property Backend backend
+    required property var backend
+    required property var workspaces
+    required property var metrics
+    required property var clock
+    required property var state
     visible: true
-    implicitWidth: 760
-    implicitHeight: Math.max(620, previewPanel.implicitHeight + 80)
-    color: "#101927"
-    GlassPanel {
-        id: previewPanel
-        anchors.centerIn: parent
-        width: Math.min(parent.width - 48, implicitWidth)
-        snapshot: window.backend.snapshot
-        connectionError: window.backend.error
-        onRequest: operation => window.backend.send(operation)
-        onDismissed: Qt.quit()
+    implicitWidth: 1440
+    implicitHeight: 810
+    color: "#030914"
+    Dashboard {
+        anchors.fill: parent
+        backend: window.backend; workspaces: window.workspaces; metrics: window.metrics; clock: window.clock; state: window.state
+    }
+    Loader {
+        anchors.fill: parent
+        active: window.backend.snapshot.panel_open
+        sourceComponent: CommandOverlay {
+            anchors.fill: parent
+            backend: window.backend
+        }
     }
 }

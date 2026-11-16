@@ -1,234 +1,144 @@
 import QtQuick
+import QtQuick.Layouts
 import qs.components
-import qs.services
 import qs.theme
-import Quickshell.Widgets
 
-// The centre stage: a console for the shell's own activity, with the
-// procedural horizon underneath. Text comes from the daemon snapshot, not
-// from a mock log.
-Item {
+// A real command console: every output line is derived from daemon state.
+// A terminal shortcut opens an allowlisted terminal through the same preview.
+GlassSurface {
     id: root
-
-    required property Backend backend
-    required property Workspaces workspaces
-    required property Metrics metrics
-    required property Clock clock
-
+    required property var backend
+    required property var workspaces
+    required property var metrics
+    required property var clock
+    property int mode: 0
+    property int activeTab: 0
+    onModeChanged: activeTab = mode === 4 || mode === 5 ? 2 : mode === 1 ? 1 : 0
     readonly property var snapshot: backend.snapshot
-    readonly property string phase: (snapshot.phase ?? "offline").toUpperCase()
-
+    readonly property bool busy: ["planning", "executing", "speaking"].indexOf(snapshot.phase) >= 0
+    readonly property bool review: snapshot.confirmation !== null && snapshot.confirmation !== undefined
     readonly property var output: {
-        const state = root.snapshot;
         const lines = [];
-        (state.actions ?? []).forEach((action, index) => {
-            const number = index + 1;
-            lines.push({
-                kind: "action",
-                text: (number < 10 ? "0" : "") + number + "   " + action
-            });
-        });
-        (state.receipts ?? []).forEach(receipt => {
-            lines.push({ kind: "ok", text: "✓   " + receipt });
-        });
-        return lines.slice(0, 7);
+        for (const action of (snapshot.actions ?? [])) lines.push({text: action, kind: "plan"});
+        for (const receipt of (snapshot.receipts ?? [])) lines.push({text: receipt, kind: "ok"});
+        if (lines.length === 0) {
+            lines.push({text: snapshot.message || "Your desktop, within reach.", kind: "status"});
+            lines.push({text: snapshot.voice === "off" ? "Voice is off. Enable it when you need it." : "Voice is ready. Say Hey Pilot.", kind: "dim"});
+            lines.push({text: backend.online ? "Connected to your local desktop." : "Waiting for the local agent…", kind: "dim"});
+        }
+        return lines.slice(0, 5);
     }
+    radius: 25
+    glowColor: Theme.cyan
+    secondaryColor: Theme.violet
 
-    GlassSurface {
-        anchors.fill: parent
-        radius: Theme.radiusPanel
-
-        // -- Backdrop --------------------------------------------------------
-        ClippingRectangle {
-            anchors {
-                left: parent.left
-                right: parent.right
-                bottom: parent.bottom
-            }
-            height: Math.round(parent.height * 0.46)
-            color: "transparent"
-            topLeftRadius: 0
-            topRightRadius: 0
-            bottomLeftRadius: Theme.radiusPanel
-            bottomRightRadius: Theme.radiusPanel
-
-            StageBackdrop { anchors.fill: parent }
-
-            Rectangle {
-                anchors.fill: parent
-                gradient: Gradient {
-                    GradientStop { position: 0.0; color: Theme.glass }
-                    GradientStop { position: 0.32; color: "transparent" }
-                }
-            }
+    function submit() {
+        const text = input.text.trim();
+        if (text && !root.busy && !root.review && root.backend.online) {
+            root.backend.send({op: "command", text: text, dry_run: true});
+            input.text = "";
         }
-
-        // -- Header ----------------------------------------------------------
-        Row {
-            id: tabs
-
-            anchors {
-                left: parent.left
-                right: parent.right
-                top: parent.top
-                leftMargin: Theme.px(18)
-                rightMargin: Theme.px(18)
-                topMargin: Theme.px(14)
-            }
-            spacing: Theme.px(8)
-
-            Chip {
-                text: "~/" + (root.snapshot.active_app.length > 0 ? root.snapshot.active_app : "shell")
-                textColor: Theme.ink
-                fillColor: Qt.rgba(0.37, 0.85, 1.0, 0.10)
-                strokeColor: Qt.rgba(0.37, 0.85, 1.0, 0.22)
-                horizontalPadding: Theme.px(12)
-            }
-
-            Chip {
-                text: root.snapshot.workspace !== null
-                    ? "workspace " + root.snapshot.workspace
-                    : "no workspace"
-                textColor: Theme.inkDim
-            }
-
-            Item { width: Theme.px(4); height: 1 }
-
-            Chip {
-                text: root.phase
-                textColor: root.snapshot.phase === "error" ? Theme.rose
-                    : root.snapshot.phase === "ready" ? Theme.mint
-                    : Theme.amber
-                fillColor: "transparent"
-                strokeColor: Theme.divider
-                mono: true
-            }
-        }
-
-        // -- Prompt ----------------------------------------------------------
-        Item {
-            id: prompt
-
-            anchors {
-                left: parent.left
-                right: parent.right
-                top: tabs.bottom
-                leftMargin: Theme.px(18)
-                rightMargin: Theme.px(18)
-                topMargin: Theme.px(12)
-            }
-            height: Theme.px(34)
-
-            Rectangle {
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
-                width: promptLabel.implicitWidth + Theme.px(20)
-                height: Theme.px(26)
-                radius: Theme.radiusPill
-                color: Qt.rgba(0.64, 0.55, 1.0, 0.16)
+    }
+    Row {
+        x: 25; y: 13; spacing: 8
+        Repeater {
+            model: ["hyprlume / console", "Session activity", "System − live"]
+            delegate: Rectangle {
+                required property string modelData
+                required property int index
+                width: index === 0 ? 205 : 155; height: 38; radius: 11
+                color: root.activeTab === index ? "#3921416a" : "#58051120"
                 border.width: 1
-                border.color: Qt.rgba(0.64, 0.55, 1.0, 0.35)
-
-                Text {
-                    id: promptLabel
-                    anchors.centerIn: parent
-                    text: "❯ " + (root.snapshot.transcript.length > 0
-                        ? root.snapshot.transcript
-                        : "awaiting a command")
-                    color: Theme.ink
-                    font.family: Theme.fontMono
-                    font.pixelSize: Theme.fontBody
-                    elide: Text.ElideRight
-                    width: Math.min(implicitWidth, root.width - Theme.px(260))
+                border.color: root.activeTab === index ? Theme.violet : "#3157b1d8"
+                Row {
+                    anchors.centerIn: parent; spacing: 8
+                    Icon { name: index === 0 ? "folder" : index === 1 ? "cloud" : "chart"; color: Theme.cyan; size: 16 }
+                    Text { text: modelData; color: root.activeTab === index ? Theme.ink : Theme.inkDim; font.family: Theme.fontSans; font.pixelSize: 12 }
                 }
-            }
-
-            Row {
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                spacing: Theme.px(6)
-
-                Chip {
-                    text: root.workspaces.focusedWindowCount + " windows"
-                    textColor: Theme.inkFaint
-                }
-
-                Chip {
-                    text: root.backend.online ? "daemon online" : "daemon offline"
-                    textColor: root.backend.online ? Theme.mint : Theme.rose
-                    fillColor: "transparent"
-                    strokeColor: Theme.divider
-                }
+                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.activeTab = index }
             }
         }
-
-        // -- Output ----------------------------------------------------------
-        Column {
-            id: outputArea
-
-            anchors {
-                left: parent.left
-                right: parent.right
-                top: prompt.bottom
-                leftMargin: Theme.px(18)
-                rightMargin: Theme.px(210)
-                topMargin: Theme.px(10)
+        IconTile { iconName: "plus"; size: 36; iconSize: 16; onClicked: root.backend.send({op: "toggle"}) }
+    }
+    Rectangle { x: 14; y: 59; width: parent.width - 28; height: 1; color: "#395cd8ff" }
+    Row {
+        x: 29; y: 83; spacing: 10
+        Text { text: "❯"; color: Theme.amber; font.family: Theme.fontMono; font.pixelSize: 21 }
+        Chip {
+            text: root.snapshot.active_app.length > 0 ? root.snapshot.active_app : "local session"
+            textColor: Theme.ink
+            fillColor: "#805528a3"; strokeColor: "#ba9a6eff"
+            horizontalPadding: 18
+        }
+        Chip {
+            text: "workspace " + (root.snapshot.workspace ?? "—")
+            textColor: Theme.mint; fillColor: "#50206037"; strokeColor: "#7068f0b1"; mono: true
+        }
+    }
+    Row {
+        x: 30; y: 128; spacing: 14
+        visible: root.activeTab !== 2
+        Text { text: "{"; color: Theme.cyan; font.family: Theme.fontMono; font.pixelSize: 22 }
+        TextInput {
+            id: input
+            objectName: "consoleInput"
+            width: Math.max(120, root.width - 250); height: 30
+            color: Theme.ink; font.family: Theme.fontMono; font.pixelSize: 21
+            clip: true; selectByMouse: true; maximumLength: 512
+            enabled: root.backend.online && !root.busy && !root.review
+            onAccepted: root.submit()
+            Text {
+                anchors.fill: parent
+                visible: input.text.length === 0
+                text: root.snapshot.transcript || "What would you like to do?"
+                color: root.snapshot.transcript ? Theme.ink : Theme.inkFaint
+                font: input.font
+                elide: Text.ElideRight
             }
-            spacing: Theme.px(6)
-            clip: true
-
-            Repeater {
-                model: root.output
-
+            Accessible.name: "Desktop command. Enter previews the action."
+        }
+    }
+    IconTile {
+        anchors.right: parent.right; anchors.rightMargin: 22; y: 78
+        size: 30; iconName: "expand"; iconSize: 15
+        onClicked: root.backend.send({op: "command", text: "launch terminal", dry_run: true})
+        Accessible.name: "Open terminal preview"
+    }
+    Column {
+        x: 34; y: 181; width: Math.max(140, parent.width - 245); spacing: 9
+        visible: root.activeTab !== 2
+        Repeater {
+            model: root.output
+            delegate: Row {
+                required property var modelData
+                width: parent.width; spacing: 13
                 Text {
-                    required property var modelData
-
-                    width: outputArea.width
+                    text: modelData.kind === "ok" ? "✓" : modelData.kind === "plan" ? "◇" : "│"
+                    color: modelData.kind === "ok" ? Theme.mint : Theme.cyan
+                    font.family: Theme.fontMono; font.pixelSize: 14
+                }
+                Text {
+                    width: parent.width - 25
                     text: modelData.text
-                    color: modelData.kind === "ok" ? Theme.mint : Theme.inkDim
-                    font.family: Theme.fontMono
-                    font.pixelSize: Theme.fontBody
-                    wrapMode: Text.Wrap
+                    color: modelData.kind === "ok" ? "#ccf4c1" : modelData.kind === "dim" ? Theme.inkFaint : Theme.inkDim
+                    font.family: Theme.fontMono; font.pixelSize: 13
                     elide: Text.ElideRight
-                    maximumLineCount: 2
-                }
-            }
-
-            Column {
-                visible: root.output.length === 0
-                spacing: Theme.px(6)
-
-                Text {
-                    text: root.snapshot.message
-                    width: outputArea.width
-                    color: Theme.ink
-                    font.family: Theme.fontSans
-                    font.pixelSize: Theme.fontTitle
-                    font.weight: Font.Medium
-                    wrapMode: Text.Wrap
-                }
-
-                Text {
-                    text: "Type a direct command, or ask in plain English. Model plans always preview first."
-                    width: Math.min(outputArea.width, Theme.px(520))
-                    color: Theme.inkFaint
-                    font.family: Theme.fontSans
-                    font.pixelSize: Theme.fontCaption
-                    wrapMode: Text.Wrap
                 }
             }
         }
-
-        ClockCard {
-            anchors {
-                right: parent.right
-                top: parent.top
-                rightMargin: Theme.px(16)
-                topMargin: Theme.px(58)
-            }
-            clock: root.clock
-            metrics: root.metrics
-            visible: root.width > Theme.px(620)
-        }
+    }
+    Column {
+        x: 40; y: 140; spacing: 16; visible: root.activeTab === 2
+        Text { text: root.mode === 4 ? "LOCAL CONTAINERS / LIVE" : root.mode === 5 ? "NETWORK / LIVE" : "YOUR SYSTEM / LIVE"; color: Theme.cyan; font.family: Theme.fontMono; font.pixelSize: 12; font.letterSpacing: 2 }
+        Text { text: root.mode === 4 ? (root.metrics.containerRuntime || "No runtime") + " · " + root.metrics.containerCount + " running" : "CPU    " + root.metrics.cpu + "%   ·   RAM    " + root.metrics.mem + "%"; color: Theme.ink; font.family: Theme.fontMono; font.pixelSize: 20 }
+        Text { text: root.mode === 4 ? (root.metrics.containerName || "No active containers") : "↑ " + root.metrics.formatRate(root.metrics.netUp) + "    ↓ " + root.metrics.formatRate(root.metrics.netDown); color: Theme.inkDim; font.family: Theme.fontMono; font.pixelSize: 15 }
+        Text { text: "Uptime  " + root.metrics.formatUptime(root.metrics.uptimeMinutes); color: Theme.inkFaint; font.family: Theme.fontMono; font.pixelSize: 13 }
+    }
+    StageBackdrop { x: 7; anchors.bottom: parent.bottom; anchors.bottomMargin: 5; width: parent.width - 14; height: 193 }
+    ClockCard { anchors.right: parent.right; anchors.rightMargin: 22; y: 180; clock: root.clock; metrics: root.metrics }
+    Row {
+        anchors.bottom: parent.bottom; anchors.bottomMargin: 11; x: 25; spacing: 7
+        StatusDot { anchors.verticalCenter: parent.verticalCenter; size: 5; color: root.backend.online ? Theme.mint : Theme.rose }
+        Text { text: root.backend.online ? "LOCAL AGENT CONNECTED" : "AGENT OFFLINE"; color: "#91acc8"; font.family: Theme.fontMono; font.pixelSize: 8; font.letterSpacing: 1.1 }
     }
 }

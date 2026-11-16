@@ -14,14 +14,14 @@ ShellRoot {
 
     Backend { id: backend }
     Clock { id: clock }
-    Metrics { id: metrics }
+    Metrics { id: metrics; active: root.preview || workspaces.desktopVisible }
     Workspaces { id: workspaces }
     ShellState { id: shellState }
 
     Loader {
         Component.onCompleted: {
             if (root.preview) {
-                setSource("PreviewWindow.qml", { backend: backend });
+                setSource("PreviewWindow.qml", { backend: backend, clock: clock, metrics: metrics, workspaces: workspaces, state: shellState });
             } else {
                 setSource("DesktopShell.qml", {
                     backend: backend,

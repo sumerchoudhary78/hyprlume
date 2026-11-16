@@ -69,7 +69,7 @@ Run these from a terminal **inside your graphical session**:
 
 ```sh
 systemctl --user import-environment WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE XDG_CURRENT_DESKTOP
-systemctl --user start hyprlume-daemon.service hyprlume-shell.service
+systemctl --user restart hyprlume-daemon.service hyprlume-shell.service
 ```
 
 Both units stop with `graphical-session.target`. If your session manager owns
@@ -105,50 +105,57 @@ can overflow tightly fitted rows. No font files are bundled with the package.
 
 ## Blur, layer rules, and shortcuts
 
-The shell uses three Wayland layer namespaces:
+The shell uses four Wayland layer roles:
 
 | Namespace | Surface |
 | --- | --- |
+| `hyprlume-wallpaper` | persistent background, one per monitor |
 | `hyprlume-bar` | top bar, one per monitor |
 | `hyprlume-home` | empty-workspace dashboard |
 | `hyprlume-command` | command panel overlay |
 
-On current Lua-based Hyprland, these opt-in rules enable compositor blur:
+The room wallpaper uses `hyprlume-wallpaper` on the Background layer with an
+empty input region. It persists behind apps and does not reserve screen space.
+The dashboard samples this same room asset inside QML for its own glass blur.
+It does not need a full-screen compositor blur rule.
+
+For optional blur behind the small bar and command overlay on Lua Hyprland:
 
 ```lua
-hl.layer_rule({ match = { namespace = "^hyprlume-(bar|home)$" }, blur = true, ignore_alpha = 0.1 })
-hl.layer_rule({ match = { namespace = "^hyprlume-command$" }, blur = true, ignore_alpha = 0.1 })
+hl.layer_rule({ match = { namespace = "^hyprlume-(bar|command)$" }, blur = true, ignore_alpha = 0.1 })
 ```
 
-Refer to the matching version of the
-[Hyprland layer-rule documentation](https://wiki.hypr.land/configuring/core/rules/layer-rules/)
-for your installed compositor. Older `.conf` syntax differs.
-Keep blur size/passes modest; it shares GPU resources with other work.
-Why blur lives in the compositor, and the alternatives, are covered in
-[homescreen](homescreen.md).
+Refer to your version's [layer-rule documentation](https://wiki.hypr.land/configuring/core/rules/layer-rules/).
+The bar reserves its actual scaled height (72 pixels on a 1920×1080 screen).
+Replace an existing bar before starting this one to avoid stacking reservations.
 
-The bar reserves `Theme.barZone` (74 logical px) at the top via `exclusiveZone`,
-so Hyprland tiles windows below it. Remove, hide, or move any other bar or
-dynamic island that occupies the same strip; two bars both reserving space will
-stack. If you prefer the bar to float over windows instead, set
-`exclusiveZone: 0` in `modules/topbar/TopBar.qml`.
+Bind `hyprlume toggle` to your preferred launcher key and `hyprlume voice off`
+to an easy microphone-off shortcut. For example, in a Lua config:
 
-Bind a shortcut of your choice to `hyprlume toggle`, and a separate one to
-`hyprlume voice off`. The command panel opens under the bar; the dashboard
-appears by itself when the focused workspace is empty.
+```lua
+hl.bind("SUPER + K", hl.dsp.exec_cmd("hyprlume toggle"))
+hl.bind("SUPER + SHIFT + M", hl.dsp.exec_cmd("hyprlume voice off"))
+```
 
-Workspace buttons in the dashboard use Hyprland's request socket. Classic
-`.conf` sessions receive `workspace 2` / `workspace e+1`; Hyprland 0.55+ Lua
-sessions receive `hl.dsp.focus({ workspace = 2 })` /
-`hl.dsp.focus({ workspace = "e+1" })`. `services/Workspaces.qml` chooses the
-form from `Hyprland.usingLua` at click time, so no setting is needed. If you
-bind workspace switching yourself, copy the syntax that matches your config
-format; the two are not interchangeable.
+The package does not edit your Hyprland config. When starting user services
+from a session startup hook, first import the graphical environment, then
+**restart** both services; this avoids retaining an old instance signature from
+a lingering user manager. A session manager that imports the environment before
+activating `graphical-session.target` can manage the enabled units normally.
 
-The bar and quick-actions card render **Super K** as a hint, not a binding the
-package installs. If you choose a different key, either update that chip in
-`shell/modules/topbar/SearchBox.qml` and
-`shell/modules/home/QuickActions.qml`, or ignore it; nothing reads the label.
+Workspace UI controls inspect `Hyprland.usingLua`. Rust actions read
+`j/status.configProvider` through HyprPilot. Lua sessions receive bounded
+`hl.dsp.*` expressions; classic sessions use the typed legacy dispatchers.
+Relative UI navigation uses `+1` and `-1`, including on Lua sessions.
+
+For lower graphics cost:
+
+```sh
+HYPRLUME_REDUCED_EFFECTS=1 hyprlume shell
+```
+
+That disables 3D, local glass blur and rim bloom. [The desktop guide](homescreen.md)
+explains native previews, geometry, layouts and runtime data sources.
 
 ## Troubleshooting
 

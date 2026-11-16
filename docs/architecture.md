@@ -19,10 +19,11 @@ HyprPilot, without a polling loop for desktop status.
 
 ## Shell surfaces
 
-Quickshell renders three layer-shell surfaces and one ordinary window for
+Quickshell renders four layer-shell surface roles and one ordinary window for
 preview:
 
-- `hyprlume-bar`, one per monitor, `WlrLayer.Top`, reserves `barZone` at the top
+- `hyprlume-wallpaper`, one per monitor, Background layer with no input region.
+- `hyprlume-bar`, one per monitor, `WlrLayer.Top`, reserves its scaled visible height at the top
   so Hyprland tiles windows below it.
 - `hyprlume-home`, one on the focused monitor, `WlrLayer.Bottom`. It maps only
   while the focused workspace has no windows and unmaps otherwise, so an
@@ -37,10 +38,11 @@ the reconnecting subscription; `services/Workspaces.qml` wraps Hyprland state;
 `ShellState` are local. Modules receive these as required properties, which keeps
 every panel usable in isolation and previewable without a daemon.
 
-Compositor blur is not requested by QML. Each surface declares a namespace and
-the user's Hyprland layer rules decide whether it blurs; the QML side paints only
-tint, rim, and sheen. Layout, breakpoints, and the reference-image mapping are in
-[homescreen](homescreen.md).
+The dashboard's glass samples its own cached wallpaper within QML. Compositor
+blur is optional for the bar/command surfaces; application contents are never
+captured by the glass renderer. One Qt Quick 3D viewport holds the globe and city.
+The reduced-effects profile skips that viewport and local blur. See
+[homescreen](homescreen.md) for composition, responsiveness and data ownership.
 
 ## HyprPilot integration
 
@@ -49,7 +51,10 @@ tint, rim, and sheen. Layout, breakpoints, and the reference-image mapping are i
 [HyprPilot](https://github.com/sumerchoudhary78/HyprPilot).
 Queries, selectors, workspace dispatchers, focus, window moves, and compositor
 events use that implementation. Hyprlume does not copy a second Hyprland IPC
-client into this repository.
+client into this repository. A small adapter reads `j/status.configProvider`
+through that transport and uses bounded Lua dispatchers for modern Lua sessions;
+classic sessions retain HyprPilot's typed legacy operations. Window selectors
+are validated hexadecimal addresses before becoming Lua literals.
 
 HyprPilot's daemon, persistent undo, snapshots, accessibility, and MCP server
 remain useful adjacent integrations. This release does not start or expose

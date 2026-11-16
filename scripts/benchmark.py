@@ -39,7 +39,7 @@ def main():
                 if daemon.poll() is not None or time.monotonic() > deadline:
                     raise RuntimeError("daemon did not start")
                 time.sleep(0.01)
-            env = dict(os.environ, QT_QPA_PLATFORM="offscreen", QT_QUICK_BACKEND="software", LANG="C.UTF-8")
+            env = dict(os.environ, QT_QPA_PLATFORM="offscreen", QT_QUICK_BACKEND="software", HYPRLUME_REDUCED_EFFECTS="1", LANG="C.UTF-8")
             ui = subprocess.Popen([str(binary), "--socket", str(path), "shell", "--path", str(root / "shell"), "--preview"], env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             time.sleep(1)
             if ui.poll() is not None:
@@ -64,7 +64,7 @@ def main():
             hz = os.sysconf("SC_CLK_TCK")
             samples.sort()
             print(json.dumps({
-                "environment": "Linux; demo daemon; Qt offscreen software renderer; voice disabled",
+                "environment": "Linux; demo daemon; reduced-effects dashboard; Qt offscreen software renderer; live host metrics; voice disabled",
                 "samples": len(samples),
                 "status_rtt_ms_p50": round(statistics.median(samples), 4),
                 "status_rtt_ms_p95": round(samples[int(len(samples) * 0.95)], 4),

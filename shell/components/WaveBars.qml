@@ -1,12 +1,13 @@
 import QtQuick
 import qs.theme
 
-// Level meter for the voice row. It animates only while the microphone is
-// actually active; idle cost is one static row of bars.
+// Voice-state illustration, not a measured microphone amplitude.
+// Only animate while the voice control is visible and enabled.
 Item {
     id: root
 
     property bool active: false
+    property bool animated: true
     property color accent: Theme.violet
     property int barCount: 26
     property int barWidth: 2
@@ -19,7 +20,7 @@ Item {
     property real phase: 0
 
     NumberAnimation on phase {
-        running: root.active
+        running: root.active && root.visible && root.animated
         loops: Animation.Infinite
         from: 0
         to: Math.PI * 2
@@ -40,10 +41,10 @@ Item {
                 radius: width / 2
                 anchors.verticalCenter: parent.verticalCenter
                 color: root.accent
-                opacity: root.active ? 0.9 : 0.25
+                opacity: root.active ? 0.9 : 0.5
                 height: {
                     if (!root.active)
-                        return Theme.px(3);
+                        return Math.max(2, root.implicitHeight * Math.sin(index / root.barCount * Math.PI) * (0.12 + 0.6 * Math.pow(Math.sin(index * 2.1), 2)));
                     const wave = Math.sin(root.phase + index * 0.55);
                     const shape = Math.sin(index / root.barCount * Math.PI);
                     return Math.max(Theme.px(3), root.amplitude * root.implicitHeight * shape * (0.35 + 0.65 * wave * wave));
