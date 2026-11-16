@@ -250,3 +250,49 @@ async fn wireless_validation_cannot_replace_an_agent_confirmation() {
     assert_eq!(after["panel_open"], false);
     daemon.stop().await;
 }
+
+#[tokio::test]
+async fn command_shortcut_reveals_a_preview_arriving_behind_connections() {
+    let daemon = Daemon::start().await;
+    server::call(
+        &daemon.path,
+        Operation::Connectivity {
+            request: hyprlume::services::connectivity::Request::Toggle,
+        },
+    )
+    .await
+    .unwrap();
+    server::call(
+        &daemon.path,
+        Operation::Command {
+            text: "workspace 2".into(),
+            dry_run: true,
+        },
+    )
+    .await
+    .unwrap();
+    let pending = tokio::time::timeout(Duration::from_secs(2), async {
+        loop {
+            let state = server::call(&daemon.path, Operation::Status).await.unwrap();
+            if state["confirmation"].is_number() {
+                break state;
+            }
+            tokio::task::yield_now().await;
+        }
+    })
+    .await
+    .unwrap();
+    assert_eq!(pending["panel_open"], true);
+    let wireless = server::call(&daemon.path, Operation::ConnectivityStatus)
+        .await
+        .unwrap();
+    assert_eq!(wireless["panel_open"], true);
+    let focused = server::call(&daemon.path, Operation::Toggle).await.unwrap();
+    let wireless = server::call(&daemon.path, Operation::ConnectivityStatus)
+        .await
+        .unwrap();
+    assert_eq!(focused["panel_open"], true);
+    assert_eq!(focused["confirmation"], pending["confirmation"]);
+    assert_eq!(wireless["panel_open"], false);
+    daemon.stop().await;
+}

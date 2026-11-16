@@ -6,7 +6,7 @@ A glass command shell and local English voice companion for **Hyprland**.
 Rust handles desktop services, the agent and audio; Quickshell / Qt Quick renders the interface;
 [HyprPilot](https://github.com/sumerchoudhary78/HyprPilot) supplies typed desktop control.
 
-**v0.4.0 is a desktop-shell preview:** a cinematic liquid-glass dashboard, persistent
+**v0.4.1 is a desktop-shell preview:** a cinematic liquid-glass dashboard, persistent
 room wallpaper, real 3D holograms, Wi-Fi/Bluetooth controls, command console and local speech pipeline.
 It does not yet replace every desktop service. See [roadmap](docs/roadmap.md)
 and [validation](docs/validation.md) for implemented behavior and remaining work.

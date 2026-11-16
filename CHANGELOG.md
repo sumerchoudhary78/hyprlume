@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.1 — 2026-11-17
+
+- Make the command shortcut bring a pending preview forward in one press when
+  it arrives behind Connections. Preserve its confirmation token while closing
+  the wireless overlay, with a real-socket regression test.
+
 ## 0.4.0 — 2026-11-17
 
 - Add a liquid-glass Connections overlay with responsive Wi-Fi/Bluetooth panes,

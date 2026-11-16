@@ -83,10 +83,11 @@ impl App {
                 self.connectivity.handle(request).await
             }
             Operation::Toggle => {
-                if !self.state().panel_open {
+                let opening = !self.state().panel_open || self.connectivity.state().panel_open;
+                if opening {
                     self.connectivity.close().await;
                 }
-                self.update(|state| state.panel_open = !state.panel_open);
+                self.update(|state| state.panel_open = opening);
                 Ok(json!(self.state()))
             }
             Operation::Cancel => {

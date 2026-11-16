@@ -11,7 +11,7 @@ samples below describe the desktop releases measured on 16 November.
 
 ## Automated checks
 
-- **38 Rust checks** (27 integration tests and 11 unit tests) cover bounded commands, reviewed local model
+- **39 Rust checks** (28 integration tests and 11 unit tests) cover bounded commands, reviewed local model
   plans, single-use confirmations, private sockets, single-instance ownership,
   allowlists, classic/Lua dispatch and checked desktop postconditions.
 - Voice-event tests protect pending reviews and running commands from later
@@ -21,6 +21,8 @@ samples below describe the desktop releases measured on 16 November.
   snapshots, concurrent-operation rejection, discovery cleanup, cancellation
   before a prompt, expiring/single-use pairing tokens and independent socket
   topics. Wireless requests preserve an AI command's pending confirmation.
+  The command shortcut brings a preview arriving behind Connections forward
+  with one press, preserving its token.
 - The complete core suite also passes without the optional voice feature;
   that configuration is exercised in CI.
 - The Lua tests include bound-window moves, unique focus, malformed provider

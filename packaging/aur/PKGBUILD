@@ -1,6 +1,6 @@
 # Maintainer: sumerjakhar78 (AUR), sumerchoudhary78 (GitHub)
 pkgname=hyprlume
-pkgver=0.4.0
+pkgver=0.4.1
 pkgrel=1
 pkgdesc='Glass command shell and local English voice companion for Hyprland, powered by HyprPilot'
 arch=('x86_64' 'aarch64')
