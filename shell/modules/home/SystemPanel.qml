@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
 import qs.components
-import qs.services
 import qs.theme
 
 // CPU, memory, GPU, network, and a short CPU trend.
@@ -9,6 +8,24 @@ GlassSurface {
     id: root
 
     required property var metrics
+    property bool animationsActive: true
+    readonly property bool liquidMotionRunning: waterMotion.running
+    readonly property int liquidTicks: waterMotion.tickCount
+    objectName: "systemMetrics"
+
+    LiquidMotion {
+        id: waterMotion
+        active: root.animationsActive && root.visible
+        reducedMotion: root.reducedEffects
+        hovered: waterHover.hovered
+    }
+    HoverHandler { id: waterHover }
+    Connections {
+        target: root.metrics
+        function onCpuChanged() { waterMotion.pulse(); }
+        function onMemChanged() { waterMotion.pulse(); }
+        function onGpuChanged() { waterMotion.pulse(); }
+    }
 
     radius: Theme.radiusCard
 
@@ -38,33 +55,43 @@ GlassSurface {
 
             Gauge {
                 Layout.fillWidth: true
-                Layout.preferredHeight: Theme.px(74)
-                arcSize: Theme.px(74)
-                thickness: Theme.px(5)
+                Layout.preferredHeight: Theme.px(86)
+                diameter: Theme.px(86)
+                motionClock: waterMotion
+                reducedEffects: root.reducedEffects
                 value: root.metrics.cpu / 100
                 accent: Theme.mint
                 label: "CPU"
+                phaseOffset: 0.0
+                objectName: "cpuGauge"
             }
 
             Gauge {
                 Layout.fillWidth: true
-                Layout.preferredHeight: Theme.px(74)
-                arcSize: Theme.px(74)
-                thickness: Theme.px(5)
+                Layout.preferredHeight: Theme.px(86)
+                diameter: Theme.px(86)
+                motionClock: waterMotion
+                reducedEffects: root.reducedEffects
                 value: root.metrics.mem / 100
                 accent: Theme.cyan
                 label: "RAM"
+                phaseOffset: 1.8
+                objectName: "memoryGauge"
                 valueText: root.metrics.mem + "%"
             }
 
             Gauge {
                 Layout.fillWidth: true
-                Layout.preferredHeight: Theme.px(74)
-                arcSize: Theme.px(74)
-                thickness: Theme.px(5)
+                Layout.preferredHeight: Theme.px(86)
+                diameter: Theme.px(86)
+                motionClock: waterMotion
+                reducedEffects: root.reducedEffects
                 value: root.metrics.gpuAvailable ? root.metrics.gpu / 100 : 0
                 accent: Theme.violet
                 label: "GPU"
+                available: root.metrics.gpuAvailable
+                phaseOffset: 3.5
+                objectName: "gpuGauge"
                 valueText: root.metrics.gpuAvailable
                     ? root.metrics.gpu + "%"
                     : "—"

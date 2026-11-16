@@ -14,6 +14,7 @@ Item {
     required property var state
     property bool showTopBar: true
     property bool presentation: false
+    property bool animationsActive: true
     readonly property bool compact: width < 1100 || height < 620
     readonly property real sceneScale: Math.min(width / world.width, height / world.height)
     Wallpaper { id: wallpaper; anchors.fill: parent }
@@ -78,8 +79,9 @@ Item {
         }
         SystemPanel {
             visible: !root.compact
-            x: 33; y: 713; width: 291; height: 189; rotation: -5.4
+            x: 29; y: 704; width: 313; height: 210; rotation: -4.5
             metrics: root.metrics; backdrop: wallpaper
+            animationsActive: root.animationsActive && !root.backend.snapshot.panel_open
             secondaryColor: Theme.violet; glowColor: Theme.amber
             reducedEffects: root.state.reducedEffects
         }

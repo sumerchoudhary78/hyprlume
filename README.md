@@ -6,7 +6,7 @@ A glass command shell and local English voice companion for **Hyprland**.
 Rust handles the agent and audio; Quickshell / Qt Quick renders the interface;
 [HyprPilot](https://github.com/sumerchoudhary78/HyprPilot) supplies typed desktop control.
 
-**v0.2.0 is a desktop-shell preview:** a cinematic glass dashboard, persistent
+**v0.3.0 is a desktop-shell preview:** a cinematic liquid-glass dashboard, persistent
 room wallpaper, real 3D holograms, command console and local speech pipeline.
 It does not yet replace every desktop service. See [roadmap](docs/roadmap.md)
 and [validation](docs/validation.md) for implemented behavior and remaining work.
@@ -22,8 +22,9 @@ The panels, text and controls are QML; the room is a cached wallpaper asset.*
   on-demand command panel. The dashboard carries quick actions, live workspace
   flow, a command stage, the shell agent panel, and CPU/memory/GPU/network/disk
   and container readouts.
-- Real 3D globe/city geometry, directional glass lighting, a perspective action
-  deck, compact layout and reduced-effects mode.
+- Real 3D globe/city geometry, refracted glass edges, pointer lighting, liquid
+  CPU/RAM/GPU vessels, a perspective action deck, compact layout and
+  reduced-effects mode.
 - Direct commands for workspaces, window moves/focus, allowlisted app launches,
   volume, and mute. Direct commands do not need an LLM.
 - Streaming English speech recognition, a separate **“Hey Pilot”** wake model,
@@ -50,14 +51,15 @@ The shell is Hyprland-native rather than a standalone bar:
 - **Command panel**, an overlay with exclusive keyboard focus, loaded only while
   the daemon reports it open.
 
-Blur comes from Hyprland layer rules, not from QML shaders; without the rules the
-surfaces are still readable, just flatter. Layout, the reference mapping,
-breakpoints, and the performance budget are in [home screen](docs/homescreen.md).
+Dashboard glass uses a cached wallpaper capture and precompiled Qt Quick
+shaders for blur, curved edges and reflections. Hyprland layer blur is optional
+behind the bar and command overlay. Layout, the reference mapping, breakpoints,
+and rendering details are in [home screen](docs/homescreen.md).
 Module layout and import rules are in [shell/README](shell/README.md).
 
-The dashboard is new and has not yet been verified on a live Hyprland session in
-this repository. Static QML checks run in CI; treat the visual result as
-something to validate on your machine, not a shipped guarantee.
+The dashboard runs in a physical Hyprland session and has native rendering,
+input and compositor checks. Hardware, scaling and service integration limits
+are recorded in [validation](docs/validation.md).
 
 ## Install on Arch
 
@@ -155,8 +157,12 @@ Quickshell / QML ← private Unix socket → Rust daemon
 Wallpaper and the bar persist; the dashboard unmaps when an app opens. Metrics
 sampling pauses while it is hidden. The clock updates on minute boundaries.
 Glass captures the local room plate at half resolution and reuses it between
-geometry changes. The 3D view has no continuous animation loop. Use
-`HYPRLUME_REDUCED_EFFECTS=1 hyprlume shell` to skip 3D, glass blur and rim bloom.
+geometry changes. Its optical background is cached separately from controls.
+One 16 Hz clock drives all three water gauges after a reading changes or while
+hovered, then settles after 3.2 seconds. Hidden dashboards and open command
+overlays stop that clock. The 3D view has no continuous animation loop. Use
+`HYPRLUME_REDUCED_EFFECTS=1 hyprlume shell` for static fills without 3D, glass
+refraction/blur or rim bloom.
 
 The daemon pushes state over one persistent socket. Audio inference runs on a
 dedicated worker with a bounded 20 ms frame queue; no inference runs on the UI
@@ -175,9 +181,16 @@ cargo fmt --all --check
 cargo clippy --locked --all-targets -- -D warnings
 cargo test --locked --all-targets
 python3 scripts/check-qml.py shell
+python3 scripts/build-shaders.py --check
+python3 scripts/qa/check-effects.py
 python3 scripts/qa/render-desktop.py
 python3 scripts/qa/render-desktop.py --interact
 ```
+
+Shader binaries are checked in, so source users need no shader compiler at
+startup. After editing GLSL, install `qt6-shadertools` and run
+`python3 scripts/build-shaders.py`. The AUR build compiles them automatically;
+the image-based effects check also requires `python-pillow`.
 
 After opting in to the English model downloads and installing `espeak-ng`:
 

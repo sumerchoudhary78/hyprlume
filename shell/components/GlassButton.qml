@@ -27,25 +27,34 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: Theme.px(10)
+        radius: Theme.px(13)
         gradient: Gradient {
             GradientStop {
                 position: 0.0
                 color: root.primary
                     ? (mouse.pressed ? Qt.rgba(0.87, 0.50, 0.22, 0.95) : Qt.rgba(0.99, 0.73, 0.43, 0.95))
-                    : (mouse.containsMouse ? Theme.hover : Theme.glassInset)
+                    : (mouse.containsMouse ? "#60364661" : "#50273750")
             }
             GradientStop {
                 position: 1.0
                 color: root.primary
                     ? Qt.rgba(0.93, 0.56, 0.26, 0.88)
-                    : (mouse.containsMouse ? Theme.hover : Theme.glassInset)
+                    : (mouse.containsMouse ? "#7023324a" : "#700b1426")
             }
         }
         border.width: 1
         border.color: root.primary
             ? Qt.rgba(1.0, 0.88, 0.70, 0.55)
-            : (mouse.containsMouse ? Theme.rimStrong : Theme.rim)
+            : (mouse.containsMouse || root.activeFocus ? Theme.rimStrong : Theme.rim)
+    }
+
+    Rectangle {
+        anchors.fill: parent
+        anchors.margins: 2
+        radius: Theme.px(11)
+        color: "transparent"
+        border.width: 1
+        border.color: root.primary ? "#35ffffff" : "#1594cced"
     }
 
     RowLayout {

@@ -7,6 +7,8 @@ cargo fmt --all --check
 cargo clippy --locked --all-targets -- -D warnings
 cargo test --locked --all-targets
 python3 scripts/check-qml.py shell
+python3 scripts/build-shaders.py --check
+python3 scripts/qa/check-effects.py
 ```
 
 UI changes must also pass `python3 scripts/qa/render-desktop.py --interact` on
@@ -15,6 +17,11 @@ Quickshell's real QML widgets on a private Xvfb display; no microphone or real
 desktop action is used. See [the desktop guide](docs/homescreen.md) for packages
 and reduced-effects checks. Inspect exported PNGs before submitting a visual
 change. GitHub CI uploads the same images as artifacts.
+
+After GLSL changes, bake the shaders with `python3 scripts/build-shaders.py`
+(`qt6-shadertools`), commit source/binary/hash updates, and run the liquid
+pixel-area and clock-lifecycle check (`python-pillow`). No shader compiler tool
+runs at UI startup.
 
 Keep shared visuals in `shell/components`, composition in `shell/modules`,
 processes/IPC in `shell/services`, and all asset origins in `shell/assets/README.md`.

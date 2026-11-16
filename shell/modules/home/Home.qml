@@ -20,5 +20,6 @@ ShellWindow {
         anchors.fill: parent
         backend: root.backend; workspaces: root.workspaces; metrics: root.metrics; clock: root.clock; state: root.state
         showTopBar: false
+        animationsActive: root.visible
     }
 }

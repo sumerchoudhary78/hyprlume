@@ -17,6 +17,7 @@ FloatingWindow {
     color: "#030914"
     Dashboard {
         anchors.fill: parent
+        animationsActive: window.visible && Window.visibility !== Window.Minimized
         backend: window.backend; workspaces: window.workspaces; metrics: window.metrics; clock: window.clock; state: window.state
     }
     Loader {

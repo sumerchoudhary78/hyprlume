@@ -1,0 +1,13 @@
+{
+  "qsb_compatibility": "Qt 6.4",
+  "shaders": {
+    "liquid-gauge.frag": {
+      "binary_sha256": "f6be8a78ee5f1771b2d702d2bf2709c41125051403f315411f42579570f75833",
+      "source_sha256": "9a1e3f7ca78cab18f3f47772c8b33aa7c34e4b6dc3563fef0fdac9f64467cdcc"
+    },
+    "liquid-glass.frag": {
+      "binary_sha256": "3ff3b6d7d56e6256dc2922084e581b6758f046045295b5f390e860ca313d6b43",
+      "source_sha256": "eb471e01552b9e2faaf526c272195e16fb145a9afbad43611e8af436e38147bf"
+    }
+  }
+}

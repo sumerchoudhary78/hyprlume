@@ -33,14 +33,19 @@ jobs:
     container: archlinux:base
     steps:
       - name: Install the native shell and isolated display tools
-        run: pacman -Syu --noconfirm --needed git python quickshell qt6-quick3d qt6-shadertools xorg-server-xvfb xorg-xauth dbus xdotool inter-font ttf-jetbrains-mono
+        run: pacman -Syu --noconfirm --needed git python python-pillow quickshell qt6-quick3d qt6-shadertools xorg-server-xvfb xorg-xauth dbus xdotool inter-font ttf-jetbrains-mono
       - uses: actions/checkout@v4
       - name: Record graphics runtime versions
         run: pacman -Q quickshell qt6-declarative qt6-quick3d mesa
       - name: Check QML imports and Python tools
         run: |
           python3 scripts/check-qml.py shell
-          python3 -m py_compile scripts/qa/render-desktop.py scripts/qa/mock-daemon.py scripts/benchmark.py
+          python3 scripts/build-shaders.py --check
+          python3 scripts/build-shaders.py
+          python3 scripts/build-shaders.py --check
+          python3 -m py_compile scripts/build-shaders.py scripts/qa/check-effects.py scripts/qa/render-desktop.py scripts/qa/profile-live.py scripts/qa/mock-daemon.py scripts/benchmark.py
+      - name: Check liquid volume and paused motion
+        run: python3 scripts/qa/check-effects.py
       - name: Render the desktop with real Qt Quick 3D
         run: python3 scripts/qa/render-desktop.py --width 1920 --height 1080 --output output/design/desktop.png
       - name: Exercise pointer, keyboard, preview and confirmation

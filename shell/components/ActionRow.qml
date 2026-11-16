@@ -20,7 +20,11 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: Theme.px(12)
-        color: mouse.containsMouse || root.active ? "#4a5e547f" : "#382d2b46"
+        gradient: Gradient {
+            GradientStop { position: 0; color: mouse.containsMouse || root.active ? "#68516a8a" : "#3c32435e" }
+            GradientStop { position: 0.48; color: mouse.containsMouse || root.active ? "#70233550" : "#580d1b31" }
+            GradientStop { position: 1; color: mouse.containsMouse || root.active ? "#603b426b" : "#3a25273f" }
+        }
         border.width: 1
         border.color: root.active ? root.accent : "#1c99c9ed"
     }

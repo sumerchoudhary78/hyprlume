@@ -46,6 +46,8 @@ Singleton {
     readonly property color hover: Qt.rgba(1, 1, 1, 0.06)
     readonly property color pressed: Qt.rgba(1, 1, 1, 0.10)
 
+    readonly property real glassRefraction: 16
+
     // -- Typography ----------------------------------------------------------
     // Install `inter-font` and `ttf-jetbrains-mono`; Qt falls back to the
     // system sans/mono when they are missing, so the shell still renders.
@@ -63,8 +65,8 @@ Singleton {
 
     // -- Metrics -------------------------------------------------------------
 
-    readonly property int radiusPanel: px(24)
-    readonly property int radiusCard: px(20)
+    readonly property int radiusPanel: px(28)
+    readonly property int radiusCard: px(24)
     readonly property int radiusTile: px(14)
     readonly property int radiusPill: px(999)
 

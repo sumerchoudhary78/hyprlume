@@ -15,9 +15,11 @@ Moving over the globe changes its orientation; clicking the globe or city
 selects the network or container view.
 
 `GlassSurface.qml` captures only the scene's wallpaper behind each card at half
-resolution, freezes that capture between geometry changes, and applies a local
-blur. It adds tint, a directional multicolour rim, an inner reflection and a
-clipped sheen. It never samples application windows or screenshots. Compositor
+resolution, freezes that capture between geometry/image changes, and applies a
+precompiled optical shader. The rounded bevel displaces the image near its edge;
+soft blur, slight colour dispersion, Fresnel highlights and a pointer light give
+the surface thickness. A separate cached layer keeps foreground text and moving
+water from re-blurring the glass. It never samples application windows or screenshots. Compositor
 blur is optional for the small top-bar and command surfaces; no full-screen
 Hyprland blur is needed for the dashboard.
 
@@ -25,6 +27,19 @@ The terrain is a perspective-projected mesh painted once per resize. The 3D
 viewport has no continuous rotation or frame timer. Wave bars illustrate voice
 state; they are not a measured microphone level. Motion is limited to hover,
 voice-active feedback and actual state changes.
+
+The system gauges use another small fragment shader: two wave layers, a bright
+meniscus, depth shading, curved vessel reflections and a restrained caustic.
+The **water area** tracks the metric percentage: a circular-segment calculation
+converts each reading into height once, outside the shader. Empty and full
+readings have no waves; unavailable/non-finite readings leave a dry vessel.
+Labels are separate native text with a dark outline.
+
+`LiquidMotion.qml` supplies one shared 62 ms timer for all three gauges.
+Reading changes or hover wake it; unchanged readings settle after 3.2 seconds.
+The timer stops when the dashboard is hidden, compact, covered by the command
+overlay, or using reduced effects. Value easing uses this same clock. Glass
+lighting changes only with pointer/style/geometry changes, with no time loop.
 
 ## Window ownership
 
@@ -70,17 +85,19 @@ below 1100 or heights below 620, a compact 1000×680 composition keeps the conso
 rail and navigation, removing the side cards and holograms. Command overlays keep
 readable independent dimensions.
 
-Use `HYPRLUME_REDUCED_EFFECTS=1 hyprlume shell` to skip the 3D viewport, glass blur
-and rim bloom. The backdrop and functional controls remain. This is also the
+Use `HYPRLUME_REDUCED_EFFECTS=1 hyprlume shell` for static water fills and to skip
+the 3D viewport, glass refraction/blur and rim bloom. The backdrop and functional controls remain. This is also the
 profile used by the CPU-software benchmark; it does not characterize GPU mode.
 
 ## Reproduce the design checks
 
 On Arch, install `quickshell`, `qt6-quick3d`, `xorg-server-xvfb`, `xorg-xauth`,
-`dbus`, `xdotool`, `inter-font` and `ttf-jetbrains-mono`. Then:
+`dbus`, `xdotool`, `python-pillow`, `inter-font` and `ttf-jetbrains-mono`. Then:
 
 ```sh
 python3 scripts/check-qml.py shell
+python3 scripts/build-shaders.py --check
+python3 scripts/qa/check-effects.py
 python3 scripts/qa/render-desktop.py --width 1920 --height 1080
 python3 scripts/qa/render-desktop.py --interact
 python3 scripts/qa/render-desktop.py --width 960 --height 640 --output output/design/compact.png
@@ -92,6 +109,13 @@ session. Input tests exercise the actual widgets with pointer and keyboard
 input. Fixtures never open a microphone, dispatch to a compositor, or call an
 LLM. GitHub CI runs the same checks on Arch and uploads the rendered images.
 Physical Wayland checks and remaining limits are recorded in [validation](validation.md).
+
+`shell/assets/shaders/` holds GLSL sources, portable `.qsb` binaries and a hash
+manifest. `scripts/build-shaders.py` bakes them offline using `qt6-shadertools`;
+no compilation tool or source translation runs in the shell at startup. The
+effects check reads actual mint pixels for empty, 18%, 50%, full and unknown
+vessels, with a 3.5 percentage-point tolerance for the visible wave/meniscus.
+It also tests hidden/reduced/restore/settled clock transitions.
 
 [Asset origins and licensing](../shell/assets/README.md) ·
 [Generation prompts](design/asset-prompts.md)

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.0 — 2026-11-16
+
+- Add optical liquid glass with a curved refractive bevel, soft local blur,
+  subtle colour dispersion, Fresnel rim and pointer-responsive reflection.
+- Replace system arcs with liquid CPU/RAM/GPU vessels. Water area follows real
+  readings, two waves ease between values, and unavailable metrics stay dry.
+- Share one bounded motion clock, pause it when hidden or reduced, and cache
+  glass separately from the foreground. Polish button wells and focus rims.
+- Bake portable shaders offline, verify source/binary hashes, and add native
+  pixel-area and hidden/reduced/resume/settle tests to CI.
+
 ## 0.2.0 — 2026-11-16
 
 - Rebuild the desktop around the supplied observatory reference: cached room

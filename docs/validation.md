@@ -14,6 +14,11 @@ No physical microphone recording or speaker playback was used.
   metadata and an address that must never become executable Lua.
 - Native Quickshell/RHI rendering passes at 1920×1080, at 960×640 in the compact
   composition, and with reduced effects. Exported images are visually inspected.
+- The liquid material fixture checks actual water pixels for 0%, 18%, 50%, 100%,
+  unavailable and non-finite readings. Measured areas were 0%, 19.52%, 51.64%,
+  100%, 0% and 0%; moving surfaces/menisci allow 3.5 percentage points. The shared
+  motion clock passes hidden, reduced, resume and idle-settle checks. GLSL is
+  baked offline and source/binary hashes are verified before rendering.
 - Real pointer/keyboard input drives the actual dashboard and command components
   on a private Xvfb display. Checks cover Enter-to-preview, busy controls, review
   locking, explicit Run direct, confirmation tokens, dismissal, wake/off mode
@@ -56,7 +61,7 @@ These checks do not establish full desktop-environment compatibility, every
 keybinding, lock-screen integration, notification handling or multiple outputs.
 The test window is deliberately temporary; no user's application was closed.
 
-## Current-session overhead sample
+## v0.2.0 overhead sample
 
 A 20-second sample after initialization used the visible full-effects desktop,
 real host telemetry every two seconds, GPU readings at up to ten-second intervals,
@@ -82,18 +87,53 @@ granularity; 0.0% does not establish literally no work. Input latency, frame
 pacing, GPU power, concurrent speech and LLM cost still need profiling. The
 under-50-ms input-feedback goal remains a measurement target.
 
+## v0.3.0 liquid-effects sample
+
+On the same physical session, separate 20-second service-cgroup samples with
+microphone off measured the following. The full dashboard was visible with
+real telemetry and liquid motion enabled. A temporary verification window then
+hid the home surface; closing only that window restored it. Glass and liquid
+rendering were also visually checked on the real Wayland output.
+
+| Measurement | Visible dashboard | Home hidden |
+| --- | --- | --- |
+| Rust daemon CPU, one core | 0.000% in sample | 0.000% in sample |
+| Shell CPU, one core | 3.864% | 0.002% |
+| Rust daemon RSS | 25.46 MiB | 25.46 MiB |
+| Shell RSS | 565.65 MiB | 536.86 MiB |
+
+These use cgroup `usage_usec`, including short-lived sampler children. The
+older tick-based sample above is not a controlled comparison. Liquid motion
+has a visible-session cost; idle below 1% is a target, not achieved in this
+sample with changing metrics. Hiding the dashboard stops its water clock and
+telemetry. Graphics resources are retained for return; RSS varies with runtime
+allocations and includes shared mappings. GPU power and frame pacing were not
+measured. Raw conditions/results: [performance-liquid.json](design/performance-liquid.json).
+
 ## Reproduce
 
 ```sh
 cargo test --release --locked --all-targets
 cargo clippy --locked --all-targets -- -D warnings
 python3 scripts/check-qml.py shell
+python3 scripts/build-shaders.py --check
+python3 scripts/qa/check-effects.py
 python3 scripts/qa/render-desktop.py --width 1920 --height 1080
 python3 scripts/qa/render-desktop.py --interact
 python3 scripts/qa/render-desktop.py --width 960 --height 640 --output output/design/compact.png
 python3 scripts/qa/render-desktop.py --reduced-effects --output output/design/reduced.png
 python3 scripts/check-units.py --binary target/release/hyprlume
 ```
+
+For a read-only sample of an already running systemd user session:
+
+```sh
+python3 scripts/qa/profile-live.py --seconds 20 --label 'visible full effects; microphone off'
+```
+
+This reads cgroup CPU usage (including short-lived sampler children) and the
+RSS of current processes. Record the actual visibility, effects and voice state
+in the label; the profiler does not change the desktop or audio mode.
 
 `scripts/benchmark.py` measures a simulated daemon and the reduced-effects
 ordinary-window dashboard with Qt's CPU software backend. It does not measure

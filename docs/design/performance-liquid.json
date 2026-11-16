@@ -1,0 +1,28 @@
+{
+  "visible": {
+    "environment": "v0.3.0; physical Hyprland 0.57.1 Lua; 1920x1080 at 144 Hz mode; full effects visible; real telemetry; microphone off",
+    "duration_seconds": 20.0,
+    "cpu_accounting": "systemd service cgroup usage_usec; includes sampler children",
+    "process_tree_cpu_percent_one_core": {
+      "daemon": 0.0,
+      "shell": 3.864
+    },
+    "rss_mib": {
+      "daemon": 25.46,
+      "shell": 565.65
+    }
+  },
+  "hidden": {
+    "environment": "v0.3.0; same physical session; home hidden by a temporary Foot verification window; full effects configured; microphone off",
+    "duration_seconds": 20.0,
+    "cpu_accounting": "systemd service cgroup usage_usec; includes sampler children",
+    "process_tree_cpu_percent_one_core": {
+      "daemon": 0.0,
+      "shell": 0.002
+    },
+    "rss_mib": {
+      "daemon": 25.46,
+      "shell": 536.86
+    }
+  }
+}
