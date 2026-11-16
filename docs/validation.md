@@ -7,7 +7,7 @@ physical speaker playback were not used for validation.
 
 ## Functional evidence
 
-- Rust command, local-planner, private-socket, and HyprPilot protocol tests.
+- 18 Rust command, local-planner, private-socket, and HyprPilot protocol tests.
   These exercise previews, single-use confirmation, allowlists, failed
   postconditions, unknown model actions, and bounded responses.
 - Four Qt Quick interaction cases, plus setup/cleanup, under Qt's offscreen

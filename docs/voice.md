@@ -83,4 +83,7 @@ requested file. TTS models are cached after first use inside the daemon.
 
 Recognition accuracy depends on accent, microphone, and noise. The small
 English model is a starting point for testing, not an accuracy guarantee.
+For example, synthetic speech can render “workspace” as “worksbys”; this is
+rejected by the direct parser and needs correction or the optional reviewed
+LLM planner. “Work space” and spoken numbers have explicit parser support.
 False-wake rate and physical microphone latency need real-session evaluation.

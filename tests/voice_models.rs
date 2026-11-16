@@ -13,7 +13,7 @@ fn english_speech_round_trip_and_wake_word() {
     let dir = tempfile::tempdir().unwrap();
     let command = dir.path().join("command.wav");
     let wake = dir.path().join("wake.wav");
-    voice::speak(&config.voice, "Go to workspace two.", &command).unwrap();
+    voice::speak(&config.voice, "Go to work space two.", &command).unwrap();
     assert!(std::fs::metadata(&command).unwrap().len() > 1000);
     let transcript = voice::transcribe(&config.voice, &command).unwrap();
     eprintln!("TTS → ASR: {transcript}");

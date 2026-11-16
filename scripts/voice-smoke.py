@@ -46,7 +46,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix="hyprlume-voice-") as temp:
         root = Path(temp)
         wake, command = root / "wake.wav", root / "command.wav"
-        for text, output in [("Hey Pilot.", wake), ("Go to workspace two.", command)]:
+        for text, output in [("Hey Pilot.", wake), ("Go to work space two.", command)]:
             subprocess.run([str(binary), "speak", text, "--output", str(output)], check=True)
         pcm = root / "speech.pcm"
         pcm.write_bytes(bytes(16000) + pcm16k(wake) + bytes(32000) + pcm16k(command) + bytes(96000))
@@ -71,7 +71,7 @@ def main():
             while time.monotonic() < deadline:
                 state = request(path, {"op": "status"})
                 if state["phase"] == "error":
-                    raise RuntimeError(state["message"])
+                    raise RuntimeError(json.dumps(state))
                 if state["phase"] == "review":
                     assert state["actions"] == ["Switch to workspace 2"], state
                     assert state["confirmation"] is not None and not state["receipts"], state
