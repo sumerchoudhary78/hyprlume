@@ -6,19 +6,24 @@ A glass command shell and local English voice companion for **Hyprland**.
 Rust handles the agent and audio; Quickshell / Qt Quick renders the interface;
 [HyprPilot](https://github.com/sumerchoudhary78/HyprPilot) supplies typed desktop control.
 
-**v0.1.2 is an early preview:** a working command palette, status pill, local
-speech pipeline, and foundation for a larger desktop shell. It does not yet
-replace an entire desktop environment. See [roadmap](docs/roadmap.md) and
-[validation](docs/validation.md) for what is implemented and what remains open.
+**v0.1.2 is an early preview:** a working command palette, a first-pass glass
+desktop dashboard, local speech pipeline, and foundation for a larger desktop
+shell. It does not yet replace an entire desktop environment. See
+[roadmap](docs/roadmap.md) and [validation](docs/validation.md) for what is
+implemented and what remains open.
 
 ![Native Qt Quick command panel](assets/preview.png)
 
-*Native Qt Quick render with an example action. Compositor background blur is
-not present in this offscreen test image.*
+*Native Qt Quick render of the command panel with an example action. Compositor
+background blur is not present in this offscreen test image, and it predates the
+desktop dashboard.*
 
 ## What works
 
-- A compact microphone/status pill and an on-demand glass command panel.
+- A top bar on every monitor, a glass home dashboard on empty workspaces, and an
+  on-demand command panel. The dashboard carries quick actions, live workspace
+  flow, a command stage, the shell agent panel, and CPU/memory/GPU/network/disk
+  and container readouts.
 - Direct commands for workspaces, window moves/focus, allowlisted app launches,
   volume, and mute. Direct commands do not need an LLM.
 - Streaming English speech recognition, a separate **“Hey Pilot”** wake model,
@@ -31,6 +36,28 @@ not present in this offscreen test image.*
 Microphone capture starts **off**. Voice commands preview by default. Dictation
 produces selectable text inside the panel; it never becomes a desktop command.
 There is no cloud endpoint, transcript database, or screen recording by default.
+
+## Desktop shell
+
+The shell is Hyprland-native rather than a standalone bar:
+
+- **Top bar**, one per monitor, reserves its strip so windows tile below it.
+  Brand, mode strip, search, microphone state, and a command trigger.
+- **Home dashboard**, a bottom-layer surface shown only while the focused
+  workspace has no windows. Quick actions, workspace flow, a command stage fed by
+  daemon snapshots, the agent panel, workspace list, system gauges, container
+  state, a workspace rail, and a voice/command ring.
+- **Command panel**, an overlay with exclusive keyboard focus, loaded only while
+  the daemon reports it open.
+
+Blur comes from Hyprland layer rules, not from QML shaders; without the rules the
+surfaces are still readable, just flatter. Layout, the reference mapping,
+breakpoints, and the performance budget are in [home screen](docs/homescreen.md).
+Module layout and import rules are in [shell/README](shell/README.md).
+
+The dashboard is new and has not yet been verified on a live Hyprland session in
+this repository. Static QML checks run in CI; treat the visual result as
+something to validate on your machine, not a shipped guarantee.
 
 ## Install on Arch
 
@@ -124,11 +151,14 @@ Quickshell / QML ← private Unix socket → Rust daemon
                                              └─ bounded audio worker → wake / ASR / Piper
 ```
 
-The panel exists only while open. Healthy UI connections have no polling timer.
-The daemon consumes compositor events and pushes state changes over a persistent
-socket. Audio inference runs on a dedicated worker with a bounded queue of
-20 ms frames. Keyword spotting uses one CPU thread; ASR/TTS default to two.
-There are no shader effects, full-screen blur surfaces, or looping animations.
+The bar is persistent but static; the command panel exists only while open, and
+the dashboard unmaps as soon as a window appears. Healthy UI connections have no
+polling timer: the daemon consumes compositor events and pushes state changes
+over a persistent socket. The shell starts one child process, a 1 Hz system
+sampler; its container query runs every fifth tick behind `timeout`. Audio
+inference runs on a dedicated worker with a bounded queue of 20 ms frames.
+Keyword spotting uses one CPU thread; ASR/TTS default to two. There are no
+shader effects, overlays above application windows, or looping animations.
 
 Performance goals and measured limits belong in [validation](docs/validation.md).
 UI feedback under 50 ms and idle shell CPU under 1% are targets to verify on
@@ -140,6 +170,7 @@ real sessions, not blanket claims about every driver or machine.
 cargo fmt --all --check
 cargo clippy --locked --all-targets -- -D warnings
 cargo test --locked --all-targets
+python3 scripts/check-qml.py shell
 QT_QPA_PLATFORM=offscreen QT_QUICK_BACKEND=software \
   qmltestrunner -input tests/qml
 ```

@@ -8,7 +8,9 @@ url='https://github.com/sumerchoudhary78/hyprlume'
 license=('MIT' 'Apache-2.0')
 depends=('glibc' 'gcc-libs' 'systemd' 'quickshell' 'qt6-declarative' 'qt6-wayland' 'hyprland' 'pipewire-audio' 'wireplumber' 'python')
 makedepends=('cargo' 'git')
-optdepends=('espeak-ng: phonemization for local Piper speech output')
+optdepends=('espeak-ng: phonemization for local Piper speech output'
+            'inter-font: shell sans-serif font'
+            'ttf-jetbrains-mono: shell monospace font')
 # GCC LTO objects in native Cargo build dependencies cannot be linked by
 # rust-lld. Cargo's own thin LTO remains enabled in the release profile.
 options=('!lto')
@@ -47,9 +49,11 @@ package() {
   cd "$srcdir/hyprlume"
   install -Dm755 target/release/hyprlume "$pkgdir/usr/bin/hyprlume"
   install -Dm755 scripts/hyprlume-models "$pkgdir/usr/bin/hyprlume-models"
-  for file in shell.qml Backend.qml GlassPanel.qml LumeButton.qml DesktopShell.qml PreviewWindow.qml; do
-    install -Dm644 "shell/$file" "$pkgdir/usr/share/hyprlume/shell/$file"
-  done
+  # The shell is a module tree (`qs.*` imports resolve against this directory),
+  # so the whole tree ships, not a hand-maintained file list.
+  install -d "$pkgdir/usr/share/hyprlume/shell"
+  cp -r shell/. "$pkgdir/usr/share/hyprlume/shell/"
+  find "$pkgdir/usr/share/hyprlume/shell" -name '*.sh' -exec chmod 755 {} +
   install -Dm644 assets/hyprlume.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/hyprlume.svg"
   install -Dm644 packaging/io.github.sumerchoudhary78.hyprlume.desktop "$pkgdir/usr/share/applications/io.github.sumerchoudhary78.hyprlume.desktop"
   install -Dm644 packaging/systemd/hyprlume-daemon.service "$pkgdir/usr/lib/systemd/user/hyprlume-daemon.service"

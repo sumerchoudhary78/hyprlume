@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+- Add a Hyprland-native desktop shell: a bar on every monitor, a bottom-layer
+  dashboard that maps only on an empty workspace, and the existing command panel
+  as an overlay. The dashboard covers quick actions, live workspace flow, a
+  daemon-fed command stage, the agent panel, system and container cards, a
+  workspace rail, and an action ring.
+- Ship the whole `shell/` module tree from the AUR package instead of a fixed
+  file list.
+- Switch workspaces with the dispatcher form Hyprland actually runs: classic
+  `.conf` strings or Lua expressions on Hyprland 0.55+, including named and
+  special workspaces.
+- Add `scripts/check-qml.py` and run it in CI before the Qt test suite.
+
 ## 0.1.2 — 2026-11-16
 
 - Fix the graphical-session autostart ordering cycle in the user units.

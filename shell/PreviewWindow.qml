@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import qs.services
 
 FloatingWindow {
     id: window

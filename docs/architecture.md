@@ -17,6 +17,31 @@ snapshot rather than retaining an unbounded event queue. Reconnect timers run
 only while disconnected. The daemon reads Hyprland's event socket through
 HyprPilot, without a polling loop for desktop status.
 
+## Shell surfaces
+
+Quickshell renders three layer-shell surfaces and one ordinary window for
+preview:
+
+- `hyprlume-bar`, one per monitor, `WlrLayer.Top`, reserves `barZone` at the top
+  so Hyprland tiles windows below it.
+- `hyprlume-home`, one on the focused monitor, `WlrLayer.Bottom`. It maps only
+  while the focused workspace has no windows and unmaps otherwise, so an
+  ordinary windowed session pays no rendering cost for it.
+- `hyprlume-command`, `WlrLayer.Overlay` with exclusive keyboard focus, loaded
+  only while `snapshot.panel_open` is true.
+- `PreviewWindow`, a `FloatingWindow` used by `hyprlume shell --preview`.
+
+Surfaces contain no protocol logic. `services/Backend.qml` owns the socket and
+the reconnecting subscription; `services/Workspaces.qml` wraps Hyprland state;
+`services/Metrics.qml` owns the only child process the shell starts; `Clock` and
+`ShellState` are local. Modules receive these as required properties, which keeps
+every panel usable in isolation and previewable without a daemon.
+
+Compositor blur is not requested by QML. Each surface declares a namespace and
+the user's Hyprland layer rules decide whether it blurs; the QML side paints only
+tint, rim, and sheen. Layout, breakpoints, and the reference-image mapping are in
+[homescreen](homescreen.md).
+
 ## HyprPilot integration
 
 `hyprpilot-core` is an actual Cargo dependency pinned to commit

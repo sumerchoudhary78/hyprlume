@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import qs.services
 
 ShellRoot {
     property bool sent: false

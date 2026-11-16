@@ -92,23 +92,63 @@ confirmation rules are not an operating-system sandbox. Launchers must be
 able to write their own settings and cache, so the service does not impose a
 read-only home on child applications.
 
-## Blur and keyboard shortcuts
+## Fonts
 
-The Wayland layer namespace is `hyprlume`. On current Lua-based Hyprland,
-this opt-in rule enables compositor blur for these surfaces:
+The shell asks for **Inter** and **JetBrains Mono**. On Arch:
+
+```sh
+sudo pacman -S inter-font ttf-jetbrains-mono
+```
+
+Without them Qt substitutes its default sans/mono, which changes text widths and
+can overflow tightly fitted rows. No font files are bundled with the package.
+
+## Blur, layer rules, and shortcuts
+
+The shell uses three Wayland layer namespaces:
+
+| Namespace | Surface |
+| --- | --- |
+| `hyprlume-bar` | top bar, one per monitor |
+| `hyprlume-home` | empty-workspace dashboard |
+| `hyprlume-command` | command panel overlay |
+
+On current Lua-based Hyprland, these opt-in rules enable compositor blur:
 
 ```lua
-hl.layer_rule({ match = { namespace = "^hyprlume$" }, blur = true, ignore_alpha = 0.1 })
+hl.layer_rule({ match = { namespace = "^hyprlume-(bar|home)$" }, blur = true, ignore_alpha = 0.1 })
+hl.layer_rule({ match = { namespace = "^hyprlume-command$" }, blur = true, ignore_alpha = 0.1 })
 ```
 
 Refer to the matching version of the
 [Hyprland layer-rule documentation](https://wiki.hypr.land/configuring/core/rules/layer-rules/)
 for your installed compositor. Older `.conf` syntax differs.
 Keep blur size/passes modest; it shares GPU resources with other work.
+Why blur lives in the compositor, and the alternatives, are covered in
+[homescreen](homescreen.md).
+
+The bar reserves `Theme.barZone` (74 logical px) at the top via `exclusiveZone`,
+so Hyprland tiles windows below it. Remove, hide, or move any other bar or
+dynamic island that occupies the same strip; two bars both reserving space will
+stack. If you prefer the bar to float over windows instead, set
+`exclusiveZone: 0` in `modules/topbar/TopBar.qml`.
 
 Bind a shortcut of your choice to `hyprlume toggle`, and a separate one to
-`hyprlume voice off`. The pill is centered at the top with no reserved area;
-move existing bars/dynamic islands or adjust `DesktopShell.qml` if they overlap.
+`hyprlume voice off`. The command panel opens under the bar; the dashboard
+appears by itself when the focused workspace is empty.
+
+Workspace buttons in the dashboard use Hyprland's request socket. Classic
+`.conf` sessions receive `workspace 2` / `workspace e+1`; Hyprland 0.55+ Lua
+sessions receive `hl.dsp.focus({ workspace = 2 })` /
+`hl.dsp.focus({ workspace = "e+1" })`. `services/Workspaces.qml` chooses the
+form from `Hyprland.usingLua` at click time, so no setting is needed. If you
+bind workspace switching yourself, copy the syntax that matches your config
+format; the two are not interchangeable.
+
+The bar and quick-actions card render **Super K** as a hint, not a binding the
+package installs. If you choose a different key, either update that chip in
+`shell/modules/topbar/SearchBox.qml` and
+`shell/modules/home/QuickActions.qml`, or ignore it; nothing reads the label.
 
 ## Troubleshooting
 
