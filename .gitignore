@@ -1,0 +1,14 @@
+/target/
+/dist/
+*.pkg.tar.*
+*.partial
+__pycache__/
+.DS_Store
+*.onnx
+*.gguf
+*.wav
+.env
+.env.*
+/packaging/aur/src/
+/packaging/aur/pkg/
+/packaging/aur/hyprlume/

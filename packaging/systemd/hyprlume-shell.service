@@ -1,0 +1,15 @@
+[Unit]
+Description=Hyprlume Quickshell interface
+Documentation=https://github.com/sumerchoudhary78/hyprlume
+PartOf=graphical-session.target
+After=hyprlume-daemon.service
+Wants=hyprlume-daemon.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/hyprlume shell
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=graphical-session.target

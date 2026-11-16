@@ -1,0 +1,39 @@
+[package]
+name = "hyprlume"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.89"
+description = "A glass command shell and local voice companion for Hyprland, powered by HyprPilot"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/sumerchoudhary78/hyprlume"
+keywords = ["hyprland", "wayland", "voice", "desktop", "quickshell"]
+categories = ["command-line-utilities", "gui"]
+
+[features]
+default = ["voice"]
+voice = ["dep:sherpa-onnx"]
+
+[dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+fs2 = "0.4"
+futures-util = { version = "0.3", features = ["sink"] }
+hyprpilot-core = { git = "https://github.com/sumerchoudhary78/HyprPilot", rev = "de1f0f4ae25aabe3fcf4964150eb33c1386cd9d4" }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"] }
+rustix = { version = "1", features = ["process"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sherpa-onnx = { version = "=2.0.1", optional = true }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net", "io-util", "sync", "signal", "time", "process"] }
+tokio-util = { version = "0.7", features = ["codec"] }
+toml = "0.8"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[dev-dependencies]
+tempfile = "3"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "debuginfo"

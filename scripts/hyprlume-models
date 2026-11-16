@@ -1,0 +1,86 @@
+#!/usr/bin/env python3
+"""Fetch the tested English model set. Never starts microphone capture."""
+import argparse
+import hashlib
+import os
+from pathlib import Path
+import tarfile
+import tempfile
+import urllib.request
+
+MODELS = {
+    "asr": ("asr-models", "sherpa-onnx-streaming-zipformer-en-2023-06-26", "639e25b578e9e997131402199419c13a941f8e4e198e2da1ce57dbf5cf401282"),
+    "kws": ("kws-models", "sherpa-onnx-kws-zipformer-gigaspeech-3.3M-2024-01-01", "f170013b4716e41b62b9bfd809687c207cef798ef9bc6534d524e17af9b6561a"),
+    "tts": ("tts-models", "vits-piper-en_US-lessac-medium", "9e3febfacf0abf4270172d2958bcec246032b7e88efc2720840cc80c93de334e"),
+}
+
+
+def configure_keywords(kind, target):
+    if kind == "kws":
+        keywords = target / "hyprlume-keywords.txt"
+        if not keywords.exists():
+            # SentencePiece encoding of HEY PILOT for this exact pinned bpe.model.
+            keywords.write_text("▁HE Y ▁PI LO T\n", encoding="utf-8")
+
+
+def install(kind, destination, cache, offline):
+    tag, name, digest = MODELS[kind]
+    target = destination / kind
+    if target.exists():
+        marker = target / ".hyprlume-sha256"
+        if marker.is_file() and marker.read_text().strip() == digest:
+            configure_keywords(kind, target)
+            print(f"{kind}: already installed at {target}")
+            return
+        raise SystemExit(f"{target} already exists; refusing to overwrite your models")
+    archive = cache / (name + ".tar.bz2")
+    if not archive.exists():
+        if offline:
+            raise SystemExit(f"Offline archive missing: {archive}")
+        url = f"https://github.com/k2-fsa/sherpa-onnx/releases/download/{tag}/{archive.name}"
+        partial = archive.with_suffix(".partial")
+        print(f"Downloading {kind} from {url}", flush=True)
+        with urllib.request.urlopen(url, timeout=60) as response, partial.open("wb") as output:
+            total = 0
+            while chunk := response.read(1024 * 1024):
+                total += len(chunk)
+                if total > 400_000_000:
+                    raise SystemExit("Model archive exceeded the size limit")
+                output.write(chunk)
+        partial.replace(archive)
+    with archive.open("rb") as file:
+        actual = hashlib.file_digest(file, "sha256").hexdigest()
+    if actual != digest:
+        raise SystemExit(f"Checksum mismatch for {archive}; remove it and download again")
+    with tempfile.TemporaryDirectory(prefix=".unpack-", dir=destination) as temp:
+        with tarfile.open(archive, "r:bz2") as file:
+            members = file.getmembers()
+            if any(not (m.isfile() or m.isdir()) for m in members):
+                raise SystemExit("Refusing archive containing links or special files")
+            file.extractall(temp, filter="data")
+        root = Path(temp) / name
+        if not root.is_dir():
+            raise SystemExit("Archive had an unexpected root directory")
+        # Keep model cards and upstream attribution alongside the weights.
+        (root / ".hyprlume-sha256").write_text(digest + "\n")
+        root.rename(target)
+    configure_keywords(kind, target)
+    print(f"{kind}: verified and installed at {target}")
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--destination", type=Path, default=Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share")) / "hyprlume/models")
+    parser.add_argument("--cache", type=Path, default=Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "hyprlume/models")
+    parser.add_argument("--only", choices=["all", *MODELS], default="all")
+    parser.add_argument("--offline", action="store_true")
+    args = parser.parse_args()
+    args.destination.mkdir(parents=True, exist_ok=True)
+    args.cache.mkdir(parents=True, exist_ok=True)
+    for kind in MODELS if args.only == "all" else [args.only]:
+        install(kind, args.destination, args.cache, args.offline)
+    print("Models ready. Microphone remains off. See docs/voice.md before enabling capture.")
+
+
+if __name__ == "__main__":
+    main()

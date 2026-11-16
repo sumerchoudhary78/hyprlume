@@ -1,0 +1,16 @@
+Hyprlume is available under MIT OR Apache-2.0.
+
+Hyprlume uses hyprpilot-core from HyprPilot (MIT OR Apache-2.0):
+https://github.com/sumerchoudhary78/HyprPilot
+
+Local speech inference uses sherpa-onnx (Apache-2.0) and ONNX Runtime (MIT):
+https://github.com/k2-fsa/sherpa-onnx
+https://github.com/microsoft/onnxruntime
+
+Quickshell/Qt and espeak-ng are separately installed programs. Their licenses
+apply to those programs. Hyprlume does not link espeak-ng or piper-phonemize.
+
+Speech weights are not included in this repository or package. The opt-in
+model installer downloads upstream archives, verifies pinned SHA-256 digests,
+and retains upstream model cards and attribution. Model licenses remain
+independent of Hyprlume's source license.

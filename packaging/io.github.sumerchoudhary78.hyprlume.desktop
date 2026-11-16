@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Hyprlume
+Comment=Glass command shell and local voice companion for Hyprland
+Exec=hyprlume shell
+Icon=hyprlume
+Terminal=false
+Categories=Utility;System;
+Keywords=Hyprland;Wayland;Voice;AI;
