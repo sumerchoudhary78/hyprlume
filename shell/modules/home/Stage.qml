@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import qs.components
+import qs.models
 import qs.theme
 
 // A real command console: every output line is derived from daemon state.
@@ -15,8 +16,10 @@ GlassSurface {
     property int activeTab: 0
     onModeChanged: activeTab = mode === 4 || mode === 5 ? 2 : mode === 1 ? 1 : 0
     readonly property var snapshot: backend.snapshot
-    readonly property bool busy: ["planning", "executing", "speaking"].indexOf(snapshot.phase) >= 0
-    readonly property bool review: snapshot.confirmation !== null && snapshot.confirmation !== undefined
+    CommandState {
+        id: commandState
+        snapshot: root.snapshot
+    }
     readonly property var output: {
         const lines = [];
         for (const action of (snapshot.actions ?? [])) lines.push({text: action, kind: "plan"});
@@ -34,7 +37,7 @@ GlassSurface {
 
     function submit() {
         const text = input.text.trim();
-        if (text && !root.busy && !root.review && root.backend.online) {
+        if (text && !commandState.busy && !commandState.review && root.backend.online) {
             root.backend.send({op: "command", text: text, dry_run: true});
             input.text = "";
         }
@@ -85,7 +88,7 @@ GlassSurface {
             width: Math.max(120, root.width - 250); height: 30
             color: Theme.ink; font.family: Theme.fontMono; font.pixelSize: 21
             clip: true; selectByMouse: true; maximumLength: 512
-            enabled: root.backend.online && !root.busy && !root.review
+            enabled: root.backend.online && !commandState.busy && !commandState.review
             onAccepted: root.submit()
             Text {
                 anchors.fill: parent

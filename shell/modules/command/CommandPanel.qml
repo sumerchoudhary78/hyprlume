@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import qs.components
+import qs.models
 import qs.theme
 
 // Command palette. This is the live surface for the daemon's plan/confirm
@@ -25,27 +26,17 @@ Item {
     signal request(var operation)
     signal dismissed()
 
-    readonly property bool busy: ["planning", "executing", "speaking"].indexOf(snapshot.phase) >= 0
-    readonly property bool review: snapshot.confirmation !== null && snapshot.confirmation !== undefined
-    readonly property string voice: snapshot.voice ?? "off"
-    readonly property string transcript: snapshot.transcript ?? ""
-    readonly property string activeApp: snapshot.active_app ?? ""
-    readonly property var actions: snapshot.actions ?? []
-    readonly property var receipts: snapshot.receipts ?? []
+    CommandState {
+        id: commandState
+        snapshot: root.snapshot
+    }
 
     implicitWidth: Theme.px(640)
     implicitHeight: layout.implicitHeight + Theme.px(36)
 
     focus: true
 
-    function submit(execute) {
-        if (input.text.trim().length > 0 && !busy && !review)
-            root.request({ op: "command", text: input.text.trim(), dry_run: !execute });
-    }
-
-    function focusInput() {
-        input.forceActiveFocus();
-    }
+    function focusInput() { entry.focusInput(); }
 
     // Swallow clicks on the card so the scrim behind it does not dismiss the
     // palette when the user clicks empty glass.
@@ -99,8 +90,8 @@ Item {
                 Item { Layout.fillWidth: true }
 
                 Chip {
-                    visible: root.activeApp.length > 0
-                    text: root.activeApp
+                    visible: commandState.activeApp.length > 0
+                    text: commandState.activeApp
                     textColor: Theme.inkFaint
                     mono: true
                 }
@@ -124,79 +115,21 @@ Item {
                 wrapMode: Text.Wrap
             }
 
-            Rectangle {
+            CommandEntry {
+                id: entry
                 Layout.fillWidth: true
-                implicitHeight: Theme.px(44)
-                radius: Theme.px(12)
-                color: Theme.glassInset
-                border.width: 1
-                border.color: input.activeFocus ? Theme.rimStrong : Theme.rim
-
-                TextInput {
-                    id: input
-                    objectName: "commandInput"
-
-                    anchors.fill: parent
-                    anchors.leftMargin: Theme.px(14)
-                    anchors.rightMargin: Theme.px(14)
-                    verticalAlignment: TextInput.AlignVCenter
-                    color: Theme.ink
-                    font.family: Theme.fontSans
-                    font.pixelSize: Theme.fontBody
-                    selectionColor: Theme.cyan
-                    selectedTextColor: "#081018"
-                    clip: true
-                    focus: true
-                    enabled: !root.busy && !root.review
-                    maximumLength: 512
-                    onAccepted: root.submit(false)
-                    Keys.onEscapePressed: root.dismissed()
-
-                    Text {
-                        anchors.verticalCenter: parent.verticalCenter
-                        visible: input.text.length === 0
-                        text: "workspace 2 · focus firefox · volume 30"
-                        color: Theme.inkFaint
-                        font: input.font
-                    }
-                }
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: Theme.px(8)
-
-                GlassButton {
-                    text: "Preview"
-                    objectName: "previewCommand"
-                    primary: true
-                    enabled: input.text.trim().length > 0 && !root.busy && !root.review
-                    onClicked: root.submit(false)
-                }
-
-                GlassButton {
-                    text: "Run direct"
-                    objectName: "runDirect"
-                    enabled: input.text.trim().length > 0 && !root.busy && !root.review
-                    onClicked: root.submit(true)
-                }
-
-                Item { Layout.fillWidth: true }
-
-                Chip {
-                    text: "ENTER"
-                    textColor: Theme.inkFaint
-                    mono: true
-                }
+                blocked: commandState.blocked
+                onSubmitted: (text, execute) => root.request({op: "command", text: text, dry_run: !execute})
+                onDismissed: root.dismissed()
             }
 
             ColumnLayout {
-                visible: root.transcript.length > 0
+                visible: commandState.transcript.length > 0
                 Layout.fillWidth: true
                 spacing: Theme.px(5)
 
                 Text {
-                    text: root.voice === "dictate" ? "DICTATION · SELECT TO COPY" : "YOUR REQUEST"
+                    text: commandState.voice === "dictate" ? "DICTATION · SELECT TO COPY" : "YOUR REQUEST"
                     color: Theme.inkFaint
                     font.family: Theme.fontSans
                     font.pixelSize: Theme.fontMicro
@@ -205,7 +138,7 @@ Item {
 
                 TextEdit {
                     Layout.fillWidth: true
-                    text: root.transcript
+                    text: commandState.transcript
                     readOnly: true
                     selectByMouse: true
                     wrapMode: TextEdit.Wrap
@@ -217,80 +150,22 @@ Item {
                 }
             }
 
-            ColumnLayout {
-                visible: root.actions.length > 0
+            PlanReview {
                 Layout.fillWidth: true
-                spacing: Theme.px(6)
-
-                Repeater {
-                    model: root.actions
-
-                    delegate: Rectangle {
-                        required property string modelData
-                        required property int index
-
-                        Layout.fillWidth: true
-                        implicitHeight: Theme.px(34)
-                        radius: Theme.radiusTile
-                        color: Theme.glassInset
-                        border.width: 1
-                        border.color: Theme.divider
-
-                        RowLayout {
-                            anchors.fill: parent
-                            anchors.leftMargin: Theme.px(10)
-                            anchors.rightMargin: Theme.px(10)
-                            spacing: Theme.px(10)
-
-                            Text {
-                                text: (index + 1).toString().padStart(2, "0")
-                                color: Theme.cyan
-                                font.family: Theme.fontMono
-                                font.pixelSize: Theme.fontCaption
-                            }
-
-                            Text {
-                                Layout.fillWidth: true
-                                text: modelData
-                                color: Theme.ink
-                                font.family: Theme.fontSans
-                                font.pixelSize: Theme.fontBody
-                                elide: Text.ElideRight
-                            }
-                        }
-                    }
-                }
-
-                RowLayout {
-                    visible: root.review
-                    spacing: Theme.px(8)
-
-                    GlassButton {
-                        objectName: "confirmPlan"
-                    text: "Confirm"
-                        primary: true
-                        enabled: !root.busy
-                        onClicked: root.request({ op: "confirm", token: root.snapshot.confirmation })
-                    }
-
-                    GlassButton {
-                        objectName: "cancelPlan"
-                        text: "Dismiss"
-                        enabled: !root.busy
-                        onClicked: root.request({ op: "cancel" })
-                    }
-
-                    Item { Layout.fillWidth: true }
-                }
+                actions: commandState.actions
+                busy: commandState.busy
+                review: commandState.review
+                onConfirmed: root.request({op: "confirm", token: root.snapshot.confirmation})
+                onCancelled: root.request({op: "cancel"})
             }
 
             ColumnLayout {
-                visible: root.receipts.length > 0
+                visible: commandState.receipts.length > 0
                 Layout.fillWidth: true
                 spacing: Theme.px(4)
 
                 Repeater {
-                    model: root.receipts
+                    model: commandState.receipts
 
                     delegate: Text {
                         required property string modelData
@@ -328,21 +203,21 @@ Item {
                 GlassButton {
                     text: "Wake word"
                     compact: true
-                    primary: root.voice === "wake"
-                    onClicked: root.request({ op: "voice", mode: root.voice === "wake" ? "off" : "wake" })
+                    primary: commandState.voice === "wake"
+                    onClicked: root.request({ op: "voice", mode: commandState.voice === "wake" ? "off" : "wake" })
                 }
 
                 GlassButton {
                     text: "Dictate"
                     compact: true
-                    primary: root.voice === "dictate"
+                    primary: commandState.voice === "dictate"
                     onClicked: root.request({ op: "voice", mode: "dictate" })
                 }
 
                 GlassButton {
                     text: "Mic off"
                     compact: true
-                    primary: root.voice === "off"
+                    primary: commandState.voice === "off"
                     onClicked: root.request({ op: "voice", mode: "off" })
                 }
 
@@ -351,7 +226,7 @@ Item {
 
             Text {
                 Layout.fillWidth: true
-                text: "LOCAL VOICE  /  ENGLISH  /  " + (root.voice === "off" ? "MICROPHONE OFF" : "MICROPHONE ACTIVE")
+                text: "LOCAL VOICE  /  ENGLISH  /  " + (commandState.voice === "off" ? "MICROPHONE OFF" : "MICROPHONE ACTIVE")
                 color: Theme.inkFaint
                 font.family: Theme.fontSans
                 font.pixelSize: Theme.fontMicro

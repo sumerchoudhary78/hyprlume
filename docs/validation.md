@@ -5,11 +5,20 @@ approximately 15 GiB usable RAM, Quickshell 0.3.2, Qt 6.12 and Hyprland 0.57.1
 with a Lua configuration. The physical output was 1920×1080 in its 144 Hz mode.
 No physical microphone recording or speaker playback was used.
 
+The source refactor was rechecked on **17 November 2026** with the native Arch
+runtime and macOS arm64 development builds. The physical-session and overhead
+samples below describe the desktop releases measured on 16 November.
+
 ## Automated checks
 
-- **23 Rust integration tests** cover bounded commands, reviewed local model
+- **29 Rust checks** (25 integration tests and four voice/PCM unit tests) cover bounded commands, reviewed local model
   plans, single-use confirmations, private sockets, single-instance ownership,
   allowlists, classic/Lua dispatch and checked desktop postconditions.
+- Voice-event tests protect pending reviews and running commands from later
+  wake/partial/final events, and ensure dictation remains text. Socket tests
+  cover invalid/oversized frames and clients that have not subscribed.
+- The complete core suite also passes without the optional voice feature;
+  that configuration is exercised in CI.
 - The Lua tests include bound-window moves, unique focus, malformed provider
   metadata and an address that must never become executable Lua.
 - Native Quickshell/RHI rendering passes at 1920×1080, at 960×640 in the compact
@@ -31,8 +40,10 @@ No physical microphone recording or speaker playback was used.
   A previous systemd test also verified independent app lifetimes across daemon
   restarts; the short-lived test process was explicitly stopped afterward.
 
-The opt-in synthetic English Piper → ASR → typed-action and wake-word fixtures
-remain available. They passed in the initial voice preview. Speech recognition
+The opt-in synthetic English Piper → ASR → typed-action and wake-word fixtures,
+including the injected-PCM daemon flow, passed again after the source refactor.
+The injected flow produced a workspace-2 preview and stopped capture without
+executing a desktop action. Speech recognition
 quality, false wakes and real devices require separate physical testing; see
 [voice](voice.md). No decision model's planning quality is claimed from the HTTP
 protocol fixtures.
@@ -114,6 +125,7 @@ measured. Raw conditions/results: [performance-liquid.json](design/performance-l
 
 ```sh
 cargo test --release --locked --all-targets
+cargo test --locked --no-default-features --all-targets
 cargo clippy --locked --all-targets -- -D warnings
 python3 scripts/check-qml.py shell
 python3 scripts/build-shaders.py --check

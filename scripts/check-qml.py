@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """Static checks for the Quickshell QML tree.
 
-The QML CI job runs under plain Qt, so it cannot resolve `qs.*` imports or
-Quickshell types. These checks catch the mistakes that do not need a QML engine:
+These checks run without a QML engine. Native Quickshell rendering in CI
+validates the runtime types and bindings; this catches simpler mistakes early:
 
   * unbalanced braces, brackets, parentheses
   * `import qs.<path>` that does not resolve to a directory
   * duplicate ids in one file
-  * a component used by a file that neither lives beside it nor is imported
 
 Usage: python3 scripts/check-qml.py [shell-root]
 """
@@ -18,11 +17,9 @@ import re
 import sys
 from pathlib import Path
 
-# Files that are standalone entry points: qs.* still resolves, but they are not
-# part of the regular module tree.
+# Generated assets are outside the shell component tree.
 SKIP_DIRS = {"assets"}
 
-TYPE_DECL = re.compile(r"^\s*(?:component\s+)?([A-Z][A-Za-z0-9_]*)\s*[:{]", re.MULTILINE)
 IMPORT = re.compile(r"^\s*import\s+qs\.([A-Za-z0-9_.]+)", re.MULTILINE)
 ID = re.compile(r"\bid:\s*([a-z][A-Za-z0-9_]*)")
 

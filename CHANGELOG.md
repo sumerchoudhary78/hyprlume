@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- Separate application workflows, socket transport, command parsing, local
+  model requests, concrete desktop adapters and native speech modules.
+- Replace nested command/voice handlers with named workflow functions while
+  preserving the public Rust API and newline-delimited JSON protocol.
+- Extract command entry and plan review into presentation components and share
+  derived busy/review state across the dashboard and command panel.
+- Add regressions for voice/command isolation, PCM conversion, invalid/oversized
+  frames and opt-in subscriptions. Exercise core tests without the voice feature.
+
 ## 0.3.0 — 2026-11-16
 
 - Add optical liquid glass with a curved refractive bevel, soft local blur,

@@ -201,3 +201,7 @@ cargo test --release --locked --test voice_models -- --ignored --nocapture
 See [contributing](CONTRIBUTING.md), [architecture](docs/architecture.md), and
 [security](SECURITY.md). Application source is **MIT OR Apache-2.0**. Model and
 third-party runtime licenses remain separate; see [NOTICE](NOTICE).
+
+The [source map and extension points](docs/architecture.md#source-map) describe
+the backend modules. The [shell map](shell/README.md) covers reusable visuals,
+derived view state, service interfaces and test fixtures.

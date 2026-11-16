@@ -1,5 +1,6 @@
 import QtQuick
 import qs.components
+import qs.models
 import qs.theme
 
 // The three real stages of every desktop action: intent, review, execution.
@@ -9,7 +10,10 @@ GlassSurface {
     property var workspaces
     secondaryColor: Theme.amber
     glowColor: Theme.violet
-    readonly property bool review: backend.snapshot.confirmation !== null && backend.snapshot.confirmation !== undefined
+    CommandState {
+        id: commandState
+        snapshot: root.backend.snapshot
+    }
     PanelHeader { x: 17; y: 16; width: parent.width - 34; title: "Command Graph"; iconName: "workflow"; accent: Theme.violet }
     Canvas {
         x: 15; y: 42; width: parent.width - 30; height: parent.height - 48
@@ -33,7 +37,7 @@ GlassSurface {
     }
     GraphNode {
         x: parent.width-width-25; y: parent.height - 48; label: "execute"; accent: Theme.amber; iconName: "play"
-        enabled: root.review
+        enabled: commandState.review
         onClicked: root.backend.send({op:"confirm",token:root.backend.snapshot.confirmation})
     }
     component GraphNode: Item {

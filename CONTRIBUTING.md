@@ -6,6 +6,7 @@ Use a current Rust toolchain and keep the checked-in lockfile. Run:
 cargo fmt --all --check
 cargo clippy --locked --all-targets -- -D warnings
 cargo test --locked --all-targets
+cargo test --locked --no-default-features --all-targets
 python3 scripts/check-qml.py shell
 python3 scripts/build-shaders.py --check
 python3 scripts/qa/check-effects.py
@@ -25,6 +26,9 @@ runs at UI startup.
 
 Keep shared visuals in `shell/components`, composition in `shell/modules`,
 processes/IPC in `shell/services`, and all asset origins in `shell/assets/README.md`.
+Derived UI state belongs in `shell/models`. Follow the
+[Rust source map](docs/architecture.md#source-map) for new backend work; keep
+transport, workflow policy and concrete desktop/model adapters separate.
 Do not bake interactive UI into image assets. The explicit preview fixture
 must never be imported by the live shell. Runtime packaging excludes fixtures.
 

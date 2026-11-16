@@ -10,13 +10,15 @@ shell/
 ├── assets/
 │   ├── backgrounds/          generated room plate
 │   ├── mascot/               transparent assistant art
-│   └── data/                 attributed public-domain world geometry
+│   ├── data/                 attributed public-domain world geometry
+│   └── shaders/              GLSL sources, portable bytecode and hash manifest
 ├── components/               shared glass, icons, gauges, buttons and charts
+├── models/                   derived presentation state, without IPC/processes
 ├── modules/
 │   ├── scene/                wallpaper, Qt Quick 3D view and geometry generation
 │   ├── home/                 dashboard composition, console, cards and action deck
 │   ├── topbar/               bar content and navigation primitives
-│   └── command/              the single command panel and overlay implementation
+│   └── command/              panel composition, editor, plan review and overlay
 ├── services/                 daemon socket, metrics, clock, workspace state
 ├── fixtures/                 synthetic data and UI-control probe; QA only
 └── theme/Theme.qml           shared palette, typography and interaction timing
@@ -27,6 +29,14 @@ lets the **same** widget tree run with live services or explicit test fixtures.
 Services own IPC/processes; components own presentation. Geometry belongs in
 `modules/scene/Geometry.js`, composition landmarks in `Dashboard.qml`, shared
 style in `theme`, and asset provenance alongside assets.
+
+`models/CommandState.qml` derives busy/review/voice state from a snapshot for
+the console, agent, command graph and command panel. `CommandEntry.qml` owns
+local input/focus and emits submitted text; `PlanReview.qml` displays actions
+and emits confirm/dismiss signals. `CommandPanel.qml` composes those pieces
+and maps their intent to the existing protocol. None of the editor/review
+components opens a socket or starts a process. The native input suite exercises
+these exact components in both effects profiles.
 
 `qs.*` imports are resolved by Quickshell relative to the entry's shell root.
 Keep entry files at that root. The AUR package excludes fixtures and QA entries.

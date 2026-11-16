@@ -58,6 +58,15 @@ async fn model_plans_need_confirmation_even_when_execution_is_requested() {
     .unwrap();
     let request = received.await.unwrap();
     assert_eq!(request["response_format"]["type"], "json_schema");
+    assert_eq!(
+        request["messages"][1]["content"],
+        "put me on my second workspace"
+    );
+    assert_eq!(request["temperature"], 0);
+    assert_eq!(
+        request["response_format"]["json_schema"]["schema"]["properties"]["actions"]["maxItems"],
+        4
+    );
     tokio::time::timeout(std::time::Duration::from_secs(2), async {
         while app.state().phase != "review" {
             tokio::task::yield_now().await;

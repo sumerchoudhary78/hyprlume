@@ -2,7 +2,7 @@
 """Protocol-compatible Hyprlume daemon stub for shell QA.
 
 This is a test fixture, not a daemon implementation. It speaks the same
-newline-delimited JSON protocol as src/server.rs so the QML shell can be
+newline-delimited JSON protocol as src/server/ so the QML shell can be
 exercised without a Rust build. Every state it returns is synthetic.
 
 Usage:

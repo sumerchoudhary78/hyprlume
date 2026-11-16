@@ -71,6 +71,12 @@ pub fn config_path() -> PathBuf {
         .join("hyprlume/config.toml")
 }
 
+pub fn socket_path() -> Result<PathBuf> {
+    let runtime = std::env::var_os("XDG_RUNTIME_DIR")
+        .context("XDG_RUNTIME_DIR is required; run inside your user session")?;
+    Ok(PathBuf::from(runtime).join("hyprlume/control.sock"))
+}
+
 fn home() -> PathBuf {
     std::env::var_os("HOME")
         .map(PathBuf::from)

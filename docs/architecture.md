@@ -1,5 +1,53 @@
 # Architecture
 
+## Source map
+
+```text
+src/
+├── main.rs                   CLI arguments and process entry
+├── lib.rs                    public module surface
+├── config.rs                 configuration validation and XDG paths
+├── protocol.rs               shared wire operations and state snapshots
+├── app/
+│   ├── mod.rs                state ownership and operation routing
+│   ├── commands.rs           admission, planning, review and execution lifecycle
+│   ├── events.rs             compositor observations
+│   └── voice.rs              voice lifecycle, event handling and feedback
+├── server/
+│   ├── mod.rs                bounded sessions, subscriptions and daemon lifetime
+│   ├── socket.rs             socket permissions, file lock and cleanup
+│   └── client.rs             one-shot CLI requests
+├── planner/
+│   ├── mod.rs                typed actions, plan validation and planning policy
+│   ├── direct.rs             deterministic English command parsing
+│   └── llm.rs                bounded loopback HTTP adapter and response schema
+├── desktop/
+│   ├── mod.rs                validated action routing and bounded process runner
+│   ├── hyprland.rs           workspace/window actions and Lua compatibility
+│   ├── applications.rs       independent systemd application launches
+│   └── audio.rs              checked PipeWire volume/mute actions
+└── voice/
+    ├── mod.rs                public speech API and events
+    ├── models.rs             model discovery and recognizer configuration
+    ├── recognition.rs        PCM conversion, capture and streaming recognition
+    └── synthesis.rs          phonemization and Piper synthesis
+```
+
+`server` depends on the application; application workflows do not depend on
+socket sessions. Both consume the shared protocol/configuration. The application
+coordinates concrete planner, desktop and voice adapters. Submodules stay
+private unless they form a caller-facing API; `server::App`, `server::call`,
+`planner::{Action, Plan, direct, plan}` and `voice::*` retain their existing paths.
+The canonical application type is `app::App`.
+
+To add an action, extend its typed representation/validation in `planner`, its
+direct phrases and model schema, then its concrete adapter in `desktop`.
+Exercise preview/confirmation and observed postconditions in integration tests.
+A new speech engine belongs behind the `voice` API; command/review policy stays
+in `app`. Native inference belongs on the blocking worker. Additional UI panels
+use the existing service interfaces and shared view state; see
+[the shell source map](../shell/README.md).
+
 ## Processes and ownership
 
 Quickshell owns rendering, input widgets, and layer-shell surfaces. The Rust
