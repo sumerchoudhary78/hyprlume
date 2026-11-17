@@ -13,7 +13,7 @@ Item {
     property int revision:backend.settings.revision
     property int pending:0
     property bool dirty:false
-    property int tab:Math.max(0,Math.min(6,Number(Quickshell.env("HYPRLUME_SETTINGS_TAB")) || 0))
+    property int tab:Math.max(0,Math.min(7,Number(Quickshell.env("HYPRLUME_SETTINGS_TAB")) || 0))
     property bool lua:true
     property string message:""
     function close(){backend.send({op:"panel",panel:"settings",open:false});}
@@ -58,7 +58,7 @@ Item {
                 Layout.fillWidth: true
                 spacing: 5
                 Repeater {
-                    model:["Appearance","Voice & models","Shortcuts","Services","Idle & sleep","Portals","Input"]
+                    model:["Appearance","Voice & models","Shortcuts","Services","Idle & sleep","Portals","Input","Credentials"]
                     GlassButton {required property string modelData; required property int index; objectName:"settingsTab"+index; text:modelData; compact:true; primary:root.tab===index; onClicked:root.tab=index}
                 }
             }
@@ -127,6 +127,12 @@ Item {
                             saved: !root.dirty && !root.pending
                             onEdited: (key, value) => root.edit("input", key, value)
                         }
+                    }
+                    Loader {
+                        active: root.tab === 7
+                        visible: active
+                        Layout.fillWidth: true
+                        sourceComponent: CredentialSettings { backend: root.backend }
                     }
                 }
             }

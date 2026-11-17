@@ -33,6 +33,9 @@ pub enum Operation {
     Input {
         request: crate::desktop::input::Request,
     },
+    Credentials {
+        request: crate::services::credentials::Request,
+    },
     SystemKey {
         key: crate::desktop::input::SystemKey,
     },
@@ -133,6 +136,8 @@ pub struct State {
     pub active_app: String,
     #[serde(default)]
     pub feedback: Option<Feedback>,
+    #[serde(default)]
+    pub credentials: crate::services::credentials::State,
 }
 
 impl Default for State {
@@ -151,6 +156,7 @@ impl Default for State {
             workspace: None,
             active_app: String::new(),
             feedback: None,
+            credentials: crate::services::credentials::State::default(),
         }
     }
 }

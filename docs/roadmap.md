@@ -94,8 +94,11 @@ code is needed. User-selected priority is connectivity:
     managed Hyprland include and glass feedback for volume, brightness and media.
     See [input and system keys](input.md).
 
-Next environment services include login/session bootstrap, monitor settings,
-Secret Service integration and removable storage.
+14. **Credential storage:** Secret Service discovery, login and default
+    collection controls and provider-owned prompts. See [credential storage](credentials.md).
+
+Next environment services include login/session bootstrap, monitor settings
+and removable storage.
 
 ## Agent work
 

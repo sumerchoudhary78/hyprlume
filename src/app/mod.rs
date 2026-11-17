@@ -1,5 +1,6 @@
 //! Application state and operation routing, independent of the Unix transport.
 mod commands;
+mod credentials;
 mod events;
 mod idle;
 mod input;
@@ -32,6 +33,7 @@ pub struct App {
     pub(crate) idle: Arc<crate::services::idle::Controller>,
     idle_effects: Mutex<idle::Effects>,
     input_gate: Arc<Mutex<()>>,
+    credentials_gate: Arc<Mutex<()>>,
     state: watch::Sender<State>,
     pending: Mutex<Option<commands::Pending>>,
     lock_pause: Mutex<Option<u64>>,
@@ -79,6 +81,7 @@ impl App {
             idle: crate::services::idle::Controller::new(socket.clone(), demo),
             idle_effects: Mutex::new(idle::Effects::default()),
             input_gate: Arc::new(Mutex::new(())),
+            credentials_gate: Arc::new(Mutex::new(())),
             clipboard: crate::services::clipboard::Controller::new(socket, demo),
             capture: crate::services::capture::Controller::new(demo),
             state,
@@ -172,6 +175,7 @@ impl App {
             Operation::NotificationsStatus | Operation::NotificationsSubscribe => {
                 Ok(json!(self.notifications.state()))
             }
+            Operation::Credentials { request } => self.credentials(request),
             Operation::Input { request } => self.input(request).await,
             Operation::SystemKey { key } => self.system_key(key),
             Operation::SettingsStatus | Operation::SettingsSubscribe => {

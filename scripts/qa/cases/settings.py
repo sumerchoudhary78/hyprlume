@@ -36,6 +36,11 @@ def run(driver):
     driver.wait_controls('inputKeyboardpreview-keyboard')
     driver.click('inputWrite')
     assert driver.request('input')['request'] == {'action': 'write_profile', 'revision': 5}
+    driver.click('settingsTab7')
+    assert driver.request('credentials')['request']['action'] == 'refresh'
+    driver.wait_controls('credential_login')
+    driver.click('credential_login')
+    assert driver.request('credentials')['request'] == {'action': 'unlock', 'collection': 'login'}
     driver.click('settingsReload');assert driver.request('settings')['request']['action']=='reload'
     driver.click('closeSettings');assert driver.request('panel')['open'] is False
     print('SETTINGS INTERACTION PASS: reduced glass, accent, decimal scale, startup defaults, shortcuts, save acknowledgments and reload')
