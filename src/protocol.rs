@@ -16,6 +16,20 @@ pub enum Operation {
     ConnectivityStatus,
     NotificationsSubscribe,
     NotificationsStatus,
+    ClipboardSubscribe,
+    ClipboardStatus,
+    Clipboard {
+        request: crate::services::clipboard::Request,
+    },
+    ClipboardIngest {
+        generation: u64,
+        text: String,
+    },
+    CaptureSubscribe,
+    CaptureStatus,
+    Capture {
+        request: crate::services::capture::Request,
+    },
     PowerSubscribe,
     PowerStatus,
     Power {
@@ -59,6 +73,8 @@ pub enum DesktopPanel {
     Audio,
     Power,
     Tray,
+    Clipboard,
+    Capture,
     Launcher,
     Switcher,
 }

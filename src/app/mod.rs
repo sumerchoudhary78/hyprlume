@@ -21,6 +21,8 @@ pub struct App {
     pub desktop: Desktop,
     pub(crate) connectivity: Arc<crate::services::connectivity::Controller>,
     pub(crate) notifications: Arc<crate::services::notifications::Controller>,
+    pub(crate) clipboard: Arc<crate::services::clipboard::Controller>,
+    pub(crate) capture: Arc<crate::services::capture::Controller>,
     pub(crate) power: Arc<crate::services::power::Controller>,
     state: watch::Sender<State>,
     pending: Mutex<Option<commands::Pending>>,
@@ -36,6 +38,13 @@ pub struct App {
 
 impl App {
     pub fn new(config: Config, demo: bool) -> Arc<Self> {
+        Self::with_socket(
+            config,
+            demo,
+            crate::config::socket_path().unwrap_or_default(),
+        )
+    }
+    pub fn with_socket(config: Config, demo: bool, socket: std::path::PathBuf) -> Arc<Self> {
         let mut state = State::default();
         if demo {
             state.message = "Demo session · desktop actions are simulated".into();
@@ -47,6 +56,8 @@ impl App {
             connectivity: crate::services::connectivity::Controller::new(demo),
             notifications: crate::services::notifications::Controller::new(demo),
             power: crate::services::power::Controller::new(demo),
+            clipboard: crate::services::clipboard::Controller::new(socket, demo),
+            capture: crate::services::capture::Controller::new(demo),
             state,
             pending: Mutex::new(None),
             busy: Arc::new(Semaphore::new(1)),
@@ -80,6 +91,26 @@ impl App {
             }
             Operation::NotificationsStatus | Operation::NotificationsSubscribe => {
                 Ok(json!(self.notifications.state()))
+            }
+            Operation::ClipboardStatus | Operation::ClipboardSubscribe => {
+                Ok(json!(self.clipboard.state()))
+            }
+            Operation::Clipboard { request } => Ok(json!(self.clipboard.handle(request).await?)),
+            Operation::ClipboardIngest { generation, text } => {
+                self.clipboard.ingest(generation, text)?;
+                Ok(json!({"accepted":true}))
+            }
+            Operation::CaptureStatus | Operation::CaptureSubscribe => {
+                Ok(json!(self.capture.state()))
+            }
+            Operation::Capture { request } => {
+                let state = self.capture.handle(request)?;
+                self.update(|s| {
+                    if s.desktop_panel == Some(crate::protocol::DesktopPanel::Capture) {
+                        s.desktop_panel = None;
+                    }
+                });
+                Ok(json!(state))
             }
             Operation::PowerStatus | Operation::PowerSubscribe => Ok(json!(self.power.state())),
             Operation::Power { request } => self.power.handle(request).await,

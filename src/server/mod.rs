@@ -25,6 +25,10 @@ async fn session(stream: UnixStream, app: Arc<App>) -> Result<()> {
     let mut state = app.subscribe();
     let mut connectivity = app.connectivity.subscribe();
     let mut notifications = app.notifications.subscribe();
+    let mut clipboard = app.clipboard.subscribe();
+    let mut capture = app.capture.subscribe();
+    let mut clipboard_subscribed = false;
+    let mut capture_subscribed = false;
     let mut power = app.power.subscribe();
     let mut subscribed = false;
     let mut connectivity_subscribed = false;
@@ -40,6 +44,8 @@ async fn session(stream: UnixStream, app: Arc<App>) -> Result<()> {
                         if matches!(request.operation, Operation::Subscribe) { subscribed = true; state.borrow_and_update(); }
                         if matches!(request.operation, Operation::ConnectivitySubscribe) { connectivity_subscribed = true; connectivity.borrow_and_update(); }
                         if matches!(request.operation, Operation::NotificationsSubscribe) { notifications_subscribed = true; notifications.borrow_and_update(); }
+                        if matches!(request.operation,Operation::ClipboardSubscribe) {clipboard_subscribed=true; clipboard.borrow_and_update();}
+                        if matches!(request.operation,Operation::CaptureSubscribe) {capture_subscribed=true; capture.borrow_and_update();}
                         if matches!(request.operation, Operation::PowerSubscribe) {
                             if power_view.is_none() { power_view = Some(app.power.observe_ui()); }
                             power.borrow_and_update();
@@ -67,6 +73,12 @@ async fn session(stream: UnixStream, app: Arc<App>) -> Result<()> {
                 let snapshot = notifications.borrow_and_update().clone();
                 json!({"event":"notifications","state":snapshot})
             }
+            change=clipboard.changed(), if clipboard_subscribed => {
+                change?; let snapshot=clipboard.borrow_and_update().clone(); json!({"event":"clipboard","state":snapshot})
+            }
+            change=capture.changed(), if capture_subscribed => {
+                change?; let snapshot=capture.borrow_and_update().clone(); json!({"event":"capture","state":snapshot})
+            }
             change = power.changed(), if power_view.is_some() => {
                 change?;
                 let snapshot = power.borrow_and_update().clone();
@@ -80,7 +92,7 @@ async fn session(stream: UnixStream, app: Arc<App>) -> Result<()> {
 pub async fn serve(path: PathBuf, config: Config, demo: bool) -> Result<()> {
     config.validate()?;
     let (listener, _guard) = socket::bind(&path)?;
-    let app = App::new(config, demo);
+    let app = App::with_socket(config, demo, path.clone());
     let mut services = tokio::task::JoinSet::new();
     services.spawn(app.clone().watch_desktop());
     services.spawn(app.connectivity.clone().run());
@@ -106,6 +118,8 @@ pub async fn serve(path: PathBuf, config: Config, demo: bool) -> Result<()> {
     })
     .await
     .ok();
+    app.clipboard.shutdown().await;
+    app.capture.shutdown().await;
     services.abort_all();
     Ok(())
 }

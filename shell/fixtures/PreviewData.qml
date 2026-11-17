@@ -16,6 +16,8 @@ QtObject {
         property QtObject launcher: LauncherFixture {}
         property QtObject tray: TrayFixture { active: sampleBackend.snapshot.desktop_panel === "tray" }
         property QtObject powerService: PowerFixture { active: sampleBackend.snapshot.desktop_panel === "power" }
+        property var clipboard: ({available:true,enabled:false,error:"",items:[{id:1,preview:"cargo build --release",bytes:21},{id:2,preview:"The next idea is already within reach.",bytes:36}]})
+        property var capture: ({screenshot_available:true,recording_available:true,region_available:true,busy:false,recording:false,output:"",message:"Screen capture is idle · recordings have no audio",error:""})
         property var power: powerService.snapshot
         property var notifications: ({
             available:true,error:"",panel_open:Quickshell.env("HYPRLUME_NOTIFICATIONS_PREVIEW") === "1",dnd:false,unread:3,
@@ -47,7 +49,7 @@ QtObject {
             // Simulate unrelated D-Bus snapshots while the user types a PIN.
             onTriggered: sampleBackend.connectivity = JSON.parse(JSON.stringify(sampleBackend.connectivity))
         }
-        property var snapshot: ({phase:"ready",message:"Your desktop, within reach.",transcript:"workspace two",actions:[],receipts:["Focused Development workspace","Desktop state verified","Ready for your next command"],confirmation:null,panel_open:false,desktop_panel:Quickshell.env("HYPRLUME_LAUNCHER_PREVIEW") === "1" ? "launcher" : Quickshell.env("HYPRLUME_TRAY_PREVIEW") === "1" ? "tray" : Quickshell.env("HYPRLUME_POWER_PREVIEW") === "1" ? "power" : Quickshell.env("HYPRLUME_AUDIO_PREVIEW") === "1" ? "audio" : null,voice:"off",workspace:2,active_app:"hyprlume"})
+        property var snapshot: ({phase:"ready",message:"Your desktop, within reach.",transcript:"workspace two",actions:[],receipts:["Focused Development workspace","Desktop state verified","Ready for your next command"],confirmation:null,panel_open:false,desktop_panel:Quickshell.env("HYPRLUME_TOOLS_PREVIEW") === "1" ? "clipboard" : Quickshell.env("HYPRLUME_LAUNCHER_PREVIEW") === "1" ? "launcher" : Quickshell.env("HYPRLUME_TRAY_PREVIEW") === "1" ? "tray" : Quickshell.env("HYPRLUME_POWER_PREVIEW") === "1" ? "power" : Quickshell.env("HYPRLUME_AUDIO_PREVIEW") === "1" ? "audio" : null,voice:"off",workspace:2,active_app:"hyprlume"})
         property Timer planningDelay: Timer {
             interval: 600
             onTriggered: sampleBackend.snapshot = Object.assign({}, sampleBackend.snapshot,
@@ -61,7 +63,18 @@ QtObject {
             if (publicOperation.request && publicOperation.request.value) publicOperation.request.value = "[credential]";
             lastRequest = publicOperation; requestCount++;
             if (Quickshell.env("HYPRLUME_QA") === "1") console.log("HYPRLUME_QA " + JSON.stringify({kind:"request",operation:publicOperation}));
-            if (operation.op === "power") powerService.send(operation.request);
+            if (operation.op === "clipboard") {
+                const request=operation.request;
+                if (request.action==="enable") clipboard=Object.assign({},clipboard,{enabled:request.enabled});
+                if (request.action==="clear") clipboard=Object.assign({},clipboard,{items:[]});
+                if (request.action==="remove") clipboard=Object.assign({},clipboard,{items:clipboard.items.filter(entry=>entry.id!==request.id)});
+            }
+            else if (operation.op === "capture") {
+                const request=operation.request;
+                capture=Object.assign({},capture,{busy:request.action==="record",recording:request.action==="record",message:"Synthetic capture only",output:"/preview/capture.png"});
+                if (request.action!=="stop") snapshot=Object.assign({},snapshot,{desktop_panel:null});
+            }
+            else if (operation.op === "power") powerService.send(operation.request);
             else if (operation.op === "panel") {
                 if (operation.open) {
                     notifications = Object.assign({}, notifications, {panel_open:false});

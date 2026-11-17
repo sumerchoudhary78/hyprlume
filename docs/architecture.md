@@ -183,3 +183,13 @@ There is no authentication claim based on the wake word.
 The local LLM adapter sends no screenshots or arbitrary file data, accepts no
 redirects or non-loopback endpoints, and bounds its response. A loopback model
 server must still be treated as a separately administered local program.
+
+## Clipboard and capture
+
+`services/clipboard` owns an opt-in wl-paste watcher, generation-bound delivery
+and a bounded zeroizing text store. `services/capture` owns one cancellable
+selector/screenshot/recorder job, validates geometry, creates private output
+files and finalizes recordings with SIGINT. They publish independent opt-in
+socket topics. `modules/tools` presents those snapshots without clipboard data
+entering the AI state. Tool processes use literal argv; no shell is involved.
+See [clipboard/capture behavior](clipboard-capture.md) for limits and qualification.

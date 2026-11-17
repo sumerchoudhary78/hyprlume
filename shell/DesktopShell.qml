@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Wayland
 import qs.components
+import qs.modules.tools
 import qs.modules.launcher
 import qs.modules.tray
 import qs.modules.power
@@ -191,6 +192,19 @@ Item {
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
             LauncherOverlay { anchors.fill: parent; backend: desktop.backend; reducedEffects: desktop.state.reducedEffects }
+        }
+    }
+    Loader {
+
+        active: desktop.backend.online && ["clipboard","capture"].includes(desktop.backend.snapshot.desktop_panel)
+        sourceComponent: PanelWindow {
+            screen: desktop.focusedScreen
+            anchors { top: true; bottom: true; left: true; right: true }
+            exclusiveZone: 0; color: "transparent"
+            WlrLayershell.namespace: "hyprlume-tools"
+            WlrLayershell.layer: WlrLayer.Overlay
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+            ToolsOverlay { anchors.fill: parent; backend: desktop.backend; reducedEffects: desktop.state.reducedEffects }
         }
     }
 }

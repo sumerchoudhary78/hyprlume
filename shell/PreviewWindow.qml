@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import qs.modules.home
+import qs.modules.tools
 import qs.modules.launcher
 import qs.modules.tray
 import qs.modules.power
@@ -74,5 +75,10 @@ FloatingWindow {
         anchors.fill: parent
         active: window.backend.online && ["launcher","switcher"].includes(window.backend.snapshot.desktop_panel)
         sourceComponent: LauncherOverlay { anchors.fill: parent; backend: window.backend; reducedEffects: window.state.reducedEffects }
+    }
+    Loader {
+        anchors.fill: parent
+        active: window.backend.online && ["clipboard","capture"].includes(window.backend.snapshot.desktop_panel)
+        sourceComponent: ToolsOverlay { anchors.fill: parent; backend: window.backend; reducedEffects: window.state.reducedEffects }
     }
 }

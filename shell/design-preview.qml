@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import qs.fixtures
 import qs.modules.home
+import qs.modules.tools
 import qs.modules.launcher
 import qs.modules.tray
 import qs.modules.power
@@ -84,6 +85,11 @@ ShellRoot {
         anchors.fill: parent
         active: previewData.backend.online && ["launcher","switcher"].includes(previewData.backend.snapshot.desktop_panel)
         sourceComponent: LauncherOverlay { anchors.fill: parent; backend: previewData.backend; reducedEffects: previewData.state.reducedEffects }
+    }
+    Loader {
+        anchors.fill: parent
+        active: previewData.backend.online && ["clipboard","capture"].includes(previewData.backend.snapshot.desktop_panel)
+        sourceComponent: ToolsOverlay { anchors.fill: parent; backend: previewData.backend; reducedEffects: previewData.state.reducedEffects }
     }
             ControlProbe {
                 targetItem: window.contentItem
