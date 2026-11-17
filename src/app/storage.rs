@@ -46,14 +46,20 @@ impl App {
             let app = self.clone();
             tokio::spawn(async move {
                 let _permit = permit;
+                let handoff = matches!(request, Request::Open { .. });
                 let result = async {
                     let connection = native::connect()
                         .await
                         .context("Connect to the system storage service")?;
                     let action = native::apply(&connection, request).await;
-                    let status =
+                    let status = if handoff {
+                        None
+                    } else {
                         tokio::time::timeout(Duration::from_secs(3), native::read(&connection))
-                            .await;
+                            .await
+                            .ok()
+                            .and_then(Result::ok)
+                    };
                     Ok::<_, anyhow::Error>((action, status))
                 };
                 let result = tokio::select! {
@@ -68,11 +74,17 @@ impl App {
                     };
                     match result {
                         Ok(Ok((action, status))) => {
-                            if let Ok(Ok(status)) = status {
+                            if let Some(status) = status {
                                 state.storage = status;
                             }
                             match action {
-                                Ok(message) => state.storage.message = message.into(),
+                                Ok(message) => {
+                                    state.storage.message = message.into();
+                                    if handoff && state.desktop_panel == Some(DesktopPanel::Storage)
+                                    {
+                                        state.desktop_panel = None;
+                                    }
+                                }
                                 Err(error) => state.storage.error = error.to_string(),
                             }
                         }
