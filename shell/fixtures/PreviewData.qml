@@ -67,6 +67,18 @@ QtObject {
             if (publicOperation.request && publicOperation.request.value) publicOperation.request.value = "[credential]";
             lastRequest = publicOperation; requestCount++;
             if (Quickshell.env("HYPRLUME_QA") === "1") console.log("HYPRLUME_QA " + JSON.stringify({kind:"request",operation:publicOperation}));
+            if (operation.op === "credentials") {
+                const sequence = requestCount;
+                const action = operation.request.action;
+                const credentials = Object.assign({provider: "running", login_locked: true, default_locked: true, busy: false, message: "Sample credential state."}, snapshot.credentials);
+                if (action === "lock" || action === "unlock") {
+                    credentials.login_locked = action === "lock";
+                    credentials.default_locked = credentials.login_locked;
+                }
+                snapshot = Object.assign({}, snapshot, {credentials: credentials});
+                Qt.callLater(() => sampleBackend.response(sequence, true, {accepted: true}, ""));
+                return sequence;
+            }
             if (operation.op === "input") {
                 const sequence = requestCount;
                 const result = {
