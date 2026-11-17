@@ -75,6 +75,13 @@ enum Commands {
     },
     /// Open persisted appearance, voice/model and service preferences.
     Settings,
+    /// Lock the session; --wait returns only after compositor acknowledgment.
+    Lock {
+        #[arg(long)]
+        wait: bool,
+    },
+    #[command(hide = true)]
+    LockWorker,
     Toggle,
     Cancel,
     /// Confirm a specific preview token (expires after 30 seconds).
@@ -169,6 +176,7 @@ async fn main() -> Result<()> {
             use std::os::unix::process::CommandExt;
             return Err(command.exec()).context("start Quickshell (install quickshell)");
         }
+        Commands::LockWorker => return hyprlume::services::locking::run_worker().await,
         Commands::Doctor => {
             println!(
                 "Hyprlume {} · microphone remains off",
@@ -194,6 +202,7 @@ async fn main() -> Result<()> {
                 "grim",
                 "slurp",
                 "wf-recorder",
+                "swaylock",
             ] {
                 let found = std::env::var_os("PATH")
                     .is_some_and(|p| std::env::split_paths(&p).any(|dir| dir.join(tool).is_file()));
@@ -220,6 +229,7 @@ async fn main() -> Result<()> {
             println!("{}", hyprlume::voice::detect_wake(&config.voice, &file)?)
         }
         command => {
+            let wait_for_lock = matches!(&command, Commands::Lock { wait: true });
             let path = cli.socket.map(Ok).unwrap_or_else(server::socket_path)?;
             let operation = match command {
                 Commands::Daemon { demo } => {
@@ -277,6 +287,7 @@ async fn main() -> Result<()> {
                     panel: hyprlume::protocol::DesktopPanel::Capture,
                     open: true,
                 },
+                Commands::Lock { .. } => Operation::Lock,
                 Commands::Settings => Operation::Panel {
                     panel: hyprlume::protocol::DesktopPanel::Settings,
                     open: true,
@@ -313,10 +324,11 @@ async fn main() -> Result<()> {
                 Commands::Voice { mode } => Operation::Voice { mode },
                 _ => unreachable!(),
             };
-            println!(
-                "{}",
-                serde_json::to_string_pretty(&server::call(&path, operation).await?)?
-            );
+            let response = server::call(&path, operation).await?;
+            if wait_for_lock {
+                server::wait_for_lock(&path).await?;
+            }
+            println!("{}", serde_json::to_string_pretty(&response)?);
         }
     }
     Ok(())

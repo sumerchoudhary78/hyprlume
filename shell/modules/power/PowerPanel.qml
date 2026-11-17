@@ -44,6 +44,11 @@ GlassSurface {
             contentWidth: availableWidth; ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
             ColumnLayout {
                 width: scroll.availableWidth; spacing: 18
+                RowLayout {
+                    Layout.fillWidth:true
+                    GlassButton {objectName:"powerLock";text:"Lock screen";iconName:"lock";enabled:root.backend.locking.available;onClicked:root.backend.send({op:"lock"})}
+                    Text {Layout.fillWidth:true;text:root.backend.locking.message;textFormat:Text.PlainText;wrapMode:Text.Wrap;color:Theme.inkFaint;font.family:Theme.fontSans;font.pixelSize:10}
+                }
                 BatteryCard { Layout.fillWidth: true; battery: root.snapshot.battery; reducedEffects: root.reducedEffects }
                 ColumnLayout {
                     Layout.fillWidth: true; spacing: 8

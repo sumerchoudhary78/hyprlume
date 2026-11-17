@@ -88,7 +88,7 @@ Item {
                 Text {Layout.fillWidth:true; text:root.capture.message; textFormat:Text.PlainText; wrapMode:Text.Wrap; color:Theme.inkDim; font.family:Theme.fontSans; font.pixelSize:13}
                 Text {Layout.fillWidth:true; visible:root.capture.output.length>0; text:"Last saved: "+root.capture.output; textFormat:Text.PlainText; wrapMode:Text.WrapAnywhere; color:Theme.cyan; font.family:Theme.fontMono; font.pixelSize:11}
                 Item {Layout.fillHeight:true}
-                Text {Layout.fillWidth:true; text:"Screenshots: grim · regions: slurp · recording: wf-recorder. Recordings contain no audio. Files stay in your private Pictures/Hyprlume or Videos/Hyprlume folder."; wrapMode:Text.Wrap; color:Theme.inkFaint; font.family:Theme.fontSans; font.pixelSize:12}
+                Text {Layout.fillWidth:true; text:root.capture.screenshot_available && root.capture.recording_available && root.capture.region_available ? "Private captures stay in your Pictures/Hyprlume or Videos/Hyprlume folder. Recordings contain no audio." : "Install grim for screenshots, slurp for selection and wf-recorder for silent screen recording."; wrapMode:Text.Wrap; color:Theme.inkFaint; font.family:Theme.fontSans; font.pixelSize:12}
             }
             Text {Layout.fillWidth:true; visible:text.length>0; text:(root.clipboardMode ? root.clipboard.error : root.capture.error) || root.backend.error; textFormat:Text.PlainText; color:Theme.amber; wrapMode:Text.Wrap; font.family:Theme.fontSans; font.pixelSize:12}
         }

@@ -13,6 +13,7 @@ Item {
     property var snapshot: ({phase: "offline", message: "Start hyprlume daemon to connect", transcript: "", actions: [], receipts: [], confirmation: null, panel_open: false, desktop_panel:null, voice: "off", workspace: null, active_app: ""})
     property var connectivity: ({panel_open:false,busy:false,message:"Connecting to desktop services",error:"",wifi:{available:false,enabled:false,hardware_enabled:false,interfaces:[],networks:[],error:""},bluetooth:{available:false,adapters:[],devices:[],error:""},prompt:null})
     property var notifications: ({available:false,error:"Connecting to notifications",panel_open:false,dnd:false,unread:0,items:[]})
+    property var locking: ({available:false,active:false,phase:"idle",message:"Connecting to lock service"})
     property var clipboard: ({enabled:false,available:false,items:[],error:""})
     property var capture: ({screenshot_available:false,recording_available:false,region_available:false,busy:false,recording:false,output:"",message:"Connecting to capture services",error:""})
     signal response(int id, bool ok, var result, string error)
@@ -56,6 +57,7 @@ Item {
                 backend.send({op:"clipboard_subscribe"})
                 backend.send({op:"capture_subscribe"})
                 backend.send({op:"settings_subscribe"})
+                backend.send({op:"lock_subscribe"})
             } else {
                 if (backend.launcher && backend.launcher.busy) backend.launcher.finish(false, "The desktop service disconnected");
                 reconnect.restart()
@@ -74,6 +76,7 @@ Item {
                     if (data.event === "state") backend.snapshot = data.state
                     else if (data.event === "connectivity") backend.connectivity = data.state
                     else if (data.event === "notifications") backend.notifications = data.state
+                    else if (data.event === "locking") backend.locking = data.state
                     else if (data.event === "settings") backend.settings = data.state
                     else if (data.event === "clipboard") backend.clipboard = data.state
                     else if (data.event === "capture") backend.capture = data.state
@@ -81,6 +84,7 @@ Item {
                     else if (data.result && data.result.values && data.result.revision !== undefined) backend.settings = data.result
                     else if (data.result && data.result.enabled !== undefined && data.result.items) backend.clipboard = data.result
                     else if (data.result && data.result.screenshot_available !== undefined) backend.capture = data.result
+                    else if (data.result && data.result.phase && data.result.active !== undefined) backend.locking = data.result
                     else if (data.result && data.result.phase) backend.snapshot = data.result
                     else if (data.result && data.result.wifi && data.result.bluetooth) backend.connectivity = data.result
                     else if (data.result && data.result.items && data.result.unread !== undefined) backend.notifications = data.result

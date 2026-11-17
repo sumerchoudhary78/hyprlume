@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 import qs.components
 import qs.theme
 
@@ -22,7 +23,7 @@ GlassSurface {
     ]
     RowLayout {
         anchors.fill: parent; anchors.leftMargin: 20; anchors.rightMargin: 15; spacing: 12
-        Brand { presentation: root.presentation; compact: root.width < 1100 || root.backend.capture.recording }
+        Brand { presentation: root.presentation; compact: root.width < 1250 || root.backend.capture.recording }
         Item { Layout.preferredWidth: 7 }
         Row {
             spacing: 2
@@ -34,7 +35,7 @@ GlassSurface {
                     objectName: "mode" + index
                     label: modelData.label; iconName: modelData.icon
                     active: root.state.mode === index
-                    showLabel: root.width > 1010 && !root.backend.capture.recording
+                    showLabel: root.width > 1250 && !root.backend.capture.recording
                     onClicked: {
                         root.state.mode = index;
                         if (index === 3) root.backend.send({op:"toggle"});
@@ -87,6 +88,15 @@ GlassSurface {
             active: root.backend.snapshot.desktop_panel === "tray"
             Accessible.name: "Open application tray"
             onClicked: root.backend.send({op:"panel",panel:"tray",open:root.backend.snapshot.desktop_panel !== "tray"})
+        }
+        IconTile {
+            objectName:"lockSession"; iconName:"lock"; size:34; iconSize:19
+            active:root.backend.locking.active; enabled:root.backend.locking.available
+            Accessible.name:"Lock session"
+            onClicked:root.backend.send({op:"lock"})
+            HoverHandler {id:lockHover}
+            ToolTip.visible:lockHover.hovered
+            ToolTip.text:root.backend.locking.message
         }
         IconTile {
             objectName: "openPower"

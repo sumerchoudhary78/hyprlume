@@ -5,5 +5,6 @@ pub mod power;
 
 pub mod capture;
 pub mod clipboard;
+pub mod locking;
 pub mod settings;
 mod tools;

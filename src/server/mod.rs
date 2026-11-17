@@ -3,7 +3,7 @@ mod client;
 mod socket;
 
 pub use crate::config::socket_path;
-pub use client::call;
+pub use client::{call, wait_for_lock};
 // Keep the existing library entry point while `app::App` owns orchestration.
 pub use crate::app::App;
 
@@ -25,6 +25,8 @@ async fn session(stream: UnixStream, app: Arc<App>) -> Result<()> {
     let mut state = app.subscribe();
     let mut connectivity = app.connectivity.subscribe();
     let mut notifications = app.notifications.subscribe();
+    let mut locking = app.locking.subscribe();
+    let mut lock_subscribed = false;
     let mut settings = app.settings.subscribe();
     let mut settings_subscribed = false;
     let mut clipboard = app.clipboard.subscribe();
@@ -46,6 +48,7 @@ async fn session(stream: UnixStream, app: Arc<App>) -> Result<()> {
                         if matches!(request.operation, Operation::Subscribe) { subscribed = true; state.borrow_and_update(); }
                         if matches!(request.operation, Operation::ConnectivitySubscribe) { connectivity_subscribed = true; connectivity.borrow_and_update(); }
                         if matches!(request.operation, Operation::NotificationsSubscribe) { notifications_subscribed = true; notifications.borrow_and_update(); }
+                        if matches!(request.operation,Operation::LockSubscribe) {lock_subscribed=true; locking.borrow_and_update();}
                         if matches!(request.operation,Operation::SettingsSubscribe) {settings_subscribed=true; settings.borrow_and_update();}
                         if matches!(request.operation,Operation::ClipboardSubscribe) {clipboard_subscribed=true; clipboard.borrow_and_update();}
                         if matches!(request.operation,Operation::CaptureSubscribe) {capture_subscribed=true; capture.borrow_and_update();}
@@ -75,6 +78,9 @@ async fn session(stream: UnixStream, app: Arc<App>) -> Result<()> {
                 change?;
                 let snapshot = notifications.borrow_and_update().clone();
                 json!({"event":"notifications","state":snapshot})
+            }
+            change=locking.changed(), if lock_subscribed => {
+                change?; let snapshot=locking.borrow_and_update().clone(); json!({"event":"locking","state":snapshot})
             }
             change=settings.changed(), if settings_subscribed => {
                 change?; let snapshot=settings.borrow_and_update().clone(); json!({"event":"settings","state":snapshot})
@@ -112,7 +118,7 @@ pub async fn serve_with_config(
             enabled: app.config.preferences.services.notifications_dnd,
         })
         .await?;
-    if app.config.preferences.services.clipboard_history {
+    if !app.locking.active() && app.config.preferences.services.clipboard_history {
         if let Err(error) = app
             .clipboard
             .handle(crate::services::clipboard::Request::Enable { enabled: true })
@@ -126,6 +132,8 @@ pub async fn serve_with_config(
     services.spawn(app.connectivity.clone().run());
     services.spawn(app.notifications.clone().run());
     services.spawn(app.power.clone().run());
+    services.spawn(app.locking.clone().run());
+    services.spawn(app.clone().watch_lock());
     let connections = Arc::new(Semaphore::new(16));
     let mut terminate = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())?;
     tracing::info!(socket = %path.display(), "hyprlume ready; microphone off");

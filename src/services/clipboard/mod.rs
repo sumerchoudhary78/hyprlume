@@ -248,6 +248,7 @@ impl Controller {
         }
     }
     pub async fn shutdown(&self) {
+        let _permit = self.admission.acquire().await;
         self.stop_watcher().await;
         self.entries.lock().unwrap().clear();
         self.publish();

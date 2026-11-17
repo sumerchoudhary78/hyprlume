@@ -20,6 +20,9 @@ impl App {
                 self.0.store(false, Ordering::Relaxed);
             }
         }
+        let epoch = self.locking.epoch();
+        self.check_epoch(epoch)?;
+        let mut locking = self.locking.subscribe();
         self.audio_paused.store(true, Ordering::Relaxed);
         let _pause = Pause(self.audio_paused.clone());
         let output = socket_path()?.parent().unwrap().join("feedback.wav");
@@ -38,6 +41,10 @@ impl App {
             speaker.as_ref().unwrap().synthesize(&text, &path)
         })
         .await??;
+        if let Err(error) = self.check_epoch(epoch) {
+            let _ = fs::remove_file(&output);
+            return Err(error);
+        }
         let playback = tokio::process::Command::new("pw-play")
             .arg(&output)
             .stdin(std::process::Stdio::null())
@@ -45,7 +52,13 @@ impl App {
             .stderr(std::process::Stdio::null())
             .kill_on_drop(true)
             .status();
-        let played = timeout(Duration::from_secs(20), playback).await;
+        let played = tokio::select! {
+            result=timeout(Duration::from_secs(20),playback)=>result,
+            _=async {while !locking.borrow().active {if locking.changed().await.is_err(){break;}}}=>{
+                let _=fs::remove_file(&output);
+                bail!("Speech playback stopped for session locking");
+            }
+        };
         let _ = fs::remove_file(output);
         if !played.context("speech playback timed out")??.success() {
             bail!("PipeWire playback failed");
@@ -57,6 +70,9 @@ impl App {
     }
 
     pub(super) async fn set_voice(self: &Arc<Self>, mode: VoiceMode) -> Result<()> {
+        if mode != VoiceMode::Off {
+            self.check_epoch(self.locking.epoch())?;
+        }
         let mut voice = self.voice.lock().await;
         if let Some(task) = voice.take() {
             task.abort();
@@ -123,7 +139,9 @@ impl App {
     }
 
     fn accepts_voice_input(&self) -> bool {
-        self.busy.available_permits() > 0 && self.state().confirmation.is_none()
+        !self.locking.active()
+            && self.busy.available_permits() > 0
+            && self.state().confirmation.is_none()
     }
 
     async fn handle_voice_event(

@@ -1,6 +1,7 @@
 //! Application state and operation routing, independent of the Unix transport.
 mod commands;
 mod events;
+mod locking;
 #[cfg(feature = "voice")]
 mod voice;
 
@@ -21,12 +22,14 @@ pub struct App {
     pub desktop: Desktop,
     pub(crate) connectivity: Arc<crate::services::connectivity::Controller>,
     pub(crate) notifications: Arc<crate::services::notifications::Controller>,
+    pub(crate) locking: Arc<crate::services::locking::Controller>,
     pub(crate) settings: Arc<crate::services::settings::Controller>,
     pub(crate) clipboard: Arc<crate::services::clipboard::Controller>,
     pub(crate) capture: Arc<crate::services::capture::Controller>,
     pub(crate) power: Arc<crate::services::power::Controller>,
     state: watch::Sender<State>,
     pending: Mutex<Option<commands::Pending>>,
+    lock_pause: Mutex<Option<u64>>,
     busy: Arc<Semaphore>,
     sequence: AtomicU64,
     #[cfg(feature = "voice")]
@@ -62,6 +65,7 @@ impl App {
         let settings = crate::services::settings::Controller::new(&config, config_path, demo);
         Arc::new(Self {
             settings,
+            locking: crate::services::locking::Controller::new(demo),
             config,
             desktop: Desktop::new(demo),
             connectivity: crate::services::connectivity::Controller::new(demo),
@@ -71,6 +75,7 @@ impl App {
             capture: crate::services::capture::Controller::new(demo),
             state,
             pending: Mutex::new(None),
+            lock_pause: Mutex::new(None),
             busy: Arc::new(Semaphore::new(1)),
             sequence: AtomicU64::new(1),
             #[cfg(feature = "voice")]
@@ -83,7 +88,14 @@ impl App {
     }
 
     pub fn update(&self, f: impl FnOnce(&mut State)) {
-        self.state.send_modify(f);
+        self.state.send_modify(|state| {
+            f(state);
+            if self.locking.active() {
+                state.panel_open = false;
+                state.desktop_panel = None;
+                state.confirmation = None;
+            }
+        });
     }
 
     pub fn state(&self) -> State {
@@ -95,7 +107,41 @@ impl App {
     }
 
     pub async fn handle(self: &Arc<Self>, operation: Operation) -> Result<Value> {
+        if self.locking.active() {
+            let allowed = matches!(
+                &operation,
+                Operation::Status
+                    | Operation::Subscribe
+                    | Operation::Lock
+                    | Operation::LockStatus
+                    | Operation::LockSubscribe
+                    | Operation::ConnectivityStatus
+                    | Operation::ConnectivitySubscribe
+                    | Operation::NotificationsStatus
+                    | Operation::NotificationsSubscribe
+                    | Operation::PowerStatus
+                    | Operation::PowerSubscribe
+                    | Operation::ClipboardStatus
+                    | Operation::ClipboardSubscribe
+                    | Operation::CaptureStatus
+                    | Operation::CaptureSubscribe
+                    | Operation::SettingsStatus
+                    | Operation::SettingsSubscribe
+                    | Operation::Voice {
+                        mode: crate::protocol::VoiceMode::Off
+                    }
+                    | Operation::Capture {
+                        request: crate::services::capture::Request::Stop
+                    }
+            );
+            anyhow::ensure!(
+                allowed,
+                "Desktop actions are paused while the session is locked or awaiting recovery"
+            );
+        }
         match operation {
+            Operation::Lock => self.lock().await,
+            Operation::LockStatus | Operation::LockSubscribe => Ok(json!(self.locking.state())),
             Operation::Status | Operation::Subscribe => Ok(json!(self.state())),
             Operation::ConnectivityStatus | Operation::ConnectivitySubscribe => {
                 Ok(json!(self.connectivity.state()))
