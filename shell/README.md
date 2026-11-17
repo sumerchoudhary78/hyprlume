@@ -19,7 +19,8 @@ shell/
 │   ├── home/                 dashboard composition, console, cards and action deck
 │   ├── topbar/               bar content and navigation primitives
 │   ├── command/              panel composition, editor, plan review and overlay
-│   └── connectivity/         Wi-Fi, Bluetooth and modal pairing prompts
+│   ├── connectivity/         Wi-Fi, Bluetooth and modal pairing prompts
+│   └── notifications/        centre, shared notice cards and non-focusing popups
 ├── services/                 daemon socket, metrics, clock, workspace state
 ├── fixtures/                 synthetic data and UI-control probe; QA only
 └── theme/Theme.qml           shared palette, typography and interaction timing

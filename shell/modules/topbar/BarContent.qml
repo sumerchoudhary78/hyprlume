@@ -47,6 +47,18 @@ GlassSurface {
         SearchBox {
             onActivated: root.backend.send({op:"toggle"})
         }
+        Item {
+            width: 34; height: 34
+            IconTile {
+                objectName: "openNotifications"
+                anchors.fill: parent; iconName: "bell"; size: 34; iconSize: 19
+                active: root.backend.notifications.panel_open || root.backend.notifications.dnd
+                accent: root.backend.notifications.dnd ? Theme.violet : Theme.cyan
+                Accessible.name: "Open notification centre"
+                onClicked: root.backend.send({op:"notifications",request:{action:"toggle"}})
+            }
+            StatusDot { anchors.right: parent.right; anchors.top: parent.top; visible: root.backend.notifications.unread > 0; size: 5; color: Theme.amber }
+        }
         IconTile {
             iconName: "audio-input-microphone"; size: 34; iconSize: 20
             active: root.backend.snapshot.voice !== "off"; accent: Theme.violet

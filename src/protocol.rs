@@ -14,6 +14,11 @@ pub enum Operation {
     Subscribe,
     ConnectivitySubscribe,
     ConnectivityStatus,
+    NotificationsSubscribe,
+    NotificationsStatus,
+    Notifications {
+        request: crate::services::notifications::Request,
+    },
     Connectivity {
         request: crate::services::connectivity::Request,
     },

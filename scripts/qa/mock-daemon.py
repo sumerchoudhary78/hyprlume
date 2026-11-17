@@ -42,6 +42,8 @@ CONNECTIVITY = {
     "prompt": None,
 }
 
+NOTIFICATIONS = {"available": False, "error": "No notification server in this IPC fixture", "panel_open": False, "dnd": False, "unread": 0, "items": []}
+TOPICS = {"state": STATE, "connectivity": CONNECTIVITY, "notifications": NOTIFICATIONS}
 CLIENTS = {}
 PLAN_TASK = None
 
@@ -51,7 +53,7 @@ def wire(state, topic="state"):
 
 
 async def broadcast(topic="state"):
-    payload = wire(STATE if topic == "state" else CONNECTIVITY, topic)
+    payload = wire(TOPICS[topic], topic)
     for writer, topics in list(CLIENTS.items()):
         if topic not in topics:
             continue
@@ -112,12 +114,28 @@ async def handle(reader, writer):
             operation = request.get("op")
             request_id = request.get("id")
 
-            if operation in ("subscribe", "connectivity_subscribe", "connectivity_status"):
-                wireless = operation != "subscribe"
+            if operation in ("subscribe", "connectivity_subscribe", "connectivity_status", "notifications_subscribe", "notifications_status"):
+                topic = "state" if operation == "subscribe" else operation.rsplit("_", 1)[0]
                 if operation.endswith("subscribe"):
-                    CLIENTS[writer].add("connectivity" if wireless else "state")
-                writer.write((json.dumps({"id": request_id, "result": CONNECTIVITY if wireless else STATE}) + "\n").encode())
+                    CLIENTS[writer].add(topic)
+                writer.write((json.dumps({"id": request_id, "result": TOPICS[topic]}) + "\n").encode())
                 await writer.drain()
+                continue
+
+            if operation == "notifications":
+                action = request.get("request", {})
+                if action.get("action") == "toggle":
+                    NOTIFICATIONS["panel_open"] = not NOTIFICATIONS["panel_open"]
+                    if NOTIFICATIONS["panel_open"]:
+                        STATE["panel_open"] = CONNECTIVITY["panel_open"] = False
+                elif action.get("action") == "close":
+                    NOTIFICATIONS["panel_open"] = False
+                elif action.get("action") == "dnd":
+                    NOTIFICATIONS["dnd"] = bool(action.get("enabled"))
+                writer.write((json.dumps({"id": request_id, "result": NOTIFICATIONS}) + "\n").encode())
+                await writer.drain()
+                for topic in TOPICS:
+                    await broadcast(topic)
                 continue
 
             if operation == "connectivity":
@@ -126,6 +144,8 @@ async def handle(reader, writer):
                     CONNECTIVITY["panel_open"] = not CONNECTIVITY["panel_open"]
                     if CONNECTIVITY["panel_open"]:
                         STATE["panel_open"] = False
+                        NOTIFICATIONS["panel_open"] = False
+                        await broadcast("notifications")
                 elif action == "close":
                     CONNECTIVITY["panel_open"] = False
                 elif action != "refresh":
@@ -141,6 +161,8 @@ async def handle(reader, writer):
             if operation == "toggle":
                 STATE["panel_open"] = not STATE["panel_open"]
                 if STATE["panel_open"]:
+                    NOTIFICATIONS["panel_open"] = False
+                    await broadcast("notifications")
                     CONNECTIVITY["panel_open"] = False
                     await broadcast("connectivity")
             elif operation == "command":

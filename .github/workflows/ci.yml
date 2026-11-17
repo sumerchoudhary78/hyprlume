@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install native D-Bus development headers
-        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev pkg-config
+        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev pkg-config dbus-daemon
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
@@ -54,6 +54,13 @@ jobs:
         run: python3 scripts/qa/render-desktop.py --interact
       - name: Exercise Wi-Fi and Bluetooth with synthetic hardware
         run: python3 scripts/qa/render-desktop.py --connectivity --interact
+      - name: Exercise notifications with synthetic clients
+        run: python3 scripts/qa/render-desktop.py --notifications --interact
+      - name: Render notification centre and non-focus-stealing popups
+        run: |
+          python3 scripts/qa/render-desktop.py --notifications --output output/design/notifications.png
+          python3 scripts/qa/render-desktop.py --notifications --width 960 --height 640 --reduced-effects --output output/design/notifications-compact.png
+          python3 scripts/qa/render-desktop.py --notification-popups --output output/design/notification-popups.png
       - name: Render wireless and pairing states
         run: |
           python3 scripts/qa/render-desktop.py --connectivity --output output/design/connections.png

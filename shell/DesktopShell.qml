@@ -4,6 +4,7 @@ import Quickshell.Hyprland
 import Quickshell.Wayland
 import qs.components
 import qs.modules.command
+import qs.modules.notifications
 import qs.modules.connectivity
 import qs.modules.home
 import qs.modules.scene
@@ -66,7 +67,7 @@ Item {
     }
 
     Loader {
-        active: desktop.backend.online && desktop.backend.snapshot.panel_open && !desktop.backend.connectivity.panel_open
+        active: desktop.backend.online && desktop.backend.snapshot.panel_open && !desktop.backend.connectivity.panel_open && !desktop.backend.notifications.panel_open
 
         sourceComponent: PanelWindow {
             screen: desktop.focusedScreen
@@ -92,7 +93,7 @@ Item {
     }
 
     Loader {
-        active: desktop.backend.online && desktop.backend.connectivity.panel_open
+        active: desktop.backend.online && desktop.backend.connectivity.panel_open && !desktop.backend.notifications.panel_open
         sourceComponent: PanelWindow {
             screen: desktop.focusedScreen
             anchors { top: true; bottom: true; left: true; right: true }
@@ -103,6 +104,39 @@ Item {
             ConnectivityOverlay {
                 anchors.fill: parent; backend: desktop.backend
                 reducedEffects: desktop.state.reducedEffects
+            }
+        }
+    }
+
+    Loader {
+        active: desktop.backend.online && desktop.backend.notifications.panel_open
+        sourceComponent: PanelWindow {
+            screen: desktop.focusedScreen
+            anchors { top: true; bottom: true; left: true; right: true }
+            exclusiveZone: 0; color: "transparent"
+            WlrLayershell.namespace: "hyprlume-notification-centre"
+            WlrLayershell.layer: WlrLayer.Overlay
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+            NotificationOverlay { anchors.fill: parent; backend: desktop.backend; reducedEffects: desktop.state.reducedEffects }
+        }
+    }
+    Loader {
+        active: desktop.backend.online && !desktop.backend.notifications.panel_open && !desktop.backend.notifications.dnd && desktop.backend.notifications.items.some(item => item.active && item.popup)
+        sourceComponent: PanelWindow {
+            screen: desktop.focusedScreen
+            anchors { top: true; right: true }
+            margins { top: Theme.barZone + 12; right: 14 }
+            implicitWidth: Math.min(390, desktop.focusedScreen ? desktop.focusedScreen.width - 28 : 390)
+            implicitHeight: popupStack.implicitHeight + 18
+            exclusiveZone: 0; color: "transparent"
+            WlrLayershell.namespace: "hyprlume-notification-popups"
+            WlrLayershell.layer: WlrLayer.Overlay
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+            PopupStack {
+                id: popupStack
+                anchors.fill: parent; anchors.margins: 9
+                availableHeight: desktop.focusedScreen ? desktop.focusedScreen.height - Theme.barZone - 30 : 800
+                backend: desktop.backend; reducedEffects: desktop.state.reducedEffects
             }
         }
     }
