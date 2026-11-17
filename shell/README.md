@@ -22,7 +22,8 @@ shell/
 │   ├── connectivity/         Wi-Fi, Bluetooth and modal pairing prompts
 │   ├── notifications/        centre, shared notice cards and non-focusing popups
 │   ├── audio/                input/output/stream controls and selected media player
-│   └── power/                battery, brightness, profiles and session review
+│   ├── power/                battery, brightness, profiles and session review
+│   └── tray/                 application icons and native menu presentation
 ├── services/                 daemon socket, native audio, metrics, clock, workspace state
 ├── fixtures/                 synthetic data and UI-control probe; QA only
 └── theme/Theme.qml           shared palette, typography and interaction timing

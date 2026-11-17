@@ -23,8 +23,10 @@ The panels, text and controls are QML; the room is a cached wallpaper asset.*
 On `main` (unreleased): a native notification server, glass popups, session
 history, actions and Do Not Disturb, plus a Sound & media panel for PipeWire
 devices, volume/mute, preferred input/output and MPRIS players. Power & session
-adds battery, brightness, profiles and separately confirmed session actions. See
-[notifications](docs/notifications.md), [audio](docs/audio.md) and [power](docs/power.md) for ownership,
+adds battery, brightness, profiles and separately confirmed session actions.
+The application tray adds StatusNotifier icons and themed menus. See
+[notifications](docs/notifications.md), [audio](docs/audio.md), [power](docs/power.md)
+and [tray](docs/tray.md) for ownership,
 isolated previews and current limits. The v0.4.1 package does not include these
 development features.
 

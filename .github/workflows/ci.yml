@@ -58,6 +58,16 @@ jobs:
         run: python3 scripts/qa/render-desktop.py --notifications --interact
       - name: Exercise private PipeWire and MPRIS adapters
         run: python3 scripts/qa/check-audio.py
+      - name: Exercise private StatusNotifier and DBusMenu adapters
+        run: python3 scripts/qa/check-tray.py
+      - name: Exercise tray icons, menus and keyboard navigation
+        run: |
+          python3 scripts/qa/render-desktop.py --tray --interact
+          python3 scripts/qa/render-desktop.py --tray --tray-state empty --interact
+      - name: Render tray and compact menus
+        run: |
+          python3 scripts/qa/render-desktop.py --tray --output output/design/tray.png
+          python3 scripts/qa/render-desktop.py --tray --width 960 --height 640 --reduced-effects --output output/design/tray-compact.png
       - name: Exercise sound and media controls with real input
         run: python3 scripts/qa/render-desktop.py --audio --interact
       - name: Exercise power and session controls using synthetic services

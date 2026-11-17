@@ -14,6 +14,7 @@ Item {
     implicitHeight: size
     readonly property string path: {
         const n = name;
+        if (n === "chevron-right") return "M8 4L16 12L8 20";
         if (n === "power") return "M12 2V12M6 5C-2 11 3 23 12 23C21 23 26 11 18 5";
         if (n === "brightness") return "M16 12A4 4 0 1 1 8 12A4 4 0 1 1 16 12M12 1V4M12 20V23M1 12H4M20 12H23M4 4L6 6M18 18L20 20M4 20L6 18M18 6L20 4";
         if (n === "refresh") return "M20 8C17 0 3 3 3 12C3 22 18 25 21 15M20 2V8H14";

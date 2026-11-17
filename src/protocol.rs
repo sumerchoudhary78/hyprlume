@@ -46,12 +46,13 @@ pub enum Operation {
     },
 }
 
-/// Shell surfaces that use existing native Quickshell service adapters.
+/// On-demand shell surfaces coordinated by the daemon.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum DesktopPanel {
     Audio,
     Power,
+    Tray,
 }
 
 fn yes() -> bool {

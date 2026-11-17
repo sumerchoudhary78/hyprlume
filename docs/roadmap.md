@@ -64,7 +64,10 @@ code is needed. User-selected priority is connectivity:
    shutdown. Physical driver, policy, sleep/resume and login teardown
    qualification remain. Secure locking is a separate milestone. See
    [power behavior and isolation](power.md).
-5. **System tray:** StatusNotifier items and menus.
+5. **System tray:** implemented on main (unreleased): StatusNotifier icons,
+   activation/secondary/scroll actions and themed DBusMenu navigation with
+   check/radio states. Legacy XEmbed and the physical app matrix remain outside
+   this milestone. See [tray behavior and isolated checks](tray.md).
 6. **App launcher:** desktop-entry indexing, search and app/window activation.
 7. **Clipboard/capture:** Wayland clipboard history, screenshots and recording.
 8. **Settings:** persisted preferences, effects/motion and service configuration.

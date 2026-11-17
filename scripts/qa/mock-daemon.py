@@ -128,7 +128,7 @@ async def handle(reader, writer):
                 continue
 
             if operation == "panel":
-                if request.get("panel") not in ("audio", "power"):
+                if request.get("panel") not in ("audio", "power", "tray"):
                     writer.write((json.dumps({"id": request_id, "error": "unknown panel"}) + "\n").encode())
                     await writer.drain()
                     continue

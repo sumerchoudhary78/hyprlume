@@ -13,6 +13,7 @@ QtObject {
         property int requestCount: 0
         property int pairCount: 0
         property QtObject audio: AudioFixture { active: sampleBackend.snapshot.desktop_panel === "audio" }
+        property QtObject tray: TrayFixture { active: sampleBackend.snapshot.desktop_panel === "tray" }
         property QtObject powerService: PowerFixture { active: sampleBackend.snapshot.desktop_panel === "power" }
         property var power: powerService.snapshot
         property var notifications: ({
@@ -45,7 +46,7 @@ QtObject {
             // Simulate unrelated D-Bus snapshots while the user types a PIN.
             onTriggered: sampleBackend.connectivity = JSON.parse(JSON.stringify(sampleBackend.connectivity))
         }
-        property var snapshot: ({phase:"ready",message:"Your desktop, within reach.",transcript:"workspace two",actions:[],receipts:["Focused Development workspace","Desktop state verified","Ready for your next command"],confirmation:null,panel_open:false,desktop_panel:Quickshell.env("HYPRLUME_POWER_PREVIEW") === "1" ? "power" : Quickshell.env("HYPRLUME_AUDIO_PREVIEW") === "1" ? "audio" : null,voice:"off",workspace:2,active_app:"hyprlume"})
+        property var snapshot: ({phase:"ready",message:"Your desktop, within reach.",transcript:"workspace two",actions:[],receipts:["Focused Development workspace","Desktop state verified","Ready for your next command"],confirmation:null,panel_open:false,desktop_panel:Quickshell.env("HYPRLUME_TRAY_PREVIEW") === "1" ? "tray" : Quickshell.env("HYPRLUME_POWER_PREVIEW") === "1" ? "power" : Quickshell.env("HYPRLUME_AUDIO_PREVIEW") === "1" ? "audio" : null,voice:"off",workspace:2,active_app:"hyprlume"})
         property Timer planningDelay: Timer {
             interval: 600
             onTriggered: sampleBackend.snapshot = Object.assign({}, sampleBackend.snapshot,

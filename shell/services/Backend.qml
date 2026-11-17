@@ -8,6 +8,7 @@ Item {
     property string error: ""
     property int sequence: 0
     property var audio: null
+    property var tray: null
     property var snapshot: ({phase: "offline", message: "Start hyprlume daemon to connect", transcript: "", actions: [], receipts: [], confirmation: null, panel_open: false, desktop_panel:null, voice: "off", workspace: null, active_app: ""})
     property var connectivity: ({panel_open:false,busy:false,message:"Connecting to desktop services",error:"",wifi:{available:false,enabled:false,hardware_enabled:false,interfaces:[],networks:[],error:""},bluetooth:{available:false,adapters:[],devices:[],error:""},prompt:null})
     property var notifications: ({available:false,error:"Connecting to notifications",panel_open:false,dnd:false,unread:0,items:[]})

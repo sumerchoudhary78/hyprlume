@@ -18,7 +18,7 @@ import sys
 import tempfile
 
 from ui_driver import UiDriver
-from cases import commands as command_case, connectivity as connectivity_case, notifications as notification_case, audio as audio_case, power as power_case
+from cases import commands as command_case, connectivity as connectivity_case, notifications as notification_case, audio as audio_case, power as power_case, tray as tray_case
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -38,10 +38,12 @@ def main():
     parser.add_argument('--audio-state', choices=['normal', 'unavailable'], default='normal')
     parser.add_argument('--power', action='store_true', help='render or exercise power controls with synthetic services')
     parser.add_argument('--power-state', choices=['normal', 'unavailable', 'desktop', 'inhibited', 'review'], default='normal')
+    parser.add_argument('--tray', action='store_true', help='render or exercise application tray fixtures')
+    parser.add_argument('--tray-state', choices=['normal', 'empty'], default='normal')
     parser.add_argument('--effects', action='store_true', help='render isolated liquid materials and test their motion clock')
     parser.add_argument('--inside-display', action='store_true', help=argparse.SUPPRESS)
     args = parser.parse_args()
-    if sum([args.effects, args.connectivity, args.notifications, args.notification_popups, args.audio, args.power]) > 1:
+    if sum([args.effects, args.connectivity, args.notifications, args.notification_popups, args.audio, args.power, args.tray]) > 1:
         parser.error('choose one preview surface per check')
     if args.effects and args.interact:
         parser.error('--effects and --interact are separate checks')
@@ -74,6 +76,7 @@ def main():
                HYPRLUME_NOTIFICATION_POPUPS='1' if args.notification_popups else '0')
     env.update(HYPRLUME_AUDIO_PREVIEW='1' if args.audio and not args.interact else '0', HYPRLUME_AUDIO_STATE=args.audio_state)
     env.update(HYPRLUME_POWER_PREVIEW='1' if args.power and not args.interact else '0', HYPRLUME_POWER_STATE=args.power_state)
+    env.update(HYPRLUME_TRAY_PREVIEW='1' if args.tray and not args.interact else '0', HYPRLUME_TRAY_STATE=args.tray_state)
     proc = subprocess.Popen(['quickshell', '-p', str(ROOT/'shell/design-preview.qml')], cwd=ROOT, env=env,
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
     driver = UiDriver(proc)
@@ -92,7 +95,9 @@ def main():
         else:
             if not shutil.which('xdotool'):
                 raise AssertionError('xdotool is required for --interact')
-            if args.power:
+            if args.tray:
+                tray_case.run(driver, args.tray_state)
+            elif args.power:
                 power_case.run(driver, args.power_state, args.height)
             elif args.audio:
                 audio_case.run(driver)

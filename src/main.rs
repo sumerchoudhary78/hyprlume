@@ -51,6 +51,8 @@ enum Commands {
     },
     /// Open the sound and media panel without changing any audio settings.
     Audio,
+    /// Open application tray icons and their menus.
+    Tray,
     /// Open power/session controls, or read the current state without changing power.
     Power {
         #[arg(long)]
@@ -193,6 +195,10 @@ async fn main() -> Result<()> {
                 Commands::Toggle => Operation::Toggle,
                 Commands::Audio => Operation::Panel {
                     panel: hyprlume::protocol::DesktopPanel::Audio,
+                    open: true,
+                },
+                Commands::Tray => Operation::Panel {
+                    panel: hyprlume::protocol::DesktopPanel::Tray,
                     open: true,
                 },
                 Commands::Power { status } => {
