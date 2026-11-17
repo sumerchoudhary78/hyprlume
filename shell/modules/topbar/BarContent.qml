@@ -60,6 +60,13 @@ GlassSurface {
             StatusDot { anchors.right: parent.right; anchors.top: parent.top; visible: root.backend.notifications.unread > 0; size: 5; color: Theme.amber }
         }
         IconTile {
+            objectName: "openAudio"
+            iconName: "audio-volume-high"; size: 34; iconSize: 20
+            active: root.backend.snapshot.desktop_panel === "audio"
+            Accessible.name: "Open sound and media"
+            onClicked: root.backend.send({op:"panel",panel:"audio",open:root.backend.snapshot.desktop_panel !== "audio"})
+        }
+        IconTile {
             iconName: "audio-input-microphone"; size: 34; iconSize: 20
             active: root.backend.snapshot.voice !== "off"; accent: Theme.violet
             onClicked: root.backend.send({op:"voice",mode:root.backend.snapshot.voice === "off" ? "wake" : "off"})

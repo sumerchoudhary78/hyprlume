@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import qs.modules.home
+import qs.modules.audio
 import qs.modules.command
 import qs.modules.notifications
 import qs.modules.connectivity
@@ -24,7 +25,7 @@ FloatingWindow {
     }
     Loader {
         anchors.fill: parent
-        active: window.backend.online && window.backend.snapshot.panel_open && !window.backend.connectivity.panel_open && !window.backend.notifications.panel_open
+        active: window.backend.online && window.backend.snapshot.panel_open && !window.backend.snapshot.desktop_panel && !window.backend.connectivity.panel_open && !window.backend.notifications.panel_open
         sourceComponent: CommandOverlay {
             anchors.fill: parent
             backend: window.backend
@@ -32,7 +33,7 @@ FloatingWindow {
     }
     Loader {
         anchors.fill: parent
-        active: window.backend.online && window.backend.connectivity.panel_open && !window.backend.notifications.panel_open
+        active: window.backend.online && !window.backend.snapshot.desktop_panel && window.backend.connectivity.panel_open && !window.backend.notifications.panel_open
         sourceComponent: ConnectivityOverlay {
             anchors.fill: parent; backend: window.backend; reducedEffects: window.state.reducedEffects
         }
@@ -50,4 +51,10 @@ FloatingWindow {
         availableHeight: parent.height - 106
         backend: window.backend; reducedEffects: window.state.reducedEffects
     }
+    Loader {
+        anchors.fill: parent
+        active: window.backend.online && window.backend.snapshot.desktop_panel === "audio"
+        sourceComponent: AudioOverlay { anchors.fill: parent; backend: window.backend; reducedEffects: window.state.reducedEffects }
+    }
+
 }

@@ -258,7 +258,7 @@ async fn wireless_events_are_opt_in_and_both_topics_share_one_socket() {
 }
 
 #[tokio::test]
-async fn wireless_validation_cannot_replace_an_agent_confirmation() {
+async fn service_panels_and_wireless_validation_preserve_agent_confirmation() {
     let daemon = Daemon::start().await;
     server::call(
         &daemon.path,
@@ -305,7 +305,24 @@ async fn wireless_validation_cannot_replace_an_agent_confirmation() {
     let after = server::call(&daemon.path, Operation::Status).await.unwrap();
     assert_eq!(after["confirmation"], before["confirmation"]);
     assert_eq!(after["actions"], before["actions"]);
+    let audio = Operation::Panel {
+        panel: hyprlume::protocol::DesktopPanel::Audio,
+        open: true,
+    };
+    let after = server::call(&daemon.path, audio).await.unwrap();
+    assert_eq!(after["desktop_panel"], "audio");
+    assert_eq!(after["confirmation"], before["confirmation"]);
+    assert_eq!(after["actions"], before["actions"]);
+    assert_eq!(
+        server::call(&daemon.path, Operation::NotificationsStatus)
+            .await
+            .unwrap()["panel_open"],
+        false
+    );
     server::call(&daemon.path, Operation::Toggle).await.unwrap();
+    let after = server::call(&daemon.path, Operation::Status).await.unwrap();
+    assert!(after["desktop_panel"].is_null());
+    assert_eq!(after["panel_open"], true);
     assert_eq!(
         server::call(&daemon.path, Operation::NotificationsStatus)
             .await

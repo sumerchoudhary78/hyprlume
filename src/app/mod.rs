@@ -84,7 +84,10 @@ impl App {
                     && !self.notifications.state().panel_open
                 {
                     self.connectivity.close().await;
-                    self.update(|state| state.panel_open = false);
+                    self.update(|state| {
+                        state.panel_open = false;
+                        state.desktop_panel = None;
+                    });
                 }
                 self.notifications.handle(request).await
             }
@@ -93,19 +96,41 @@ impl App {
                     && !self.connectivity.state().panel_open
                 {
                     self.notifications.close();
-                    self.update(|state| state.panel_open = false);
+                    self.update(|state| {
+                        state.panel_open = false;
+                        state.desktop_panel = None;
+                    });
                 }
                 self.connectivity.handle(request).await
             }
             Operation::Toggle => {
                 let opening = !self.state().panel_open
                     || self.connectivity.state().panel_open
-                    || self.notifications.state().panel_open;
+                    || self.notifications.state().panel_open
+                    || self.state().desktop_panel.is_some();
                 if opening {
                     self.connectivity.close().await;
                     self.notifications.close();
                 }
-                self.update(|state| state.panel_open = opening);
+                self.update(|state| {
+                    state.panel_open = opening;
+                    state.desktop_panel = None;
+                });
+                Ok(json!(self.state()))
+            }
+            Operation::Panel { panel, open } => {
+                if open {
+                    self.connectivity.close().await;
+                    self.notifications.close();
+                }
+                self.update(|state| {
+                    if open {
+                        state.panel_open = false;
+                        state.desktop_panel = Some(panel);
+                    } else if state.desktop_panel == Some(panel) {
+                        state.desktop_panel = None;
+                    }
+                });
                 Ok(json!(self.state()))
             }
             Operation::Cancel => {

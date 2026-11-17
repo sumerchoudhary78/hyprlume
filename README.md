@@ -5,7 +5,7 @@
 [Project website](https://sumerchoudhary78.github.io/hyprlume/) · [Setup guide](docs/setup.md) · [AUR](https://aur.archlinux.org/packages/hyprlume)
 
 A glass command shell and local English voice companion for **Hyprland**.
-Rust handles desktop services, the agent and audio; Quickshell / Qt Quick renders the interface;
+Rust handles desktop services, the agent and speech; Quickshell / Qt Quick renders the interface;
 [HyprPilot](https://github.com/sumerchoudhary78/HyprPilot) supplies typed desktop control.
 
 **v0.4.1 is a desktop-shell preview:** a cinematic liquid-glass dashboard, persistent
@@ -21,9 +21,11 @@ The panels, text and controls are QML; the room is a cached wallpaper asset.*
 ## What works
 
 On `main` (unreleased): a native notification server, glass popups, session
-history, actions and Do Not Disturb. See [notifications](docs/notifications.md)
-for ownership, isolated previews and current limits. The v0.4.1 package does not
-include this development feature.
+history, actions and Do Not Disturb, plus a Sound & media panel for PipeWire
+devices, volume/mute, preferred input/output and MPRIS players. See
+[notifications](docs/notifications.md) and [audio](docs/audio.md) for ownership,
+isolated previews and current limits. The v0.4.1 package does not include these
+development features.
 
 - A top bar on every monitor, a glass home dashboard on empty workspaces, and an
   on-demand command panel. The dashboard carries quick actions, live workspace

@@ -25,6 +25,7 @@ STATE = {
     "receipts": [],
     "confirmation": None,
     "panel_open": True,
+    "desktop_panel": None,
     "voice": "off",
     "workspace": 1,
     "active_app": "kitty",
@@ -122,12 +123,29 @@ async def handle(reader, writer):
                 await writer.drain()
                 continue
 
+            if operation == "panel":
+                if request.get("panel") != "audio":
+                    writer.write((json.dumps({"id": request_id, "error": "unknown panel"}) + "\n").encode())
+                    await writer.drain()
+                    continue
+                if request.get("open"):
+                    STATE.update(desktop_panel="audio", panel_open=False)
+                    CONNECTIVITY["panel_open"] = NOTIFICATIONS["panel_open"] = False
+                elif STATE["desktop_panel"] == "audio":
+                    STATE["desktop_panel"] = None
+                writer.write((json.dumps({"id": request_id, "result": STATE}) + "\n").encode())
+                await writer.drain()
+                for topic in TOPICS:
+                    await broadcast(topic)
+                continue
+
             if operation == "notifications":
                 action = request.get("request", {})
                 if action.get("action") == "toggle":
                     NOTIFICATIONS["panel_open"] = not NOTIFICATIONS["panel_open"]
                     if NOTIFICATIONS["panel_open"]:
                         STATE["panel_open"] = CONNECTIVITY["panel_open"] = False
+                        STATE["desktop_panel"] = None
                 elif action.get("action") == "close":
                     NOTIFICATIONS["panel_open"] = False
                 elif action.get("action") == "dnd":
@@ -144,6 +162,7 @@ async def handle(reader, writer):
                     CONNECTIVITY["panel_open"] = not CONNECTIVITY["panel_open"]
                     if CONNECTIVITY["panel_open"]:
                         STATE["panel_open"] = False
+                        STATE["desktop_panel"] = None
                         NOTIFICATIONS["panel_open"] = False
                         await broadcast("notifications")
                 elif action == "close":
@@ -159,7 +178,8 @@ async def handle(reader, writer):
                 continue
 
             if operation == "toggle":
-                STATE["panel_open"] = not STATE["panel_open"]
+                STATE["panel_open"] = not STATE["panel_open"] or STATE["desktop_panel"] is not None
+                STATE["desktop_panel"] = None
                 if STATE["panel_open"]:
                     NOTIFICATIONS["panel_open"] = False
                     await broadcast("notifications")

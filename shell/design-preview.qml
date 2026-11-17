@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import qs.fixtures
 import qs.modules.home
+import qs.modules.audio
 import qs.modules.command
 import qs.modules.notifications
 import qs.modules.connectivity
@@ -35,7 +36,7 @@ ShellRoot {
             Component { id: effectsComponent; EffectsPreview {} }
             Loader {
                 anchors.fill: parent
-                active: previewData.backend.snapshot.panel_open && !previewData.backend.connectivity.panel_open && !previewData.backend.notifications.panel_open && !window.effects
+                active: previewData.backend.snapshot.panel_open && !previewData.backend.snapshot.desktop_panel && !previewData.backend.connectivity.panel_open && !previewData.backend.notifications.panel_open && !window.effects
                 sourceComponent: CommandOverlay {
                     anchors.fill: parent
                     backend: previewData.backend
@@ -43,7 +44,7 @@ ShellRoot {
             }
             Loader {
                 anchors.fill: parent
-                active: previewData.backend.connectivity.panel_open && !previewData.backend.notifications.panel_open && !window.effects
+                active: !previewData.backend.snapshot.desktop_panel && previewData.backend.connectivity.panel_open && !previewData.backend.notifications.panel_open && !window.effects
                 sourceComponent: ConnectivityOverlay {
                     anchors.fill: parent; backend: previewData.backend; reducedEffects: previewData.state.reducedEffects
                 }
@@ -61,7 +62,11 @@ ShellRoot {
                 availableHeight: parent.height - 106
                 backend: previewData.backend; reducedEffects: previewData.state.reducedEffects
             }
-
+            Loader {
+                anchors.fill: parent
+                active: previewData.backend.online && previewData.backend.snapshot.desktop_panel === "audio"
+                sourceComponent: AudioOverlay { anchors.fill: parent; backend: previewData.backend; reducedEffects: previewData.state.reducedEffects }
+            }
             ControlProbe {
                 targetItem: window.contentItem
                 backend: previewData.backend

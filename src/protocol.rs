@@ -32,9 +32,20 @@ pub enum Operation {
     },
     Cancel,
     Toggle,
+    Panel {
+        panel: DesktopPanel,
+        open: bool,
+    },
     Voice {
         mode: VoiceMode,
     },
+}
+
+/// Shell surfaces that use existing native Quickshell service adapters.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum DesktopPanel {
+    Audio,
 }
 
 fn yes() -> bool {
@@ -60,6 +71,7 @@ pub struct State {
     pub receipts: Vec<String>,
     pub confirmation: Option<u64>,
     pub panel_open: bool,
+    pub desktop_panel: Option<DesktopPanel>,
     pub voice: VoiceMode,
     pub workspace: Option<i32>,
     pub active_app: String,
@@ -76,6 +88,7 @@ impl Default for State {
             receipts: vec![],
             confirmation: None,
             panel_open: false,
+            desktop_panel: None,
             voice: VoiceMode::Off,
             workspace: None,
             active_app: String::new(),

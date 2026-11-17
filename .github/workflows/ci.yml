@@ -35,7 +35,7 @@ jobs:
     container: archlinux:base
     steps:
       - name: Install the native shell and isolated display tools
-        run: pacman -Syu --noconfirm --needed git python python-pillow quickshell qt6-quick3d qt6-shadertools xorg-server-xvfb xorg-xauth dbus xdotool inter-font ttf-jetbrains-mono
+        run: pacman -Syu --noconfirm --needed git python python-pillow python-dbus-next pipewire quickshell qt6-quick3d qt6-shadertools xorg-server-xvfb xorg-xauth dbus xdotool inter-font ttf-jetbrains-mono
       - uses: actions/checkout@v4
       - name: Record graphics runtime versions
         run: pacman -Q quickshell qt6-declarative qt6-quick3d mesa
@@ -56,6 +56,15 @@ jobs:
         run: python3 scripts/qa/render-desktop.py --connectivity --interact
       - name: Exercise notifications with synthetic clients
         run: python3 scripts/qa/render-desktop.py --notifications --interact
+      - name: Exercise private PipeWire and MPRIS adapters
+        run: python3 scripts/qa/check-audio.py
+      - name: Exercise sound and media controls with real input
+        run: python3 scripts/qa/render-desktop.py --audio --interact
+      - name: Render audio, compact and unavailable states
+        run: |
+          python3 scripts/qa/render-desktop.py --audio --output output/design/audio.png
+          python3 scripts/qa/render-desktop.py --audio --width 960 --height 640 --reduced-effects --output output/design/audio-compact.png
+          python3 scripts/qa/render-desktop.py --audio --audio-state unavailable --output output/design/audio-unavailable.png
       - name: Render notification centre and non-focus-stealing popups
         run: |
           python3 scripts/qa/render-desktop.py --notifications --output output/design/notifications.png

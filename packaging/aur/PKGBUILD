@@ -59,7 +59,7 @@ package() {
   cp -r shell/. "$pkgdir/usr/share/hyprlume/shell/"
   # QA entries and synthetic data belong in source checkouts, not the runtime.
   rm -r "$pkgdir/usr/share/hyprlume/shell/fixtures"
-  rm "$pkgdir/usr/share/hyprlume/shell/design-preview.qml" "$pkgdir/usr/share/hyprlume/shell/ipc-test.qml"
+  rm "$pkgdir/usr/share/hyprlume/shell/design-preview.qml" "$pkgdir/usr/share/hyprlume/shell/"*-test.qml
   find "$pkgdir/usr/share/hyprlume/shell" -name '*.sh' -exec chmod 755 {} +
   install -Dm644 assets/hyprlume.svg "$pkgdir/usr/share/icons/hicolor/scalable/apps/hyprlume.svg"
   install -Dm644 packaging/io.github.sumerchoudhary78.hyprlume.desktop "$pkgdir/usr/share/applications/io.github.sumerchoudhary78.hyprlume.desktop"

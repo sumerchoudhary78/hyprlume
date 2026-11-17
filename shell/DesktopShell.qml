@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Wayland
 import qs.components
+import qs.modules.audio
 import qs.modules.command
 import qs.modules.notifications
 import qs.modules.connectivity
@@ -67,7 +68,7 @@ Item {
     }
 
     Loader {
-        active: desktop.backend.online && desktop.backend.snapshot.panel_open && !desktop.backend.connectivity.panel_open && !desktop.backend.notifications.panel_open
+        active: desktop.backend.online && desktop.backend.snapshot.panel_open && !desktop.backend.snapshot.desktop_panel && !desktop.backend.connectivity.panel_open && !desktop.backend.notifications.panel_open
 
         sourceComponent: PanelWindow {
             screen: desktop.focusedScreen
@@ -93,7 +94,7 @@ Item {
     }
 
     Loader {
-        active: desktop.backend.online && desktop.backend.connectivity.panel_open && !desktop.backend.notifications.panel_open
+        active: desktop.backend.online && !desktop.backend.snapshot.desktop_panel && desktop.backend.connectivity.panel_open && !desktop.backend.notifications.panel_open
         sourceComponent: PanelWindow {
             screen: desktop.focusedScreen
             anchors { top: true; bottom: true; left: true; right: true }
@@ -140,4 +141,17 @@ Item {
             }
         }
     }
+    Loader {
+        active: desktop.backend.online && desktop.backend.snapshot.desktop_panel === "audio"
+        sourceComponent: PanelWindow {
+            screen: desktop.focusedScreen
+            anchors { top: true; bottom: true; left: true; right: true }
+            exclusiveZone: 0; color: "transparent"
+            WlrLayershell.namespace: "hyprlume-audio"
+            WlrLayershell.layer: WlrLayer.Overlay
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+            AudioOverlay { anchors.fill: parent; backend: desktop.backend; reducedEffects: desktop.state.reducedEffects }
+        }
+    }
+
 }
