@@ -13,7 +13,7 @@ Item {
     property int revision:backend.settings.revision
     property int pending:0
     property bool dirty:false
-    property int tab:Math.max(0,Math.min(4,Number(Quickshell.env("HYPRLUME_SETTINGS_TAB")) || 0))
+    property int tab:Math.max(0,Math.min(5,Number(Quickshell.env("HYPRLUME_SETTINGS_TAB")) || 0))
     property bool lua:true
     property string message:""
     function close(){backend.send({op:"panel",panel:"settings",open:false});}
@@ -54,12 +54,13 @@ Item {
                 Text {Layout.fillWidth:true; text:"Make it yours"; color:Theme.ink; font.family:Theme.fontSans; font.pixelSize:24}
                 IconTile {objectName:"closeSettings"; iconName:"close"; size:30; onClicked:root.close()}
             }
-            RowLayout {
+            Flow {
+                Layout.fillWidth: true
+                spacing: 5
                 Repeater {
-                    model:["Appearance","Voice & models","Shortcuts","Services","Idle & sleep"]
+                    model:["Appearance","Voice & models","Shortcuts","Services","Idle & sleep","Portals"]
                     GlassButton {required property string modelData; required property int index; objectName:"settingsTab"+index; text:modelData; compact:true; primary:root.tab===index; onClicked:root.tab=index}
                 }
-                Item {Layout.fillWidth:true}
             }
             ScrollView {
                 id:scroll
@@ -109,6 +110,12 @@ Item {
                         SettingsToggle {Layout.fillWidth:true; controlName:"settingsDndStartup"; label:"Start in Do Not Disturb"; description:"Keep notification history without showing popups."; checked:root.draft.preferences.services.notifications_dnd; onToggled:value=>root.edit("services","notifications_dnd",value)}
                     }
                     IdleSettings { visible:root.tab===4; Layout.fillWidth:true; policy:root.draft.preferences.idle; status:root.backend.idle; onEdited:(key,value)=>root.edit("idle",key,value) }
+                    Loader {
+                        active:root.tab===5
+                        visible:active
+                        Layout.fillWidth:true
+                        sourceComponent:PortalStatus { backend:root.backend }
+                    }
                 }
             }
             Text {Layout.fillWidth:true; visible:root.backend.settings.restart_required; text:"Restart needed for saved voice/model or startup preferences."; color:Theme.amber; font.family:Theme.fontSans; font.pixelSize:12}

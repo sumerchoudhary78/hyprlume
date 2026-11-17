@@ -30,6 +30,8 @@ pkgbase = hyprlume
 	depends = python
 	optdepends = swaylock>=1.6: secure Wayland locking with PAM
 	optdepends = swayidle: opt-in Wayland idle policy and logind sleep hooks
+	optdepends = xdg-desktop-portal-hyprland: screen sharing, screenshots and app shortcuts
+	optdepends = xdg-desktop-portal-gtk: file dialogs and common desktop portals
 	optdepends = librsvg: themed SVG lock background
 	optdepends = wl-clipboard: opt-in text clipboard history
 	optdepends = grim: Wayland screenshots

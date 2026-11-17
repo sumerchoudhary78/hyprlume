@@ -30,6 +30,7 @@ pub enum Operation {
     },
     SettingsSubscribe,
     SettingsStatus,
+    PortalsStatus,
     Settings {
         request: crate::services::settings::Request,
     },

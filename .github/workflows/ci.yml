@@ -92,6 +92,7 @@ jobs:
           python3 scripts/qa/render-desktop.py --settings --settings-tab 1 --output output/design/settings-voice.png
           python3 scripts/qa/render-desktop.py --settings --settings-tab 2 --output output/design/settings-shortcuts.png
           python3 scripts/qa/render-desktop.py --settings --settings-tab 4 --output output/design/settings-idle.png
+          python3 scripts/qa/render-desktop.py --settings --settings-tab 5 --output output/design/settings-portals.png
           python3 scripts/qa/render-desktop.py --settings --width 960 --height 640 --reduced-effects --output output/design/settings-compact.png
           python3 scripts/qa/render-desktop.py --tools --tools-capture --output output/design/capture.png
       - name: Exercise tray icons, menus and keyboard navigation
@@ -167,3 +168,19 @@ jobs:
         with:
           name: native-wayland-service-report
           path: output/design/wayland/
+  portals:
+    runs-on: ubuntu-latest
+    needs: rust
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: native-service-test-binary
+          path: output/native
+      - name: Install the portal and isolated display tools
+        run: sudo apt-get update && sudo apt-get install -y xdg-desktop-portal xdg-desktop-portal-gtk libpolkit-agent-1-0 python3-dbus-next xvfb xauth xdotool dbus
+      - name: Exercise the real portal gateway and GTK file dialogs
+        run: |
+          chmod +x output/native/hyprlume
+          /usr/bin/python3 scripts/qa/check-portals.py --binary output/native/hyprlume

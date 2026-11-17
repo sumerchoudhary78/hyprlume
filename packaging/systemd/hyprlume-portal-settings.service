@@ -1,0 +1,11 @@
+[Unit]
+Description=Hyprlume appearance settings for desktop portals
+Documentation=https://github.com/sumerchoudhary78/hyprlume/blob/main/docs/portals.md
+PartOf=graphical-session.target
+
+[Service]
+Type=dbus
+BusName=org.freedesktop.impl.portal.desktop.hyprlume
+ExecStart=/usr/bin/hyprlume portal-settings
+NoNewPrivileges=true
+UMask=0077
