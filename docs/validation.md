@@ -187,6 +187,25 @@ they verify intent, state and protocol behavior rather than a physical radio.
 Supported modes and current profile-editor limits are in
 [connectivity](connectivity.md).
 
+## Notifications (unreleased)
+
+The notification service is tested with private D-Bus daemons and synthetic
+QML clients. The Linux suite includes real notification methods, owner-directed
+action/close signals and a replaceable competing server that Hyprlume leaves
+in place. Releasing that server's name allows Hyprlume to acquire it. A caller
+cannot bypass unavailable ownership by targeting the pre-registered unique
+connection. Pure lifecycle tests cover expiry, replacement, sender isolation,
+stale action revisions, resident/critical/transient hints, DND, lost-bus state,
+one-time close reasons, history bounds and reply frame size.
+
+Native input checks cover opening the centre, DND, actions, history removal,
+clear and Escape. Centre, popup and compact reduced-effects renders use the
+same production QML components. These run on a private Xvfb display; they do
+not replace the active session's notification daemon. No live-session upgrade
+or notification-server takeover was performed. Layer-shell popup keyboard
+policy is explicitly `None`; a physical Wayland notification-client matrix
+remains to be qualified. See [notification limits](notifications.md).
+
 ## Packaging and remaining qualification
 
 The AUR recipe fetches during `prepare` and builds/tests with `--frozen`. GCC

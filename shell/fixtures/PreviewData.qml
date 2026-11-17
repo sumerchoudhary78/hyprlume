@@ -12,6 +12,14 @@ QtObject {
         property var lastRequest: ({})
         property int requestCount: 0
         property int pairCount: 0
+        property var notifications: ({
+            available:true,error:"",panel_open:Quickshell.env("HYPRLUME_NOTIFICATIONS_PREVIEW") === "1",dnd:false,unread:3,
+            items:[
+                {id:1,revision:1,app_name:"Build system",summary:"Your release is ready",body:"All checks passed. The optimized build is ready for review.",actions:[{key:"default",label:"Open build"}],urgency:1,created_at:0,active:true,popup:Quickshell.env("HYPRLUME_NOTIFICATION_POPUPS") === "1",read:false},
+                {id:2,revision:2,app_name:"Calendar",summary:"Design review in 10 minutes",body:"Observatory workspace · Desktop services",actions:[{key:"join",label:"Join"},{key:"later",label:"Remind later"}],urgency:1,created_at:0,active:true,popup:Quickshell.env("HYPRLUME_NOTIFICATION_POPUPS") === "1",read:false},
+                {id:3,revision:3,app_name:"System",summary:"Battery needs attention",body:"Sample critical alert. Critical notifications wait for dismissal.",actions:[],urgency:2,created_at:0,active:true,popup:Quickshell.env("HYPRLUME_NOTIFICATION_POPUPS") === "1",read:false}
+            ]
+        })
         property var connectivity: ({
             panel_open:Quickshell.env("HYPRLUME_CONNECTIVITY_PREVIEW") === "1",busy:false,message:"Your wireless connections",error:"",prompt:null,
             wifi:{available:true,enabled:true,hardware_enabled:true,error:"",interfaces:[{name:"wlan0",connected:true,ssid:"Orbital uplink"}],networks:[
@@ -48,11 +56,34 @@ QtObject {
             if (publicOperation.request && publicOperation.request.value) publicOperation.request.value = "[credential]";
             lastRequest = publicOperation; requestCount++;
             if (Quickshell.env("HYPRLUME_QA") === "1") console.log("HYPRLUME_QA " + JSON.stringify({kind:"request",operation:publicOperation}));
-            if (operation.op === "connectivity") {
+            if (operation.op === "notifications") {
+                const action = operation.request;
+                const next = JSON.parse(JSON.stringify(notifications));
+                if (action.action === "toggle") {
+                    next.panel_open = !next.panel_open;
+                    if (next.panel_open) {
+                        next.unread = 0;
+                        for (const item of next.items) { item.read = true; item.popup = false; }
+                        snapshot = Object.assign({}, snapshot, {panel_open:false});
+                        connectivity = Object.assign({}, connectivity, {panel_open:false});
+                    }
+                } else if (action.action === "close") next.panel_open = false;
+                else if (action.action === "dnd") { next.dnd = action.enabled; if (next.dnd) for (const item of next.items) item.popup = false; }
+                else if (action.action === "clear") { next.items = []; next.unread = 0; }
+                else {
+                    const item = next.items.find(item => item.id === action.id && item.revision === action.revision);
+                    if (!item) return;
+                    if (action.action === "remove") next.items = next.items.filter(item => item.id !== action.id);
+                    else { item.active = false; item.popup = false; item.read = true; }
+                    next.unread = next.items.filter(item => !item.read).length;
+                }
+                notifications = next;
+            }
+            else if (operation.op === "connectivity") {
                 const action = operation.request;
                 const next = JSON.parse(JSON.stringify(connectivity));
                 next.error = "";
-                if (action.action === "toggle") { next.panel_open = !next.panel_open; snapshot = Object.assign({}, snapshot, {panel_open:false}); }
+                if (action.action === "toggle") { next.panel_open = !next.panel_open; snapshot = Object.assign({}, snapshot, {panel_open:false}); notifications = Object.assign({}, notifications, {panel_open:false}); }
                 else if (action.action === "close") { next.panel_open = false; next.prompt = null; next.busy = false; }
                 else if (action.action === "wifi_power") next.wifi.enabled = action.enabled;
                 else if (action.action === "wifi_connect") { for (const network of next.wifi.networks) network.connected = network.id === action.network; }
@@ -78,6 +109,7 @@ QtObject {
                 connectivity = next;
             }
             else if (operation.op === "toggle") {
+                notifications = Object.assign({}, notifications, {panel_open:false});
                 connectivity = Object.assign({}, connectivity, {panel_open:false});
                 snapshot = Object.assign({}, snapshot, {panel_open:!snapshot.panel_open});
             }

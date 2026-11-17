@@ -45,6 +45,52 @@ impl Drop for Daemon {
 }
 
 #[tokio::test]
+async fn notification_topic_is_opt_in_and_overlay_switches_preserve_agent_state() {
+    let daemon = Daemon::start().await;
+    let mut observer = Framed::new(
+        UnixStream::connect(&daemon.path).await.unwrap(),
+        LinesCodec::new(),
+    );
+    observer
+        .send(r#"{"id":1,"op":"notifications_subscribe"}"#)
+        .await
+        .unwrap();
+    let initial: Value = serde_json::from_str(&observer.next().await.unwrap().unwrap()).unwrap();
+    assert_eq!(initial["id"], 1);
+    let notifications = |request| Operation::Notifications { request };
+    use hyprlume::services::notifications::Request as NotificationRequest;
+    server::call(&daemon.path, notifications(NotificationRequest::Toggle))
+        .await
+        .unwrap();
+    let event: Value = serde_json::from_str(&observer.next().await.unwrap().unwrap()).unwrap();
+    assert_eq!(event["event"], "notifications");
+    assert_eq!(event["state"]["panel_open"], true);
+    server::call(
+        &daemon.path,
+        notifications(NotificationRequest::Dnd { enabled: true }),
+    )
+    .await
+    .unwrap();
+    let event: Value = serde_json::from_str(&observer.next().await.unwrap().unwrap()).unwrap();
+    assert_eq!(event["state"]["dnd"], true);
+    server::call(&daemon.path, Operation::Toggle).await.unwrap();
+    let event: Value = serde_json::from_str(&observer.next().await.unwrap().unwrap()).unwrap();
+    assert_eq!(event["state"]["panel_open"], false);
+    assert_eq!(event["state"]["dnd"], true);
+    assert_eq!(
+        server::call(&daemon.path, Operation::Status).await.unwrap()["panel_open"],
+        true
+    );
+    // A notification-only subscriber never receives command-state messages.
+    assert!(
+        tokio::time::timeout(Duration::from_millis(50), observer.next())
+            .await
+            .is_err()
+    );
+    daemon.stop().await;
+}
+
+#[tokio::test]
 async fn real_socket_pushes_updates_and_enforces_single_instance() {
     let daemon = Daemon::start().await;
     let path = &daemon.path;
@@ -248,6 +294,24 @@ async fn wireless_validation_cannot_replace_an_agent_confirmation() {
     assert_eq!(after["confirmation"], before["confirmation"]);
     assert_eq!(after["actions"], before["actions"]);
     assert_eq!(after["panel_open"], false);
+    server::call(
+        &daemon.path,
+        Operation::Notifications {
+            request: hyprlume::services::notifications::Request::Toggle,
+        },
+    )
+    .await
+    .unwrap();
+    let after = server::call(&daemon.path, Operation::Status).await.unwrap();
+    assert_eq!(after["confirmation"], before["confirmation"]);
+    assert_eq!(after["actions"], before["actions"]);
+    server::call(&daemon.path, Operation::Toggle).await.unwrap();
+    assert_eq!(
+        server::call(&daemon.path, Operation::NotificationsStatus)
+            .await
+            .unwrap()["panel_open"],
+        false
+    );
     daemon.stop().await;
 }
 

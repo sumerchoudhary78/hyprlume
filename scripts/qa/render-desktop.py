@@ -18,7 +18,7 @@ import sys
 import tempfile
 
 from ui_driver import UiDriver
-from cases import commands as command_case, connectivity as connectivity_case
+from cases import commands as command_case, connectivity as connectivity_case, notifications as notification_case
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -32,10 +32,14 @@ def main():
     parser.add_argument('--interact', action='store_true')
     parser.add_argument('--connectivity', action='store_true', help='render or exercise the Wi-Fi/Bluetooth panel')
     parser.add_argument('--connectivity-state', choices=['normal', 'unavailable', 'pairing', 'pin'], default='normal')
+    parser.add_argument('--notifications', action='store_true', help='render or exercise the notification centre')
+    parser.add_argument('--notification-popups', action='store_true', help='render synthetic notification popups')
     parser.add_argument('--effects', action='store_true', help='render isolated liquid materials and test their motion clock')
     parser.add_argument('--inside-display', action='store_true', help=argparse.SUPPRESS)
     args = parser.parse_args()
-    if args.effects and (args.interact or args.connectivity):
+    if sum([args.effects, args.connectivity, args.notifications, args.notification_popups]) > 1:
+        parser.error('choose one preview surface per check')
+    if args.effects and args.interact:
         parser.error('--effects and --interact are separate checks')
     if min(args.width, args.height) < 400:
         parser.error('preview dimensions must be at least 400 pixels')
@@ -62,6 +66,8 @@ def main():
                HYPRLUME_EFFECTS_QA='1' if args.effects else '0',
                HYPRLUME_CONNECTIVITY_PREVIEW='1' if args.connectivity and not args.interact else '0',
                HYPRLUME_CONNECTIVITY_STATE=args.connectivity_state)
+    env.update(HYPRLUME_NOTIFICATIONS_PREVIEW='1' if args.notifications and not args.interact else '0',
+               HYPRLUME_NOTIFICATION_POPUPS='1' if args.notification_popups else '0')
     proc = subprocess.Popen(['quickshell', '-p', str(ROOT/'shell/design-preview.qml')], cwd=ROOT, env=env,
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
     driver = UiDriver(proc)
@@ -80,7 +86,9 @@ def main():
         else:
             if not shutil.which('xdotool'):
                 raise AssertionError('xdotool is required for --interact')
-            if args.connectivity:
+            if args.notifications:
+                notification_case.run(driver)
+            elif args.connectivity:
                 connectivity_case.run(driver)
             else:
                 command_case.run(driver, args.reduced_effects)

@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import qs.modules.home
 import qs.modules.command
+import qs.modules.notifications
 import qs.modules.connectivity
 
 // Ordinary-window host for the same live dashboard used by layer-shell.
@@ -23,7 +24,7 @@ FloatingWindow {
     }
     Loader {
         anchors.fill: parent
-        active: window.backend.online && window.backend.snapshot.panel_open && !window.backend.connectivity.panel_open
+        active: window.backend.online && window.backend.snapshot.panel_open && !window.backend.connectivity.panel_open && !window.backend.notifications.panel_open
         sourceComponent: CommandOverlay {
             anchors.fill: parent
             backend: window.backend
@@ -31,9 +32,22 @@ FloatingWindow {
     }
     Loader {
         anchors.fill: parent
-        active: window.backend.online && window.backend.connectivity.panel_open
+        active: window.backend.online && window.backend.connectivity.panel_open && !window.backend.notifications.panel_open
         sourceComponent: ConnectivityOverlay {
             anchors.fill: parent; backend: window.backend; reducedEffects: window.state.reducedEffects
         }
+    }
+
+    Loader {
+        anchors.fill: parent
+        active: window.backend.online && window.backend.notifications.panel_open
+        sourceComponent: NotificationOverlay { anchors.fill: parent; backend: window.backend; reducedEffects: window.state.reducedEffects }
+    }
+    PopupStack {
+        anchors.right: parent.right; anchors.top: parent.top
+        anchors.rightMargin: 16; anchors.topMargin: 88
+        width: Math.min(380, parent.width - 32)
+        availableHeight: parent.height - 106
+        backend: window.backend; reducedEffects: window.state.reducedEffects
     }
 }

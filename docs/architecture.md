@@ -27,8 +27,9 @@ src/
 │   ├── applications.rs       independent systemd application launches
 │   └── audio.rs              checked PipeWire volume/mute actions
 ├── services/
-│   └── connectivity/         wireless state, validation, admission and pairing
-│       └── native/           NetworkManager/BlueZ adapters and event streams
+│   ├── connectivity/         wireless state, validation, admission and pairing
+│   │   └── native/           NetworkManager/BlueZ adapters and event streams
+│   └── notifications/        bounded lifecycle, D-Bus server, expiry and UI topic
 └── voice/
     ├── mod.rs                public speech API and events
     ├── models.rs             model discovery and recognizer configuration
@@ -63,7 +64,7 @@ socket is mode 0600. A file lock prevents a second daemon replacing a live
 instance. Only a socket, never a regular file or symlink, can be replaced on
 restart. At most 16 clients connect, with bounded frames and write deadlines.
 
-The UI uses one socket with agent and connectivity subscriptions. Independent
+The UI uses one socket with agent, connectivity and notification subscriptions. Independent
 Tokio watch channels coalesce state into the latest
 snapshot rather than retaining an unbounded event queue. Reconnect timers run
 only while disconnected. The daemon reads Hyprland's event socket through
@@ -71,7 +72,7 @@ HyprPilot, without a polling loop for desktop status.
 
 ## Shell surfaces
 
-Quickshell renders five layer-shell surface roles and one ordinary window for
+Quickshell renders seven layer-shell surface roles and one ordinary window for
 preview:
 
 - `hyprlume-wallpaper`, one per monitor, Background layer with no input region.
@@ -85,6 +86,10 @@ preview:
 - `hyprlume-connectivity`, a separate Overlay loaded only while Connections is
   open. Command and wireless overlays exclude each other.
 - `PreviewWindow`, a `FloatingWindow` used by `hyprlume shell --preview`.
+- `hyprlume-notification-centre`, an Overlay with exclusive keyboard focus while
+  its centre is open; it excludes command and connectivity overlays.
+- `hyprlume-notification-popups`, a small Overlay on the focused screen with no
+  keyboard focus or exclusive zone, loaded only while popups are present.
 
 Surfaces contain no protocol logic. `services/Backend.qml` owns the socket and
 the reconnecting subscription; `services/Workspaces.qml` wraps Hyprland state;

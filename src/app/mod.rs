@@ -20,6 +20,7 @@ pub struct App {
     pub config: Config,
     pub desktop: Desktop,
     pub(crate) connectivity: Arc<crate::services::connectivity::Controller>,
+    pub(crate) notifications: Arc<crate::services::notifications::Controller>,
     state: watch::Sender<State>,
     pending: Mutex<Option<commands::Pending>>,
     busy: Arc<Semaphore>,
@@ -43,6 +44,7 @@ impl App {
             config,
             desktop: Desktop::new(demo),
             connectivity: crate::services::connectivity::Controller::new(demo),
+            notifications: crate::services::notifications::Controller::new(demo),
             state,
             pending: Mutex::new(None),
             busy: Arc::new(Semaphore::new(1)),
@@ -74,18 +76,34 @@ impl App {
             Operation::ConnectivityStatus | Operation::ConnectivitySubscribe => {
                 Ok(json!(self.connectivity.state()))
             }
+            Operation::NotificationsStatus | Operation::NotificationsSubscribe => {
+                Ok(json!(self.notifications.state()))
+            }
+            Operation::Notifications { request } => {
+                if matches!(request, crate::services::notifications::Request::Toggle)
+                    && !self.notifications.state().panel_open
+                {
+                    self.connectivity.close().await;
+                    self.update(|state| state.panel_open = false);
+                }
+                self.notifications.handle(request).await
+            }
             Operation::Connectivity { request } => {
                 if matches!(request, crate::services::connectivity::Request::Toggle)
                     && !self.connectivity.state().panel_open
                 {
+                    self.notifications.close();
                     self.update(|state| state.panel_open = false);
                 }
                 self.connectivity.handle(request).await
             }
             Operation::Toggle => {
-                let opening = !self.state().panel_open || self.connectivity.state().panel_open;
+                let opening = !self.state().panel_open
+                    || self.connectivity.state().panel_open
+                    || self.notifications.state().panel_open;
                 if opening {
                     self.connectivity.close().await;
+                    self.notifications.close();
                 }
                 self.update(|state| state.panel_open = opening);
                 Ok(json!(self.state()))

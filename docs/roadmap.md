@@ -33,7 +33,7 @@ Delivered in the current tree:
 
 Still open:
 
-- Launcher search results, task switcher, and notification centre. The bar
+- Launcher search results and task switcher. The bar
   currently opens the command panel; there is no result list behind the search
   field.
 - Full task-specific pages and persisted workflows behind navigation. Existing
@@ -50,7 +50,10 @@ No custom C++ service code is needed. User-selected priority is connectivity:
 
 1. **Wi-Fi/Bluetooth:** implemented; physical connection/pairing qualification,
    hidden/enterprise profile editing and Bluetooth battery indicators remain.
-2. **Notifications:** D-Bus notification ownership, actions, dismissal and history.
+2. **Notifications:** implemented on main (unreleased): D-Bus ownership, actions,
+   dismissal, bounded session history and Do Not Disturb. Markup, images, sounds,
+   durable settings/history and activation tokens remain outside this milestone.
+   See [notification behavior and isolation](notifications.md).
 3. **Audio/media:** PipeWire devices/routing, volume and MPRIS playback.
 4. **Power/session:** battery, brightness, power profiles, suspend and logout.
 5. **System tray:** StatusNotifier items and menus.

@@ -3,6 +3,7 @@ import Quickshell
 import qs.fixtures
 import qs.modules.home
 import qs.modules.command
+import qs.modules.notifications
 import qs.modules.connectivity
 
 ShellRoot {
@@ -34,7 +35,7 @@ ShellRoot {
             Component { id: effectsComponent; EffectsPreview {} }
             Loader {
                 anchors.fill: parent
-                active: previewData.backend.snapshot.panel_open && !previewData.backend.connectivity.panel_open && !window.effects
+                active: previewData.backend.snapshot.panel_open && !previewData.backend.connectivity.panel_open && !previewData.backend.notifications.panel_open && !window.effects
                 sourceComponent: CommandOverlay {
                     anchors.fill: parent
                     backend: previewData.backend
@@ -42,11 +43,25 @@ ShellRoot {
             }
             Loader {
                 anchors.fill: parent
-                active: previewData.backend.connectivity.panel_open && !window.effects
+                active: previewData.backend.connectivity.panel_open && !previewData.backend.notifications.panel_open && !window.effects
                 sourceComponent: ConnectivityOverlay {
                     anchors.fill: parent; backend: previewData.backend; reducedEffects: previewData.state.reducedEffects
                 }
             }
+
+            Loader {
+                anchors.fill: parent
+                active: previewData.backend.notifications.panel_open
+                sourceComponent: NotificationOverlay { anchors.fill: parent; backend: previewData.backend; reducedEffects: previewData.state.reducedEffects }
+            }
+            PopupStack {
+                anchors.right: parent.right; anchors.top: parent.top
+                anchors.rightMargin: 16; anchors.topMargin: 88
+                width: Math.min(380, parent.width - 32)
+                availableHeight: parent.height - 106
+                backend: previewData.backend; reducedEffects: previewData.state.reducedEffects
+            }
+
             ControlProbe {
                 targetItem: window.contentItem
                 backend: previewData.backend

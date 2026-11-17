@@ -44,6 +44,11 @@ enum Commands {
         #[arg(long)]
         status: bool,
     },
+    /// Open the notification centre, or read its state without changing notifications.
+    Notifications {
+        #[arg(long)]
+        status: bool,
+    },
     Toggle,
     Cancel,
     /// Confirm a specific preview token (expires after 30 seconds).
@@ -166,6 +171,15 @@ async fn main() -> Result<()> {
                     } else {
                         Operation::Connectivity {
                             request: hyprlume::services::connectivity::Request::Toggle,
+                        }
+                    }
+                }
+                Commands::Notifications { status } => {
+                    if status {
+                        Operation::NotificationsStatus
+                    } else {
+                        Operation::Notifications {
+                            request: hyprlume::services::notifications::Request::Toggle,
                         }
                     }
                 }

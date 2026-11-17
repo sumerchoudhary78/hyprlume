@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Add a Rust freedesktop notification server, glass popups and notification
+  centre with actions, history, unread state and Do Not Disturb.
+- Respect existing notification-server ownership, direct signals to the owning
+  client, reject stale actions after replacement and bound in-memory history.
+- Add private-bus integration tests, lifecycle regressions and native QML input
+  and rendering checks; keep development previews isolated from the live session.
+
 ## 0.4.1 — 2026-11-17
 
 - Make the command shortcut bring a pending preview forward in one press when

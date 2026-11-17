@@ -20,6 +20,11 @@ The panels, text and controls are QML; the room is a cached wallpaper asset.*
 
 ## What works
 
+On `main` (unreleased): a native notification server, glass popups, session
+history, actions and Do Not Disturb. See [notifications](docs/notifications.md)
+for ownership, isolated previews and current limits. The v0.4.1 package does not
+include this development feature.
+
 - A top bar on every monitor, a glass home dashboard on empty workspaces, and an
   on-demand command panel. The dashboard carries quick actions, live workspace
   flow, a command stage, the shell agent panel, and CPU/memory/GPU/network/disk
