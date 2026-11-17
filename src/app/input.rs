@@ -38,7 +38,7 @@ impl App {
                 Request::NextLayout => {
                     let layout = self.desktop.next_layout().await?;
                     self.check_epoch(epoch)?;
-                    self.feedback("Keyboard layout", layout, "keyboard", None);
+                    self.publish_system_feedback("Keyboard layout", layout, "keyboard", None);
                     return Ok(json!({"message":"Keyboard layout switched"}));
                 }
                 Request::Apply { revision } | Request::WriteProfile { revision } => revision,
@@ -120,13 +120,19 @@ impl App {
                     }
                     Err(_) => ("Control timed out".into(), None),
                 };
-                app.feedback(title, detail, icon, percent);
+                app.publish_system_feedback(title, detail, icon, percent);
             }
         });
         Ok(json!({"accepted":true}))
     }
 
-    fn feedback(&self, title: &str, detail: String, icon: &str, percent: Option<u8>) {
+    fn publish_system_feedback(
+        &self,
+        title: &str,
+        detail: String,
+        icon: &str,
+        percent: Option<u8>,
+    ) {
         self.update(|state| {
             state.feedback = Some(Feedback {
                 sequence: self.sequence.fetch_add(1, Ordering::Relaxed),
