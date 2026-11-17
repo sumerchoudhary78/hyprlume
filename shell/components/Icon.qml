@@ -50,6 +50,7 @@ Item {
         if (n === "cpu") return "M5 5H19V19H5ZM9 9H15V15H9ZM8 1V5M16 1V5M8 19V23M16 19V23M1 8H5M1 16H5M19 8H23M19 16H23";
         if (n === "globe") return "M22 12A10 10 0 1 1 2 12A10 10 0 1 1 22 12M2 12H22M12 2C5 8 5 16 12 22C19 16 19 8 12 2";
         if (n === "lock") return "M5 10H19V22H5ZM8 10V6C8 0 16 0 16 6V10M12 14V18";
+        if (n === "keyboard") return "M2 5H22V19H2ZM6 9H8M11 9H13M16 9H18M6 13H8M11 13H13M16 13H18M7 16H17";
         if (n === "play") return "M7 3L22 12L7 21Z";
         return "M4 4H20V20H4ZM8 8H16M8 12H16M8 16H12";
     }

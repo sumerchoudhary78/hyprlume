@@ -2,6 +2,7 @@
 mod commands;
 mod events;
 mod idle;
+mod input;
 mod locking;
 #[cfg(feature = "voice")]
 mod voice;
@@ -30,6 +31,7 @@ pub struct App {
     pub(crate) power: Arc<crate::services::power::Controller>,
     pub(crate) idle: Arc<crate::services::idle::Controller>,
     idle_effects: Mutex<idle::Effects>,
+    input_gate: Arc<Mutex<()>>,
     state: watch::Sender<State>,
     pending: Mutex<Option<commands::Pending>>,
     lock_pause: Mutex<Option<u64>>,
@@ -76,6 +78,7 @@ impl App {
             power: crate::services::power::Controller::new(demo),
             idle: crate::services::idle::Controller::new(socket.clone(), demo),
             idle_effects: Mutex::new(idle::Effects::default()),
+            input_gate: Arc::new(Mutex::new(())),
             clipboard: crate::services::clipboard::Controller::new(socket, demo),
             capture: crate::services::capture::Controller::new(demo),
             state,
@@ -101,6 +104,7 @@ impl App {
                 state.panel_open = false;
                 state.desktop_panel = None;
                 state.confirmation = None;
+                state.feedback = None;
             }
         });
     }
@@ -168,6 +172,8 @@ impl App {
             Operation::NotificationsStatus | Operation::NotificationsSubscribe => {
                 Ok(json!(self.notifications.state()))
             }
+            Operation::Input { request } => self.input(request).await,
+            Operation::SystemKey { key } => self.system_key(key),
             Operation::SettingsStatus | Operation::SettingsSubscribe => {
                 Ok(json!(self.settings.state()))
             }

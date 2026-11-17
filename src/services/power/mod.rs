@@ -124,6 +124,37 @@ impl Controller {
         }
     }
 
+    pub(crate) async fn step_brightness(&self, step: i16) -> Result<u8> {
+        let _permit = self
+            .busy
+            .try_acquire()
+            .context("A power operation is already running")?;
+        let backend = self.backend()?;
+        let observed = self.refresh(backend.as_ref()).await?;
+        let light = observed
+            .backlights
+            .first()
+            .context("No kernel backlight was found")?;
+        let device = light.id.clone();
+        let percent = (i16::from(light.percent) + step).clamp(5, 100) as u8;
+        backend
+            .apply(
+                Mutation::Brightness {
+                    device: device.clone(),
+                    percent,
+                },
+                observed,
+            )
+            .await?;
+        self.refresh(backend.as_ref())
+            .await?
+            .backlights
+            .into_iter()
+            .find(|light| light.id == device)
+            .map(|light| light.percent)
+            .context("Backlight changed or disappeared")
+    }
+
     fn backend(&self) -> Result<Arc<dyn Backend>> {
         self.backend
             .lock()

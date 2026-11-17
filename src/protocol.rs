@@ -30,6 +30,12 @@ pub enum Operation {
     },
     SettingsSubscribe,
     SettingsStatus,
+    Input {
+        request: crate::desktop::input::Request,
+    },
+    SystemKey {
+        key: crate::desktop::input::SystemKey,
+    },
     PortalsStatus,
     Settings {
         request: crate::services::settings::Request,
@@ -125,6 +131,8 @@ pub struct State {
     pub voice: VoiceMode,
     pub workspace: Option<i32>,
     pub active_app: String,
+    #[serde(default)]
+    pub feedback: Option<Feedback>,
 }
 
 impl Default for State {
@@ -142,6 +150,17 @@ impl Default for State {
             voice: VoiceMode::Off,
             workspace: None,
             active_app: String::new(),
+            feedback: None,
         }
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Feedback {
+    pub sequence: u64,
+    pub issued_at: u64,
+    pub title: String,
+    pub detail: String,
+    pub icon: String,
+    pub percent: Option<u8>,
 }

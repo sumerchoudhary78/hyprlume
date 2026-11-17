@@ -3,6 +3,7 @@ mod applications;
 mod audio;
 mod display;
 mod hyprland;
+pub mod input;
 pub(crate) use display::Display;
 
 use crate::{config::Config, planner::Action};

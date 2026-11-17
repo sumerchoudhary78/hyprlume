@@ -1,4 +1,7 @@
+mod input;
 mod preferences;
+pub use input::Input;
+pub(crate) use preferences::validate_shortcut as validate_input_shortcut;
 pub use preferences::{Accent, Appearance, Idle, Preferences, Services, Shortcuts};
 
 use anyhow::{bail, Context, Result};
