@@ -92,14 +92,14 @@ impl Desktop {
 }
 
 #[cfg(test)]
-mod tests {
+pub(super) mod tests {
     use super::*;
     use hyprpilot_core::{Connection, Instance};
     use tokio::{
         io::{AsyncReadExt, AsyncWriteExt},
         net::UnixListener,
     };
-    async fn fixture(
+    pub(in crate::desktop) async fn fixture(
         steps: Vec<(&str, String)>,
     ) -> (tempfile::TempDir, Desktop, tokio::task::JoinHandle<()>) {
         let dir = tempfile::tempdir().unwrap();

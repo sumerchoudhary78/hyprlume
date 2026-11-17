@@ -40,7 +40,7 @@ def main():
     parser.add_argument('--power-state', choices=['normal', 'unavailable', 'desktop', 'inhibited', 'review'], default='normal')
     parser.add_argument('--locking', action='store_true')
     parser.add_argument('--settings', action='store_true')
-    parser.add_argument('--settings-tab',type=int,choices=range(6),default=0)
+    parser.add_argument('--settings-tab',type=int,choices=range(7),default=0)
     parser.add_argument('--tools-capture',action='store_true')
     parser.add_argument('--tools', action='store_true')
     parser.add_argument('--launcher', action='store_true')

@@ -8,6 +8,7 @@ pub struct Preferences {
     pub shortcuts: Shortcuts,
     pub services: Services,
     pub idle: Idle,
+    pub input: super::Input,
 }
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
@@ -115,6 +116,7 @@ pub struct Services {
 impl Preferences {
     pub fn validate(&self) -> Result<()> {
         self.idle.validate()?;
+        self.input.validate()?;
         ensure!(
             self.appearance.scale.is_finite() && (0.85..=1.2).contains(&self.appearance.scale),
             "UI scale must be between 0.85 and 1.2"

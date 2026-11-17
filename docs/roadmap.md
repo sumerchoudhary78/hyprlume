@@ -90,8 +90,12 @@ code is needed. User-selected priority is connectivity:
     profile routes to Hyprland and GTK and publishes Hyprlume appearance hints.
     See [setup, live diagnostics and verification](portals.md).
 
-Next environment services include login/session bootstrap, monitor/input
-settings, Secret Service integration and removable storage.
+13. **Input and system keys:** persisted keyboard and pointer options, a
+    managed Hyprland include and glass feedback for volume, brightness and media.
+    See [input and system keys](input.md).
+
+Next environment services include login/session bootstrap, monitor settings,
+Secret Service integration and removable storage.
 
 ## Agent work
 

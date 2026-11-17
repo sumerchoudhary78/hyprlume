@@ -36,6 +36,7 @@ implemented with shared glass controls and isolated checks:
 | [Session locking](docs/locking.md) | Real Wayland/PAM locking, independent supervision and recovery |
 | [Polkit](docs/polkit.md) | Opt-in system authorization prompts with the native PAM helper |
 | [Desktop portals](docs/portals.md) | Hyprland and GTK routing, app appearance hints and session diagnostics |
+| [Input and system keys](docs/input.md) | XKB, mouse and touchpad preferences, persistent shortcuts and glass key feedback |
 
 Each linked page documents dependencies, limits and qualification. The published
 v0.4.1/AUR package does not include these development features. No compositor

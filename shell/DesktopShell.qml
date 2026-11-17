@@ -47,6 +47,35 @@ Item {
         return screens.length > 0 ? screens[0] : null;
     }
 
+    readonly property var feedback: backend.online && !backend.locking.active ? backend.snapshot.feedback : null
+    property bool feedbackVisible: false
+    onFeedbackChanged: {
+        feedbackVisible = !!feedback && Date.now() - feedback.issued_at < 1700;
+        if (feedbackVisible) feedbackTimeout.restart();
+    }
+    Timer { id: feedbackTimeout; interval: 1700; onTriggered: desktop.feedbackVisible = false }
+    Loader {
+        active: desktop.feedbackVisible
+        sourceComponent: PanelWindow {
+            screen: desktop.focusedScreen
+            anchors.bottom: true
+            margins.bottom: 52
+            implicitWidth: 315
+            implicitHeight: 60
+            exclusiveZone: 0
+            color: "transparent"
+            mask: Region {}
+            WlrLayershell.namespace: "hyprlume-system-feedback"
+            WlrLayershell.layer: WlrLayer.Overlay
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+            SystemFeedback {
+                anchors.fill: parent
+                feedback: desktop.feedback
+                reducedEffects: desktop.state.reducedEffects
+            }
+        }
+    }
+
     Variants {
         model: Quickshell.screens
 

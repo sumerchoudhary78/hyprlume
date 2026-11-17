@@ -106,6 +106,16 @@ enum Commands {
         #[arg(long, value_enum)]
         presentation: Option<Toggle>,
     },
+    /// Inspect or switch the active keyboard layout.
+    Input {
+        #[arg(long)]
+        next_layout: bool,
+    },
+    /// Execute a system volume, brightness or media key.
+    SystemKey {
+        #[arg(value_enum)]
+        key: hyprlume::desktop::input::SystemKey,
+    },
     Toggle,
     Cancel,
     /// Confirm a specific preview token (expires after 30 seconds).
@@ -349,6 +359,14 @@ async fn main() -> Result<()> {
                     panel: hyprlume::protocol::DesktopPanel::Settings,
                     open: true,
                 },
+                Commands::Input { next_layout } => Operation::Input {
+                    request: if next_layout {
+                        hyprlume::desktop::input::Request::NextLayout
+                    } else {
+                        hyprlume::desktop::input::Request::Status
+                    },
+                },
+                Commands::SystemKey { key } => Operation::SystemKey { key },
                 Commands::Toggle => Operation::Toggle,
                 Commands::Audio => Operation::Panel {
                     panel: hyprlume::protocol::DesktopPanel::Audio,

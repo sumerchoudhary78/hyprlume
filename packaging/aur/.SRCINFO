@@ -25,6 +25,7 @@ pkgbase = hyprlume
 	depends = qt6-wayland
 	depends = qt6-quick3d>=6.9
 	depends = hyprland
+	depends = xkeyboard-config
 	depends = pipewire-audio
 	depends = wireplumber
 	depends = python
@@ -36,6 +37,7 @@ pkgbase = hyprlume
 	optdepends = wl-clipboard: opt-in text clipboard history
 	optdepends = grim: Wayland screenshots
 	optdepends = slurp: capture region and display selection
+	optdepends = playerctl: hardware media keys for MPRIS players
 	optdepends = wf-recorder: silent screen recording
 	optdepends = espeak-ng: phonemization for local Piper speech output
 	optdepends = networkmanager: native Wi-Fi connectivity service

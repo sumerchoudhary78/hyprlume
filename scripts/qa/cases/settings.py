@@ -31,6 +31,11 @@ def run(driver):
     driver.wait_controls('portalInterface0')
     driver.click('refreshPortals')
     assert driver.request('portals_status') == {'op': 'portals_status'}
+    driver.click('settingsTab6')
+    assert driver.request('input')['request']['action'] == 'status'
+    driver.wait_controls('inputKeyboardpreview-keyboard')
+    driver.click('inputWrite')
+    assert driver.request('input')['request'] == {'action': 'write_profile', 'revision': 5}
     driver.click('settingsReload');assert driver.request('settings')['request']['action']=='reload'
     driver.click('closeSettings');assert driver.request('panel')['open'] is False
     print('SETTINGS INTERACTION PASS: reduced glass, accent, decimal scale, startup defaults, shortcuts, save acknowledgments and reload')

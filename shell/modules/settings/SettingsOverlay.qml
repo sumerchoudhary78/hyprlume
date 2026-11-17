@@ -13,7 +13,7 @@ Item {
     property int revision:backend.settings.revision
     property int pending:0
     property bool dirty:false
-    property int tab:Math.max(0,Math.min(5,Number(Quickshell.env("HYPRLUME_SETTINGS_TAB")) || 0))
+    property int tab:Math.max(0,Math.min(6,Number(Quickshell.env("HYPRLUME_SETTINGS_TAB")) || 0))
     property bool lua:true
     property string message:""
     function close(){backend.send({op:"panel",panel:"settings",open:false});}
@@ -58,7 +58,7 @@ Item {
                 Layout.fillWidth: true
                 spacing: 5
                 Repeater {
-                    model:["Appearance","Voice & models","Shortcuts","Services","Idle & sleep","Portals"]
+                    model:["Appearance","Voice & models","Shortcuts","Services","Idle & sleep","Portals","Input"]
                     GlassButton {required property string modelData; required property int index; objectName:"settingsTab"+index; text:modelData; compact:true; primary:root.tab===index; onClicked:root.tab=index}
                 }
             }
@@ -95,7 +95,7 @@ Item {
                     }
                     ColumnLayout {
                         visible:root.tab===2; Layout.fillWidth:true; spacing:14
-                        Text {Layout.fillWidth:true; text:"Save, then copy these declarations into your compositor configuration and reload it yourself. Existing bindings are never replaced automatically."; wrapMode:Text.Wrap; color:Theme.inkFaint; font.family:Theme.fontSans; font.pixelSize:12}
+                        Text {Layout.fillWidth:true; text:"Save your shortcuts, then use Input → Write profile to include them in Hyprland. The declarations below are also available for manual setup."; wrapMode:Text.Wrap; color:Theme.inkFaint; font.family:Theme.fontSans; font.pixelSize:12}
                         SettingsField {Layout.fillWidth:true; controlName:"settingsKeyLauncher"; label:"Applications"; value:root.draft.preferences.shortcuts.launcher; limit:48; onEdited:value=>root.edit("shortcuts","launcher",value)}
                         SettingsField {Layout.fillWidth:true; controlName:"settingsKeyWindows"; label:"Window switcher"; value:root.draft.preferences.shortcuts.windows; limit:48; onEdited:value=>root.edit("shortcuts","windows",value)}
                         SettingsField {Layout.fillWidth:true; controlName:"settingsKeyTools"; label:"Clipboard / capture"; value:root.draft.preferences.shortcuts.tools; limit:48; onEdited:value=>root.edit("shortcuts","tools",value)}
@@ -115,6 +115,18 @@ Item {
                         visible:active
                         Layout.fillWidth:true
                         sourceComponent:PortalStatus { backend:root.backend }
+                    }
+                    Loader {
+                        active: root.tab === 6
+                        visible: active
+                        Layout.fillWidth: true
+                        sourceComponent: InputSettings {
+                            backend: root.backend
+                            profile: root.draft.preferences.input
+                            revision: root.revision
+                            saved: !root.dirty && !root.pending
+                            onEdited: (key, value) => root.edit("input", key, value)
+                        }
                     }
                 }
             }
