@@ -44,7 +44,7 @@ async fn session(stream: UnixStream, app: Arc<App>) -> Result<()> {
         let output = tokio::select! {
             input = framed.next() => {
                 let Some(input) = input else { return Ok(()); };
-                let input = input?;
+                let input = zeroize::Zeroizing::new(input?);
                 match serde_json::from_str::<Request>(&input) {
                     Ok(request) => {
                         if matches!(request.operation, Operation::Subscribe) { subscribed = true; state.borrow_and_update(); }
@@ -140,6 +140,8 @@ pub async fn serve_with_config(
     services.spawn(app.power.clone().run());
     services.spawn(app.locking.clone().run());
     services.spawn(app.clone().watch_lock());
+    #[cfg(target_os = "linux")]
+    services.spawn(app.clone().watch_storage());
     services.spawn(app.clone().run_idle());
     services.spawn(app.clone().idle_actions());
     let connections = Arc::new(Semaphore::new(16));

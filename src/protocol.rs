@@ -33,6 +33,9 @@ pub enum Operation {
     Input {
         request: crate::desktop::input::Request,
     },
+    Storage {
+        request: crate::services::storage::Request,
+    },
     Credentials {
         request: crate::services::credentials::Request,
     },
@@ -103,6 +106,7 @@ pub enum DesktopPanel {
     Settings,
     Clipboard,
     Capture,
+    Storage,
     Launcher,
     Switcher,
 }
@@ -138,6 +142,8 @@ pub struct State {
     pub feedback: Option<Feedback>,
     #[serde(default)]
     pub credentials: crate::services::credentials::State,
+    #[serde(default)]
+    pub storage: crate::services::storage::State,
 }
 
 impl Default for State {
@@ -157,6 +163,7 @@ impl Default for State {
             active_app: String::new(),
             feedback: None,
             credentials: crate::services::credentials::State::default(),
+            storage: crate::services::storage::State::default(),
         }
     }
 }

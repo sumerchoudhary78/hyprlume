@@ -67,6 +67,20 @@ QtObject {
             if (publicOperation.request && publicOperation.request.value) publicOperation.request.value = "[credential]";
             lastRequest = publicOperation; requestCount++;
             if (Quickshell.env("HYPRLUME_QA") === "1") console.log("HYPRLUME_QA " + JSON.stringify({kind:"request",operation:publicOperation}));
+            if (operation.op === "storage") {
+                const sequence = requestCount;
+                const request = operation.request;
+                const storage = JSON.parse(JSON.stringify(snapshot.storage));
+                const volume = storage.drives[0]?.volumes.find(entry => entry.id === request.id);
+                if (request.action === "unlock" && volume) { volume.locked = false; volume.filesystem = true; }
+                if (request.action === "mount" && volume) volume.mounted = true;
+                if (request.action === "unmount" && volume) volume.mounted = false;
+                if (request.action === "eject") storage.drives = [];
+                storage.message = "Sample drive action completed.";
+                snapshot = Object.assign({}, snapshot, {storage: storage});
+                Qt.callLater(() => sampleBackend.response(sequence, true, {accepted: true}, ""));
+                return sequence;
+            }
             if (operation.op === "credentials") {
                 const sequence = requestCount;
                 const action = operation.request.action;
@@ -130,6 +144,15 @@ QtObject {
                     notifications = Object.assign({}, notifications, {panel_open:false});
                     connectivity = Object.assign({}, connectivity, {panel_open:false});
                     snapshot = Object.assign({}, snapshot, {panel_open:false,desktop_panel:operation.panel});
+                    if (operation.panel === "storage" && !snapshot.storage) {
+                        snapshot = Object.assign({}, snapshot, {storage: {
+                            available: true, busy: false, message: "Sample drives",
+                            drives: [{id: "fixture-drive", label: "Preview USB", can_eject: true, volumes: [
+                                {id: "fixture-volume", label: "Documents", filesystem: true, mounted: true, encrypted: false, locked: false, protected: false},
+                                {id: "fixture-encrypted", label: "Vault", filesystem: false, mounted: false, encrypted: true, locked: true, protected: false}
+                            ]}]
+                        }});
+                    }
                 } else if (snapshot.desktop_panel === operation.panel) snapshot = Object.assign({}, snapshot, {desktop_panel:null});
             }
             else if (operation.op === "notifications") {
