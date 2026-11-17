@@ -26,11 +26,23 @@ async fn begin(proxy: &Proxy<'_>, cookie: &str) -> zbus::Result<()> {
         .await
 }
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn challenges_are_bound_to_the_authority_and_cancel_only_the_matching_request() {
-    timeout(Duration::from_secs(8), async {
+    let mut stage = "private bus startup";
+    let result = timeout(Duration::from_secs(12), async {
+        let directory = tempfile::tempdir().unwrap();
+        let config = directory.path().join("bus.conf");
+        std::fs::write(
+            &config,
+            format!(
+                "<busconfig><type>session</type><listen>unix:tmpdir={}</listen><auth>EXTERNAL</auth><policy context=\"default\"><allow send_destination=\"*\"/><allow receive_sender=\"*\"/><allow own=\"*\"/></policy></busconfig>",
+                directory.path().display()
+            ),
+        )
+        .unwrap();
         let mut daemon = Command::new("dbus-daemon")
-            .args(["--session", "--nofork", "--print-address=1"])
+            .arg(format!("--config-file={}", config.display()))
+            .args(["--nofork", "--print-address=1"])
             .stdout(Stdio::piped())
             .stderr(Stdio::null())
             .kill_on_drop(true)
@@ -42,6 +54,7 @@ async fn challenges_are_bound_to_the_authority_and_cancel_only_the_matching_requ
             .await
             .unwrap();
         let address = address.trim();
+        stage = "D-Bus connections";
         let authority = Builder::address(address).unwrap().build().await.unwrap();
         let other = Builder::address(address).unwrap().build().await.unwrap();
         let worker = Builder::address(address).unwrap().build().await.unwrap();
@@ -61,22 +74,28 @@ async fn challenges_are_bound_to_the_authority_and_cancel_only_the_matching_requ
         let untrusted = Proxy::new(&other, destination, AGENT_PATH, INTERFACE)
             .await
             .unwrap();
+        stage = "untrusted sender rejection";
         assert!(begin(&untrusted, "forged")
             .await
             .unwrap_err()
             .to_string()
             .contains("NotAuthorized"));
         assert!(requests.try_recv().is_err());
+        stage = "trusted challenge admission";
         let call = trusted.clone();
-        let first = tokio::spawn(async move { begin(&call, "fixture-cookie").await });
-        let mut request = requests.recv().await.unwrap();
+        let mut first = tokio::spawn(async move { begin(&call, "fixture-cookie").await });
+        let mut request = tokio::select! {
+            result = &mut first => panic!("Authority challenge returned before it was admitted: {result:?}"),
+            request = requests.recv() => request.unwrap(),
+        };
         assert_eq!(request.users, [1000]);
         assert_eq!(request.message, "Fixture <b>plain text</b>");
-        assert!(begin(&trusted, "second")
-            .await
+        assert!(timeout(Duration::from_secs(3), begin(&trusted, "second"))
+            .await.expect("An overlapping challenge blocked the authority")
             .unwrap_err()
             .to_string()
             .contains("Another authentication request"));
+        stage = "CancelAuthentication calls";
         assert!(untrusted
             .call::<_, _, ()>("CancelAuthentication", &("fixture-cookie",))
             .await
@@ -90,12 +109,14 @@ async fn challenges_are_bound_to_the_authority_and_cancel_only_the_matching_requ
             .call::<_, _, ()>("CancelAuthentication", &("fixture-cookie",))
             .await
             .unwrap();
-        request.cancelled.changed().await.unwrap();
+        timeout(Duration::from_secs(3), request.cancelled.changed())
+            .await.expect("Cancellation did not reach the active challenge").unwrap();
         assert!(*request.cancelled.borrow());
         request
             .reply
             .send(Err(AgentError::Cancelled("Fixture cancelled".into())))
             .unwrap();
+        stage = "authority reply";
         assert!(first
             .await
             .unwrap()
@@ -103,6 +124,6 @@ async fn challenges_are_bound_to_the_authority_and_cancel_only_the_matching_requ
             .to_string()
             .contains("Cancelled"));
     })
-    .await
-    .unwrap();
+    .await;
+    result.unwrap_or_else(|_| panic!("Timed out during {stage}"));
 }
