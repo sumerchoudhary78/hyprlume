@@ -1,7 +1,9 @@
 import QtQuick
 import Quickshell
 import qs.fixtures
+import qs.theme
 import qs.modules.home
+import qs.modules.settings
 import qs.modules.tools
 import qs.modules.launcher
 import qs.modules.tray
@@ -13,6 +15,9 @@ import qs.modules.connectivity
 
 ShellRoot {
     PreviewData { id: previewData }
+    Binding {target:Theme;property:"scale";value:previewData.backend.settings.values.preferences.appearance.scale}
+    Binding {target:Theme;property:"accentName";value:previewData.backend.settings.values.preferences.appearance.accent}
+    Binding {target:Theme;property:"glassRefraction";value:previewData.backend.settings.values.preferences.appearance.refraction}
     FloatingWindow {
         id: window
         title: "Hyprlume Design Preview"
@@ -90,6 +95,11 @@ ShellRoot {
         anchors.fill: parent
         active: previewData.backend.online && ["clipboard","capture"].includes(previewData.backend.snapshot.desktop_panel)
         sourceComponent: ToolsOverlay { anchors.fill: parent; backend: previewData.backend; reducedEffects: previewData.state.reducedEffects }
+    }
+    Loader {
+        anchors.fill:parent
+        active: previewData.backend.online && previewData.backend.snapshot.desktop_panel === "settings"
+        sourceComponent: SettingsOverlay {anchors.fill:parent;backend:previewData.backend;reducedEffects:previewData.state.reducedEffects}
     }
             ControlProbe {
                 targetItem: window.contentItem

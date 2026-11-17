@@ -28,7 +28,8 @@ Singleton {
     readonly property color inkDim: "#bbc9e2"
     readonly property color inkFaint: "#7f94b5"
 
-    readonly property color cyan: "#5ce1ff"
+    property string accentName: "cyan"
+    readonly property color cyan: accentName === "violet" ? "#b497ff" : accentName === "mint" ? "#68f0b1" : "#5ce1ff"
     readonly property color amber: "#ffb66e"
     readonly property color violet: "#b497ff"
     readonly property color mint: "#68f0b1"
@@ -46,7 +47,7 @@ Singleton {
     readonly property color hover: Qt.rgba(1, 1, 1, 0.06)
     readonly property color pressed: Qt.rgba(1, 1, 1, 0.10)
 
-    readonly property real glassRefraction: 16
+    property real glassRefraction: 16
 
     // -- Typography ----------------------------------------------------------
     // Install `inter-font` and `ttf-jetbrains-mono`; Qt falls back to the

@@ -28,6 +28,7 @@ jobs:
       - run: cargo test --locked --all-targets
       - run: cargo build --locked
       - run: python3 scripts/qa/check-desktop-tools.py --binary target/debug/hyprlume
+      - run: python3 scripts/qa/check-settings.py --binary target/debug/hyprlume
       - run: python3 scripts/check-units.py --binary target/debug/hyprlume
       - run: cargo test --locked --no-default-features --all-targets
       - run: python3 -m py_compile scripts/hyprlume-models
@@ -47,6 +48,8 @@ jobs:
           python3 scripts/build-shaders.py
           python3 scripts/build-shaders.py --check
           python3 -m compileall -q scripts
+      - name: Smoke the actual offline shell entry
+        run: python3 scripts/qa/check-shell.py
       - name: Check liquid volume and paused motion
         run: python3 scripts/qa/check-effects.py
       - name: Render the desktop with real Qt Quick 3D
@@ -72,6 +75,14 @@ jobs:
           python3 scripts/qa/render-desktop.py --tools --interact
           python3 scripts/qa/render-desktop.py --tools --output output/design/tools.png
           python3 scripts/qa/render-desktop.py --tools --width 960 --height 640 --reduced-effects --output output/design/tools-compact.png
+      - name: Exercise persisted settings controls
+        run: |
+          python3 scripts/qa/render-desktop.py --settings --interact
+          python3 scripts/qa/render-desktop.py --settings --output output/design/settings.png
+          python3 scripts/qa/render-desktop.py --settings --settings-tab 1 --output output/design/settings-voice.png
+          python3 scripts/qa/render-desktop.py --settings --settings-tab 2 --output output/design/settings-shortcuts.png
+          python3 scripts/qa/render-desktop.py --settings --width 960 --height 640 --reduced-effects --output output/design/settings-compact.png
+          python3 scripts/qa/render-desktop.py --tools --tools-capture --output output/design/capture.png
       - name: Exercise tray icons, menus and keyboard navigation
         run: |
           python3 scripts/qa/render-desktop.py --tray --interact

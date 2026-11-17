@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Wayland
 import qs.components
+import qs.modules.settings
 import qs.modules.tools
 import qs.modules.launcher
 import qs.modules.tray
@@ -205,6 +206,19 @@ Item {
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
             ToolsOverlay { anchors.fill: parent; backend: desktop.backend; reducedEffects: desktop.state.reducedEffects }
+        }
+    }
+    Loader {
+
+        active: desktop.backend.online && desktop.backend.snapshot.desktop_panel === "settings"
+        sourceComponent: PanelWindow {
+            screen:desktop.focusedScreen
+            anchors {top:true;bottom:true;left:true;right:true}
+            exclusiveZone:0;color:"transparent"
+            WlrLayershell.namespace:"hyprlume-settings"
+            WlrLayershell.layer:WlrLayer.Overlay
+            WlrLayershell.keyboardFocus:WlrKeyboardFocus.Exclusive
+            SettingsOverlay {anchors.fill:parent;backend:desktop.backend;reducedEffects:desktop.state.reducedEffects}
         }
     }
 }

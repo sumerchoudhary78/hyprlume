@@ -22,7 +22,7 @@ GlassSurface {
     ]
     RowLayout {
         anchors.fill: parent; anchors.leftMargin: 20; anchors.rightMargin: 15; spacing: 12
-        Brand { presentation: root.presentation; compact: root.width < 1100 }
+        Brand { presentation: root.presentation; compact: root.width < 1100 || root.backend.capture.recording }
         Item { Layout.preferredWidth: 7 }
         Row {
             spacing: 2
@@ -34,7 +34,7 @@ GlassSurface {
                     objectName: "mode" + index
                     label: modelData.label; iconName: modelData.icon
                     active: root.state.mode === index
-                    showLabel: root.width > 1010
+                    showLabel: root.width > 1010 && !root.backend.capture.recording
                     onClicked: {
                         root.state.mode = index;
                         if (index === 3) root.backend.send({op:"toggle"});
@@ -75,6 +75,11 @@ GlassSurface {
             objectName:"openDesktopTools"; iconName:"layers"; size:34; iconSize:19
             Accessible.name:"Open clipboard and screen capture"
             onClicked:root.backend.send({op:"panel",panel:"clipboard",open:true})
+        }
+        IconTile {
+            objectName:"openSettings"; iconName:"preferences-system"; size:34; iconSize:19
+            Accessible.name:"Open settings"
+            onClicked:root.backend.send({op:"panel",panel:"settings",open:true})
         }
         IconTile {
             objectName: "openTray"

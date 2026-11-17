@@ -193,3 +193,13 @@ files and finalizes recordings with SIGINT. They publish independent opt-in
 socket topics. `modules/tools` presents those snapshots without clipboard data
 entering the AI state. Tool processes use literal argv; no shell is involved.
 See [clipboard/capture behavior](clipboard-capture.md) for limits and qualification.
+
+## Settings
+
+`config/preferences` defines bounded appearance, shortcut and startup values.
+`services/settings` publishes a separate settings topic, edits only validated
+values, preserves app argv, detects stale/external edits and performs private
+atomic writes on a blocking worker. The shell applies appearance tokens live;
+voice/model and service defaults are applied on the next explicit daemon start.
+`modules/settings` holds a local draft and matches acknowledgments by request
+ID. An unrelated update cannot approve a pending save or retarget an agent plan.
