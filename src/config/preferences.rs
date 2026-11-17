@@ -7,6 +7,58 @@ pub struct Preferences {
     pub appearance: Appearance,
     pub shortcuts: Shortcuts,
     pub services: Services,
+    pub idle: Idle,
+}
+#[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct Idle {
+    pub enabled: bool,
+    pub dim_after_seconds: u32,
+    pub lock_after_seconds: u32,
+    pub screen_off_after_seconds: u32,
+    pub suspend_after_seconds: u32,
+    pub dim_percent: u8,
+}
+impl Default for Idle {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            dim_after_seconds: 180,
+            lock_after_seconds: 300,
+            screen_off_after_seconds: 360,
+            suspend_after_seconds: 0,
+            dim_percent: 20,
+        }
+    }
+}
+impl Idle {
+    pub fn validate(&self) -> Result<()> {
+        ensure!(
+            (5..=80).contains(&self.dim_percent),
+            "Idle brightness must be between 5 and 80%"
+        );
+        let mut previous = 0;
+        for seconds in [
+            self.dim_after_seconds,
+            self.lock_after_seconds,
+            self.screen_off_after_seconds,
+            self.suspend_after_seconds,
+        ] {
+            if seconds == 0 {
+                continue;
+            }
+            ensure!(
+                (5..=86400).contains(&seconds),
+                "Idle timeouts must be 0 (disabled) or 5–86400 seconds"
+            );
+            ensure!(
+                seconds > previous,
+                "Enabled idle stages must be ordered: dim, lock, screen off, suspend"
+            );
+            previous = seconds;
+        }
+        Ok(())
+    }
 }
 #[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
@@ -62,6 +114,7 @@ pub struct Services {
 }
 impl Preferences {
     pub fn validate(&self) -> Result<()> {
+        self.idle.validate()?;
         ensure!(
             self.appearance.scale.is_finite() && (0.85..=1.2).contains(&self.appearance.scale),
             "UI scale must be between 0.85 and 1.2"

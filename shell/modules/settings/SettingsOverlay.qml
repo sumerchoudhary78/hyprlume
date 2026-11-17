@@ -13,7 +13,7 @@ Item {
     property int revision:backend.settings.revision
     property int pending:0
     property bool dirty:false
-    property int tab:Math.max(0,Math.min(3,Number(Quickshell.env("HYPRLUME_SETTINGS_TAB")) || 0))
+    property int tab:Math.max(0,Math.min(4,Number(Quickshell.env("HYPRLUME_SETTINGS_TAB")) || 0))
     property bool lua:true
     property string message:""
     function close(){backend.send({op:"panel",panel:"settings",open:false});}
@@ -56,7 +56,7 @@ Item {
             }
             RowLayout {
                 Repeater {
-                    model:["Appearance","Voice & models","Shortcuts","Services"]
+                    model:["Appearance","Voice & models","Shortcuts","Services","Idle & sleep"]
                     GlassButton {required property string modelData; required property int index; objectName:"settingsTab"+index; text:modelData; compact:true; primary:root.tab===index; onClicked:root.tab=index}
                 }
                 Item {Layout.fillWidth:true}
@@ -108,6 +108,7 @@ Item {
                         SettingsToggle {Layout.fillWidth:true; controlName:"settingsClipboardStartup"; label:"Start clipboard history enabled"; description:"Opt in to volatile text collection. Password offers may not be marked sensitive by their source."; checked:root.draft.preferences.services.clipboard_history; onToggled:value=>root.edit("services","clipboard_history",value)}
                         SettingsToggle {Layout.fillWidth:true; controlName:"settingsDndStartup"; label:"Start in Do Not Disturb"; description:"Keep notification history without showing popups."; checked:root.draft.preferences.services.notifications_dnd; onToggled:value=>root.edit("services","notifications_dnd",value)}
                     }
+                    IdleSettings { visible:root.tab===4; Layout.fillWidth:true; policy:root.draft.preferences.idle; status:root.backend.idle; onEdited:(key,value)=>root.edit("idle",key,value) }
                 }
             }
             Text {Layout.fillWidth:true; visible:root.backend.settings.restart_required; text:"Restart needed for saved voice/model or startup preferences."; color:Theme.amber; font.family:Theme.fontSans; font.pixelSize:12}

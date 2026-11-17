@@ -113,7 +113,7 @@ async fn focus_bound(conn: &Connection, address: &str) -> Result<()> {
 // The pinned HyprPilot transport predates Lua dispatchers. Detect the same
 // configProvider as Quickshell, while retaining its typed legacy operations.
 // Read at action time so a config reload cannot leave a stale mode cached.
-async fn uses_lua(conn: &Connection) -> Result<bool> {
+pub(super) async fn uses_lua(conn: &Connection) -> Result<bool> {
     let response = conn.send_raw("j/status").await?;
     if response.trim() == "unknown request" {
         return Ok(false);

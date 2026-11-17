@@ -26,7 +26,7 @@ Item {
             Text { Layout.fillWidth: true; text: root.label + "?"; color: Theme.ink; font.family: Theme.fontSans; font.pixelSize: 24; font.weight: Font.DemiBold }
             Text {
                 Layout.fillWidth: true; wrapMode: Text.Wrap
-                text: !root.prompt ? "" : root.prompt.kind === "suspend" ? "Put the computer to sleep? Hyprlume does not lock the screen automatically."
+                text: !root.prompt ? "" : root.prompt.kind === "suspend" ? "Lock the screen, then put the computer to sleep? Sleep is cancelled if the compositor cannot confirm the lock."
                     : root.prompt.kind === "logout" ? "End graphical session " + root.prompt.session_id + "? Save your work before continuing."
                     : "Save your work first. This will " + (root.prompt.kind === "reboot" ? "restart" : "shut down") + " the computer and affect all sessions."
                 color: Theme.inkDim; font.family: Theme.fontSans; font.pixelSize: 12

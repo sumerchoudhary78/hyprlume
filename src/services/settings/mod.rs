@@ -64,7 +64,7 @@ impl Controller {
             .filter(|config| config.validate().is_ok())
             .unwrap_or_else(|| config.clone());
         let values = Values::from(&saved);
-        let (state,_)=watch::channel(State {revision:1,restart_required:restart_required(config,&saved),path:path.to_string_lossy().into_owned(),hyprlang:shortcuts::hyprlang(&values.preferences.shortcuts),lua:shortcuts::lua(&values.preferences.shortcuts),values,message:"Appearance applies now. Voice/model and startup defaults apply after daemon restart. Shortcut bindings are exported for your compositor configuration.".into()});
+        let (state,_)=watch::channel(State {revision:1,restart_required:restart_required(config,&saved),path:path.to_string_lossy().into_owned(),hyprlang:shortcuts::hyprlang(&values.preferences.shortcuts),lua:shortcuts::lua(&values.preferences.shortcuts),values,message:"Appearance and idle policy apply now. Voice/model and startup defaults apply after daemon restart. Shortcut bindings are exported for your compositor configuration.".into()});
         Arc::new(Self {
             store: Mutex::new(Store {
                 config: saved,

@@ -91,8 +91,10 @@ def inside(base):
         assert process.poll() is None,'daemon exited'
         return process
     def type_text(text):
-        run(['wtype','-'],env=env,input=text,stdout=subprocess.DEVNULL)
-        run(['wtype','-k','Return'],env=env,stdout=subprocess.DEVNULL)
+        # Keep text and Enter on one virtual keyboard/Wayland connection.
+        # Separate clients can race focus/keymap delivery in a fresh lock episode.
+        # Escape clears any pre-existing input; it does not unlock swaylock.
+        run(['wtype','-s','150','-k','Escape','-d','12','-','-s','60','-k','Return'],env=env,input=text,stdout=subprocess.DEVNULL)
     def worker_pid():
         value=systemctl('show',UNIT,'--property=MainPID','--value')
         return int(value) if value.isdigit() else 0
@@ -112,6 +114,23 @@ def inside(base):
         daemon=start_daemon()
         assert 'NoNewPrivs:\t1' in Path(f'/proc/{daemon.pid}/status').read_text()
         assert state('lock')['available'],state('lock')
+        # Real Wayland idle notifications, but no physical brightness or sleep.
+        # This test-only account has no verified active graphical logind login,
+        # so dimming reaches the controller and safely reports unavailable.
+        settings=state('settings');values=settings['values']
+        values['preferences']['idle'].update(enabled=True,dim_after_seconds=5,lock_after_seconds=0,screen_off_after_seconds=0,suspend_after_seconds=0)
+        assert 'error' not in call('settings',request={'action':'save','revision':settings['revision'],'values':values})
+        wait(lambda:state('idle')['available'],'Wayland idle provider')
+        call('idle',request={'action':'presentation','enabled':True})
+        wait(lambda:state('idle')['available'] and state('idle')['phase']=='inhibited','presentation inhibition')
+        time.sleep(6)
+        assert state('idle')['phase']=='inhibited' and not state('lock')['active']
+        call('idle',request={'action':'presentation','enabled':False})
+        wait(lambda:state('idle')['available'] and state('idle')['phase']=='watching','idle timer restart')
+        run(['wtype','-k','Return'],env=env,stdout=subprocess.DEVNULL)
+        wait(lambda:state('idle')['phase']=='attention','actual Wayland idle timeout',12)
+        run(['wtype','-k','Return'],env=env,stdout=subprocess.DEVNULL)
+        wait(lambda:state('idle')['phase']=='watching','activity restores idle state')
         call('clipboard',request={'action':'enable','enabled':True})
         time.sleep(.3)
         run(['wl-copy','--type','text/plain'],env=env,input='private Wayland fixture',stdout=subprocess.DEVNULL)
@@ -124,6 +143,11 @@ def inside(base):
         outputs=json.loads(subprocess.check_output(['swaymsg','-t','get_outputs','-r'],env=env,text=True))
         call('capture',request={'action':'record','region':False,'output':outputs[0]['name']})
         wait(lambda:state('capture')['recording'],'native screen recorder')
+        wait(lambda:state('idle')['recording_inhibits'] and state('idle')['phase']=='inhibited','recording idle inhibition')
+        # Disable the test policy live before the independent lock/PAM checks.
+        settings=state('settings');values=settings['values'];values['preferences']['idle']['enabled']=False
+        assert 'error' not in call('settings',request={'action':'save','revision':settings['revision'],'values':values})
+        wait(lambda:not state('idle')['available'],'idle provider shutdown')
         run(['swaymsg','output * bg #19394c solid_color'],env=env,stdout=subprocess.DEVNULL)
         time.sleep(.6)
         accepted=call('lock');assert accepted.get('result',{}).get('accepted'),accepted
@@ -162,14 +186,26 @@ def inside(base):
         assert not (runtime/'hyprlume-lock/episode').exists()
         assert call('status')['result']['voice']=='off'
         assert not state('clipboard')['enabled']
+        settings=state('settings');values=settings['values']
+        values['preferences']['idle'].update(enabled=True,dim_after_seconds=0,lock_after_seconds=5,screen_off_after_seconds=0,suspend_after_seconds=0)
+        assert 'error' not in call('settings',request={'action':'save','revision':settings['revision'],'values':values})
+        wait(lambda:state('idle')['available'],'automatic lock provider')
+        run(['wtype','-k','Return'],env=env,stdout=subprocess.DEVNULL)
+        wait(lambda:state('lock')['phase']=='locked','actual Wayland idle lock',20)
+        type_text((base/'password').read_text())
+        wait(lambda:not state('lock')['active'],'idle-lock PAM authentication',15)
+        settings=state('settings');values=settings['values'];values['preferences']['idle']['enabled']=False
+        assert 'error' not in call('settings',request={'action':'save','revision':settings['revision'],'values':values})
+        wait(lambda:not state('idle')['available'],'final idle cleanup')
         report={'clipboard':'real data-control delivery','screenshot':'valid native PNG','recording':'real finalized silent video',
+                'idle':'real Wayland timeout/activity and automatic PAM lock','idle_inhibition':'presentation and owned recording',
                 'locking':'ext-session-lock readiness and real PAM','wrong_password':'rejected','SIGUSR1':'blocked',
                 'daemon_restart':'lock survived','client_crash':'fail-closed recovery','PAM_password':'unlocked','sandbox':'daemon NNP=1, lock worker NNP=0'}
         (base/'report.json').write_text(json.dumps(report,indent=2)+'\n')
         print('WAYLAND SERVICES PASS: '+json.dumps(report))
         return 0
     except Exception:
-        try:print('NATIVE FAILURE STATE '+json.dumps({'capture':state('capture'),'locking':state('lock')}),flush=True)
+        try:print('NATIVE FAILURE STATE '+json.dumps({'capture':state('capture'),'locking':state('lock'),'idle':state('idle')}),flush=True)
         except Exception:pass
         raise
     finally:

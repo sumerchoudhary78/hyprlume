@@ -1,11 +1,13 @@
 //! Power/session service: native observations, bounded mutations and separate review.
 #[cfg(all(test, target_os = "linux"))]
 mod bus_tests;
+mod idle;
 #[cfg(target_os = "linux")]
 mod native;
 #[cfg(test)]
 mod tests;
 mod types;
+pub(crate) use idle::DimLease;
 pub use types::{
     Backlight, Battery, Hardware, Profile, Profiles, Prompt, Request, Session, SessionAction, State,
 };
@@ -30,6 +32,11 @@ pub(crate) trait Backend: Send + Sync {
     fn apply(&self, mutation: Mutation, observed: Hardware) -> BoxFuture<'_, Result<String>>;
 }
 
+pub(crate) trait SleepGuard: Send + Sync {
+    fn lock_before_sleep(&self) -> BoxFuture<'_, Result<()>>;
+    fn locked(&self) -> bool;
+}
+
 struct Pending {
     prompt: Prompt,
     target: SessionTarget,
@@ -39,6 +46,7 @@ struct Pending {
 pub struct Controller {
     state: watch::Sender<State>,
     backend: Mutex<Option<Arc<dyn Backend>>>,
+    sleep_guard: Mutex<Option<Arc<dyn SleepGuard>>>,
     busy: Arc<Semaphore>,
     refreshing: tokio::sync::Mutex<()>,
     pending: Mutex<Option<Pending>>,
@@ -59,6 +67,7 @@ impl Controller {
         Arc::new(Self {
             state,
             backend: Mutex::new(None),
+            sleep_guard: Mutex::new(None),
             busy: Arc::new(Semaphore::new(1)),
             refreshing: tokio::sync::Mutex::new(()),
             pending: Mutex::new(None),
@@ -72,6 +81,9 @@ impl Controller {
     }
     pub fn state(&self) -> State {
         self.state.borrow().clone()
+    }
+    pub(crate) fn set_sleep_guard(&self, guard: Arc<dyn SleepGuard>) {
+        *self.sleep_guard.lock().unwrap() = Some(guard);
     }
     pub(crate) fn subscribe(&self) -> watch::Receiver<State> {
         self.state.subscribe()
@@ -238,7 +250,7 @@ impl Controller {
         backend: &dyn Backend,
         visibility: u64,
     ) -> Result<String> {
-        let observed = self.refresh(backend).await?;
+        let mut observed = self.refresh(backend).await?;
         observed.validate(&request)?;
         let mutation = match request {
             Request::Refresh => return Ok("Power state refreshed".into()),
@@ -303,6 +315,15 @@ impl Controller {
                 && visibility == self.visibility.load(Ordering::SeqCst),
             "Power panel closed before the action started"
         );
+        if let Mutation::Session {
+            kind: SessionAction::Suspend,
+            target,
+        } = &mutation
+        {
+            // Locking deliberately closes the panel. The consumed confirmation is
+            // bound to the verified login, rather than to visibility after locking.
+            observed = self.prepare_sleep(backend, target).await?;
+        }
         let result =
             tokio::time::timeout(Duration::from_secs(15), backend.apply(mutation, observed))
                 .await
@@ -311,6 +332,43 @@ impl Controller {
         // Even a failed/uncertain request may have changed observed state.
         let _ = self.refresh(backend).await;
         result
+    }
+
+    async fn prepare_sleep(
+        &self,
+        backend: &dyn Backend,
+        target: &SessionTarget,
+    ) -> Result<Hardware> {
+        let before = self.refresh(backend).await?;
+        ensure!(
+            before.session.target.as_ref() == Some(target),
+            "Graphical session changed before sleep"
+        );
+        ensure!(
+            before.session.suspend == "yes",
+            "Suspend requires authorization or is inhibited; unlock and resolve it before sleeping"
+        );
+        let guard = self
+            .sleep_guard
+            .lock()
+            .unwrap()
+            .clone()
+            .context("Suspend requires a secure lock guard")?;
+        guard.lock_before_sleep().await?;
+        let current = self.refresh(backend).await?;
+        ensure!(
+            current.session.target.as_ref() == Some(target),
+            "Graphical session changed while locking"
+        );
+        ensure!(
+            current.session.suspend == "yes",
+            "Suspend became unavailable while locking"
+        );
+        ensure!(
+            guard.locked(),
+            "Compositor lock is no longer confirmed; suspend cancelled"
+        );
+        Ok(current)
     }
 
     fn offline(&self, message: &str) {

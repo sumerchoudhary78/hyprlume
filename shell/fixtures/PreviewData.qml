@@ -10,7 +10,7 @@ QtObject {
         property bool online: true
         property string error: ""
         signal response(int id, bool ok, var result, string error)
-        property var settings: ({revision:1,values:{preferences:{appearance:{reduced_effects:false,accent:"cyan",scale:1,refraction:16,metrics:true},shortcuts:{launcher:"SUPER+SPACE",windows:"SUPER+TAB",tools:"SUPER+V",lock:"SUPER+L"},services:{clipboard_history:false,notifications_dnd:false}},voice:{asr_dir:"/preview/models/asr",kws_dir:"/preview/models/kws",tts_dir:"/preview/models/tts",keywords_file:"/preview/models/kws/keywords.txt",threads:2,execute_commands:false,speak_results:true},llm:{endpoint:null,model:"local",timeout_seconds:20}},path:"/preview/config.toml",restart_required:false,message:"Preview settings are never written to disk",hyprlang:"bind = SUPER, SPACE, exec, hyprlume launcher",lua:"hl.bind(\"SUPER + SPACE\", hl.dsp.exec_cmd(\"hyprlume launcher\"))"})
+        property var settings: ({revision:1,values:{preferences:{appearance:{reduced_effects:false,accent:"cyan",scale:1,refraction:16,metrics:true},shortcuts:{launcher:"SUPER+SPACE",windows:"SUPER+TAB",tools:"SUPER+V",lock:"SUPER+L"},services:{clipboard_history:false,notifications_dnd:false},idle:{enabled:false,dim_after_seconds:180,lock_after_seconds:300,screen_off_after_seconds:360,suspend_after_seconds:0,dim_percent:20}},voice:{asr_dir:"/preview/models/asr",kws_dir:"/preview/models/kws",tts_dir:"/preview/models/tts",keywords_file:"/preview/models/kws/keywords.txt",threads:2,execute_commands:false,speak_results:true},llm:{endpoint:null,model:"local",timeout_seconds:20}},path:"/preview/config.toml",restart_required:false,message:"Preview settings are never written to disk",hyprlang:"bind = SUPER, SPACE, exec, hyprlume launcher",lua:"hl.bind(\"SUPER + SPACE\", hl.dsp.exec_cmd(\"hyprlume launcher\"))"})
         property var lastRequest: ({})
         property int requestCount: 0
         property int pairCount: 0
@@ -18,7 +18,8 @@ QtObject {
         property QtObject launcher: LauncherFixture {}
         property QtObject tray: TrayFixture { active: sampleBackend.snapshot.desktop_panel === "tray" }
         property QtObject powerService: PowerFixture { active: sampleBackend.snapshot.desktop_panel === "power" }
-        property var locking: ({available:true,active:false,phase:"idle",message:"Synthetic lock control · no session will be locked"})
+        property var idle: ({enabled:false,available:false,presentation:false,recording_inhibits:false,dimmed:false,display_off:false,phase:"disabled",message:"Automatic idle actions are off",error:""})
+    property var locking: ({available:true,active:false,phase:"idle",message:"Synthetic lock control · no session will be locked"})
         property var clipboard: ({available:true,enabled:false,error:"",items:[{id:1,preview:"cargo build --release",bytes:21},{id:2,preview:"The next idea is already within reach.",bytes:36}]})
         property var capture: ({screenshot_available:true,recording_available:true,region_available:true,busy:false,recording:false,output:"",message:"Screen capture is idle · recordings have no audio",error:""})
         property var power: powerService.snapshot
@@ -84,6 +85,7 @@ QtObject {
                 capture=Object.assign({},capture,{busy:request.action==="record",recording:request.action==="record",message:"Synthetic capture only",output:"/preview/capture.png"});
                 if (request.action!=="stop") snapshot=Object.assign({},snapshot,{desktop_panel:null});
             }
+            else if (operation.op === "idle") idle=Object.assign({},idle,{presentation:operation.request.enabled});
             else if (operation.op === "power") powerService.send(operation.request);
             else if (operation.op === "panel") {
                 if (operation.open) {

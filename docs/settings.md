@@ -1,5 +1,9 @@
 # Settings
 
+The **Idle & sleep** page saves opt-in automatic timers and idle brightness.
+These preferences apply live; they do not require restarting the daemon. See
+[idle/sleep](idle-sleep.md) for presentation mode and external-sleep limits.
+
 The settings button or `hyprlume settings` opens four pages using the same glass
 components as the desktop. Changes stay in a draft until Save changes; closing
 or Reload / discard forgets the draft.

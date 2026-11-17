@@ -2,6 +2,23 @@ use super::App;
 use anyhow::{ensure, Result};
 use serde_json::{json, Value};
 use std::sync::Arc;
+impl crate::services::power::SleepGuard for std::sync::Weak<App> {
+    fn lock_before_sleep(&self) -> futures_util::future::BoxFuture<'_, Result<()>> {
+        Box::pin(async {
+            let app = self
+                .upgrade()
+                .ok_or_else(|| anyhow::anyhow!("Desktop service is shutting down"))?;
+            app.lock().await?;
+            app.locking.wait_ready().await
+        })
+    }
+    fn locked(&self) -> bool {
+        self.upgrade().is_some_and(|app| {
+            let state = app.locking.state();
+            state.active && state.phase == "locked"
+        })
+    }
+}
 impl App {
     pub(super) async fn lock(self: &Arc<Self>) -> Result<Value> {
         if matches!(self.locking.state().phase.as_str(), "locked" | "starting") {

@@ -1,6 +1,7 @@
 //! Application state and operation routing, independent of the Unix transport.
 mod commands;
 mod events;
+mod idle;
 mod locking;
 #[cfg(feature = "voice")]
 mod voice;
@@ -27,6 +28,8 @@ pub struct App {
     pub(crate) clipboard: Arc<crate::services::clipboard::Controller>,
     pub(crate) capture: Arc<crate::services::capture::Controller>,
     pub(crate) power: Arc<crate::services::power::Controller>,
+    pub(crate) idle: Arc<crate::services::idle::Controller>,
+    idle_effects: Mutex<idle::Effects>,
     state: watch::Sender<State>,
     pending: Mutex<Option<commands::Pending>>,
     lock_pause: Mutex<Option<u64>>,
@@ -63,7 +66,7 @@ impl App {
         }
         let (state, _) = watch::channel(state);
         let settings = crate::services::settings::Controller::new(&config, config_path, demo);
-        Arc::new(Self {
+        let app = Arc::new(Self {
             settings,
             locking: crate::services::locking::Controller::new(demo),
             config,
@@ -71,6 +74,8 @@ impl App {
             connectivity: crate::services::connectivity::Controller::new(demo),
             notifications: crate::services::notifications::Controller::new(demo),
             power: crate::services::power::Controller::new(demo),
+            idle: crate::services::idle::Controller::new(socket.clone(), demo),
+            idle_effects: Mutex::new(idle::Effects::default()),
             clipboard: crate::services::clipboard::Controller::new(socket, demo),
             capture: crate::services::capture::Controller::new(demo),
             state,
@@ -84,7 +89,9 @@ impl App {
             speaker: Arc::new(std::sync::Mutex::new(None)),
             #[cfg(feature = "voice")]
             voice: Mutex::new(None),
-        })
+        });
+        app.power.set_sleep_guard(Arc::new(Arc::downgrade(&app)));
+        app
     }
 
     pub fn update(&self, f: impl FnOnce(&mut State)) {
@@ -115,6 +122,9 @@ impl App {
                     | Operation::Lock
                     | Operation::LockStatus
                     | Operation::LockSubscribe
+                    | Operation::IdleStatus
+                    | Operation::IdleSubscribe
+                    | Operation::IdleEvent { .. }
                     | Operation::ConnectivityStatus
                     | Operation::ConnectivitySubscribe
                     | Operation::NotificationsStatus
@@ -140,6 +150,14 @@ impl App {
             );
         }
         match operation {
+            Operation::IdleStatus | Operation::IdleSubscribe => Ok(json!(self.idle.state())),
+            Operation::Idle { request } => Ok(json!(self.idle.handle(request))),
+            Operation::IdleEvent { credential, event } => {
+                if self.idle.event(credential, event)? {
+                    self.lock().await?;
+                }
+                Ok(json!({"accepted":true}))
+            }
             Operation::Lock => self.lock().await,
             Operation::LockStatus | Operation::LockSubscribe => Ok(json!(self.locking.state())),
             Operation::Status | Operation::Subscribe => Ok(json!(self.state())),

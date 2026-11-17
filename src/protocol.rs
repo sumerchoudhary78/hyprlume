@@ -19,6 +19,15 @@ pub enum Operation {
     Lock,
     LockStatus,
     LockSubscribe,
+    IdleStatus,
+    IdleSubscribe,
+    Idle {
+        request: crate::services::idle::Request,
+    },
+    IdleEvent {
+        credential: crate::services::idle::Credential,
+        event: crate::services::idle::Event,
+    },
     SettingsSubscribe,
     SettingsStatus,
     Settings {

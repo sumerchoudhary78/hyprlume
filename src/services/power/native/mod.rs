@@ -152,6 +152,29 @@ impl Backend for Native {
                 Mutation::Brightness { device, percent } => {
                     backlight::set(self, observed, &device, percent).await
                 }
+                Mutation::BrightnessRestore {
+                    device,
+                    expected,
+                    value,
+                } => backlight::restore(self, observed, &device, expected, value).await,
+                Mutation::BrightnessDim {
+                    device,
+                    expected,
+                    percent,
+                } => {
+                    observed.validate(&super::Request::Brightness {
+                        device: device.clone(),
+                        percent,
+                    })?;
+                    let light = observed
+                        .backlights
+                        .iter()
+                        .find(|l| l.id == device)
+                        .context("Backlight disappeared")?;
+                    let value =
+                        ((u64::from(light.max) * u64::from(percent) + 50) / 100).max(1) as u32;
+                    backlight::restore(self, observed, &device, expected, value).await
+                }
                 Mutation::Profile(profile) => profiles::set(self, observed, profile).await,
                 Mutation::Session { kind, target } => session::act(self, kind, target).await,
             }

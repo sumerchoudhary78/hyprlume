@@ -38,10 +38,16 @@ def run(driver, mode, height):
         assert driver.request('panel')['open'] is False
         print('POWER INTERACTION PASS: unavailable or inhibited session controls stay disabled')
         return
+    driver.click('powerPresentation')
+    assert driver.request('idle')['request']=={'action':'presentation','enabled':True}
+    driver.click('powerPresentation')
+    assert driver.request('idle')['request']=={'action':'presentation','enabled':False}
+    reveal('powerProfilepower-saver')
     driver.click('powerProfilepower-saver')
     assert driver.request('power')['request'] == {'action': 'profile', 'profile': 'power-saver'}
     driver.wait_event(lambda e: e['kind'] == 'controls' and e['controls'].get('powerProfilebalanced', {}).get('enabled', False)
                       and not e['controls'].get('powerProfilepower-saver', {}).get('enabled', True))
+    reveal('brightness0')
     driver.click('brightness0')
     request = driver.request('power')['request']
     assert request['action'] == 'brightness' and request['device'] == 'sample-panel:1:2:1000'

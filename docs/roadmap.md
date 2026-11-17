@@ -59,7 +59,7 @@ code is needed. User-selected priority is connectivity:
 4. **Power/session:** implemented on main (unreleased): battery/UPS, kernel
    brightness, power profiles and separately confirmed suspend/logout/restart/
    shutdown. Physical driver, policy, sleep/resume and login teardown
-   qualification remain. Secure locking is a separate milestone. See
+   qualification remain. Suspend now waits for secure locking. See
    [power behavior and isolation](power.md).
 5. **System tray:** implemented on main (unreleased): StatusNotifier icons,
    activation/secondary/scroll actions and themed DBusMenu navigation with
@@ -77,6 +77,15 @@ code is needed. User-selected priority is connectivity:
 9. **Screen locking:** implemented on main (unreleased): dedicated ext-session-lock/
    PAM supervision, themed authentication, action/voice/capture pausing and
    fail-closed recovery. See [security behavior and qualification](locking.md).
+10. **Idle/sleep:** implemented on main (unreleased): opt-in dim/lock/screen-off/
+    suspend timers, live settings, presentation and recording inhibition,
+    conditional restoration and confirmed lock-before-suspend. External sleep
+    locking has a bounded logind delay; physical lid/sleep/driver qualification
+    remains. See [idle policy and guarantees](idle-sleep.md).
+
+Next environment services: Polkit authentication agent, XDG portal integration,
+login/session bootstrap, monitor/input settings, Secret Service integration and
+removable storage. These are not supplied by the existing shell panels.
 
 ## Agent work
 

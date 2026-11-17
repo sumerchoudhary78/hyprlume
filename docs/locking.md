@@ -63,9 +63,9 @@ while an episode exists also starts with collection paused. Use the service
 controls to opt in again. Locking a demo daemon is refused; design-preview lock
 buttons use synthetic data and never start a real lock client.
 
-Power's existing Suspend action does **not** automatically lock. Lock explicitly
-and wait for confirmation before suspending; automatic idle/before-sleep policy
-is not installed or changed by Hyprlume. See [power behavior](power.md).
+Power's Suspend action now waits for confirmed locking. See [idle/sleep policy](idle-sleep.md)
+for opt-in automatic stages and the bounded, best-effort guarantee for external
+sleep. No system lid policy or existing idle service is replaced automatically.
 
 ## Recovery
 

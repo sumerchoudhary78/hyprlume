@@ -80,6 +80,13 @@ HyprPilot, without a polling loop for desktop status.
 
 ## Shell surfaces
 
+Idle policy is an opt-in Rust controller with a bounded callback queue and a
+single owned swayidle event source. Generation changes cancel queued effects;
+brightness and DPMS restoration use identity/value leases. Sleep hooks bypass
+the serial idle queue to avoid deadlocking logind's PrepareForSleep signal.
+Power's manual and automatic suspend paths share a compositor-confirmed lock
+guard. See [idle/sleep](idle-sleep.md) for the limits of external sleep hooks.
+
 Quickshell renders ten layer-shell surface roles and one ordinary window for
 preview:
 

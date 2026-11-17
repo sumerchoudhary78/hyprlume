@@ -13,11 +13,12 @@ Item {
     property var snapshot: ({phase: "offline", message: "Start hyprlume daemon to connect", transcript: "", actions: [], receipts: [], confirmation: null, panel_open: false, desktop_panel:null, voice: "off", workspace: null, active_app: ""})
     property var connectivity: ({panel_open:false,busy:false,message:"Connecting to desktop services",error:"",wifi:{available:false,enabled:false,hardware_enabled:false,interfaces:[],networks:[],error:""},bluetooth:{available:false,adapters:[],devices:[],error:""},prompt:null})
     property var notifications: ({available:false,error:"Connecting to notifications",panel_open:false,dnd:false,unread:0,items:[]})
+    property var idle: ({enabled:false,available:false,presentation:false,recording_inhibits:false,dimmed:false,display_off:false,phase:"disabled",message:"Automatic idle actions are off",error:""})
     property var locking: ({available:false,active:false,phase:"idle",message:"Connecting to lock service"})
     property var clipboard: ({enabled:false,available:false,items:[],error:""})
     property var capture: ({screenshot_available:false,recording_available:false,region_available:false,busy:false,recording:false,output:"",message:"Connecting to capture services",error:""})
     signal response(int id, bool ok, var result, string error)
-    property var settings: ({revision:0,values:{preferences:{appearance:{reduced_effects:false,accent:"cyan",scale:1,refraction:16,metrics:true},shortcuts:{launcher:"SUPER+SPACE",windows:"SUPER+TAB",tools:"SUPER+V",lock:"SUPER+L"},services:{clipboard_history:false,notifications_dnd:false}},voice:{asr_dir:"",kws_dir:"",tts_dir:"",keywords_file:"",threads:2,execute_commands:false,speak_results:true},llm:{endpoint:null,model:"local",timeout_seconds:20}},path:"",restart_required:false,message:"Connecting to settings",hyprlang:"",lua:""})
+    property var settings: ({revision:0,values:{preferences:{appearance:{reduced_effects:false,accent:"cyan",scale:1,refraction:16,metrics:true},shortcuts:{launcher:"SUPER+SPACE",windows:"SUPER+TAB",tools:"SUPER+V",lock:"SUPER+L"},services:{clipboard_history:false,notifications_dnd:false},idle:{enabled:false,dim_after_seconds:180,lock_after_seconds:300,screen_off_after_seconds:360,suspend_after_seconds:0,dim_percent:20}},voice:{asr_dir:"",kws_dir:"",tts_dir:"",keywords_file:"",threads:2,execute_commands:false,speak_results:true},llm:{endpoint:null,model:"local",timeout_seconds:20}},path:"",restart_required:false,message:"Connecting to settings",hyprlang:"",lua:""})
     property var power: ({busy:false,message:"Connecting to power services",error:"",prompt:null,battery:{available:false,present:false,percentage:null,state:"unknown",seconds_remaining:null,error:""},backlights:[],profiles:{available:false,active:null,choices:[],degraded:"",error:""},session:{available:false,id:"",suspend:"no",logout:"no",reboot:"no",power_off:"no",error:""}})
     readonly property string socketPath: Quickshell.env("HYPRLUME_SOCKET") || (Quickshell.env("XDG_RUNTIME_DIR") + "/hyprlume/control.sock")
 
@@ -58,6 +59,7 @@ Item {
                 backend.send({op:"capture_subscribe"})
                 backend.send({op:"settings_subscribe"})
                 backend.send({op:"lock_subscribe"})
+                backend.send({op:"idle_subscribe"})
             } else {
                 if (backend.launcher && backend.launcher.busy) backend.launcher.finish(false, "The desktop service disconnected");
                 reconnect.restart()
@@ -77,6 +79,7 @@ Item {
                     else if (data.event === "connectivity") backend.connectivity = data.state
                     else if (data.event === "notifications") backend.notifications = data.state
                     else if (data.event === "locking") backend.locking = data.state
+                    else if (data.event === "idle") backend.idle = data.state
                     else if (data.event === "settings") backend.settings = data.state
                     else if (data.event === "clipboard") backend.clipboard = data.state
                     else if (data.event === "capture") backend.capture = data.state
@@ -85,6 +88,7 @@ Item {
                     else if (data.result && data.result.enabled !== undefined && data.result.items) backend.clipboard = data.result
                     else if (data.result && data.result.screenshot_available !== undefined) backend.capture = data.result
                     else if (data.result && data.result.phase && data.result.active !== undefined) backend.locking = data.result
+                    else if (data.result && data.result.presentation !== undefined) backend.idle = data.result
                     else if (data.result && data.result.phase) backend.snapshot = data.result
                     else if (data.result && data.result.wifi && data.result.bluetooth) backend.connectivity = data.result
                     else if (data.result && data.result.items && data.result.unread !== undefined) backend.notifications = data.result

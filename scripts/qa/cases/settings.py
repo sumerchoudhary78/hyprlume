@@ -20,6 +20,12 @@ def run(driver):
     driver.wait_event(lambda event:event['kind']=='controls' and event['controls'].get('settingsSave',{}).get('enabled',False))
     driver.click('settingsSave');assert driver.request('settings')['request']['values']['preferences']['shortcuts']['launcher']=='SUPER+F2'
     driver.wait_event(lambda event:event['kind']=='controls' and not event['controls'].get('settingsSave',{}).get('enabled',True))
+    driver.click('settingsTab4');driver.wait_controls('settingsIdleEnabled');driver.click('settingsIdleEnabled')
+    driver.wait_event(lambda event:event['kind']=='controls' and event['controls'].get('settingsSave',{}).get('enabled',False))
+    driver.click('settingsSave')
+    idle=driver.request('settings')['request']['values']['preferences']['idle']
+    assert idle['enabled'] and idle['suspend_after_seconds']==0 and idle['dim_percent']==20,idle
+    driver.wait_event(lambda event:event['kind']=='controls' and not event['controls'].get('settingsSave',{}).get('enabled',True))
     driver.click('settingsReload');assert driver.request('settings')['request']['action']=='reload'
     driver.click('closeSettings');assert driver.request('panel')['open'] is False
     print('SETTINGS INTERACTION PASS: reduced glass, accent, decimal scale, startup defaults, shortcuts, save acknowledgments and reload')

@@ -143,7 +143,14 @@ pub(super) async fn act(
     kind: SessionAction,
     target: SessionTarget,
 ) -> Result<String> {
-    verify(native, &target).await?.validate(kind)?;
+    let current = verify(native, &target).await?;
+    current.validate(kind)?;
+    if kind == SessionAction::Suspend {
+        ensure!(
+            current.suspend == "yes",
+            "Suspend needs authorization or is inhibited"
+        );
+    }
     if kind == SessionAction::Logout {
         native
             .proxy(&target.binding)
@@ -168,7 +175,11 @@ pub(super) async fn act(
             .await?
             .call_with_flags::<_, _, ()>(
                 method,
-                zbus::proxy::MethodFlags::AllowInteractiveAuth.into(),
+                if kind == SessionAction::Suspend {
+                    Default::default()
+                } else {
+                    zbus::proxy::MethodFlags::AllowInteractiveAuth.into()
+                },
                 &(1u64,),
             )
             .await?;

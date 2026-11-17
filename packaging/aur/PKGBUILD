@@ -9,6 +9,7 @@ license=('MIT' 'Apache-2.0')
 depends=('glibc' 'coreutils' 'gtk3' 'gcc-libs' 'dbus' 'systemd>=257' 'quickshell' 'qt6-declarative' 'qt6-wayland' 'qt6-quick3d>=6.9' 'hyprland' 'pipewire-audio' 'wireplumber' 'python')
 makedepends=('cargo' 'git' 'qt6-shadertools' 'pkgconf')
 optdepends=('swaylock>=1.6: secure Wayland locking with PAM'
+            'swayidle: opt-in Wayland idle policy and logind sleep hooks'
             'librsvg: themed SVG lock background'
             'wl-clipboard: opt-in text clipboard history'
             'grim: Wayland screenshots'
