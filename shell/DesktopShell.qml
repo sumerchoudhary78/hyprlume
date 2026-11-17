@@ -4,6 +4,7 @@ import Quickshell.Hyprland
 import Quickshell.Wayland
 import qs.components
 import qs.modules.settings
+import qs.modules.storage
 import qs.modules.tools
 import qs.modules.launcher
 import qs.modules.tray
@@ -172,6 +173,22 @@ Item {
                 anchors.fill: parent; anchors.margins: 9
                 availableHeight: desktop.focusedScreen ? desktop.focusedScreen.height - Theme.barZone - 30 : 800
                 backend: desktop.backend; reducedEffects: desktop.state.reducedEffects
+            }
+        }
+    }
+    Loader {
+        active: desktop.backend.online && desktop.backend.snapshot.desktop_panel === "storage"
+        sourceComponent: PanelWindow {
+            screen: desktop.focusedScreen
+            anchors { top: true; bottom: true; left: true; right: true }
+            exclusiveZone: 0; color: "transparent"
+            WlrLayershell.namespace: "hyprlume-storage"
+            WlrLayershell.layer: WlrLayer.Overlay
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+            StorageOverlay {
+                anchors.fill: parent
+                backend: desktop.backend
+                reducedEffects: desktop.state.reducedEffects
             }
         }
     }

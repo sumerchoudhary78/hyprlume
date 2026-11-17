@@ -97,8 +97,11 @@ code is needed. User-selected priority is connectivity:
 14. **Credential storage:** Secret Service discovery, login and default
     collection controls and provider-owned prompts. See [credential storage](credentials.md).
 
+15. **Removable storage:** event-driven UDisks2 controls for mounting,
+    encryption and safe removal. See [removable drives](storage.md).
+
 Next environment services include login/session bootstrap, monitor settings
-and removable storage.
+and the remaining system preferences.
 
 ## Agent work
 

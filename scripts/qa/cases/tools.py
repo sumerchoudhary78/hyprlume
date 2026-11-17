@@ -17,4 +17,22 @@ def run(driver):
     assert driver.request('capture')['request']=={'action':'record','region':False,'output':'PREVIEW-1'}
     driver.wait_controls('stopRecording');driver.click('stopRecording')
     assert driver.request('capture')['request']=={'action':'stop'}
+    driver.click('openDesktopTools')
+    driver.request('panel')
+    driver.wait_controls('toolsDrives')
+    driver.click('toolsDrives')
+    assert driver.request('panel')['panel'] == 'storage'
+    driver.wait_controls('driveUnlock0_1')
+    driver.click('driveUnlock0_1')
+    driver.wait_controls('drivePassphrase')
+    driver.click('drivePassphrase')
+    driver.xdo('type', '--clearmodifiers', 'fixture-passphrase')
+    driver.wait_event(lambda event: event['kind'] == 'controls' and event['controls'].get('driveConfirm', {}).get('enabled', False))
+    driver.click('driveConfirm')
+    assert driver.request('storage')['request'] == {'action': 'unlock', 'id': 'fixture-encrypted', 'password': '[credential]'}
+    driver.wait_controls('driveEject0')
+    driver.click('driveEject0')
+    driver.wait_controls('driveConfirm')
+    driver.click('driveConfirm')
+    assert driver.request('storage')['request'] == {'action': 'eject', 'id': 'fixture-drive'}
     print('TOOLS INTERACTION PASS: opt-in, copy/remove/clear, screenshot selection and persistent recording stop')

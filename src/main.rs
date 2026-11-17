@@ -106,6 +106,8 @@ enum Commands {
         #[arg(long, value_enum)]
         presentation: Option<Toggle>,
     },
+    /// Open removable storage controls.
+    Storage,
     /// Inspect or switch the active keyboard layout.
     Input {
         #[arg(long)]
@@ -357,6 +359,10 @@ async fn main() -> Result<()> {
                 Commands::Lock { .. } => Operation::Lock,
                 Commands::Settings => Operation::Panel {
                     panel: hyprlume::protocol::DesktopPanel::Settings,
+                    open: true,
+                },
+                Commands::Storage => Operation::Panel {
+                    panel: hyprlume::protocol::DesktopPanel::Storage,
                     open: true,
                 },
                 Commands::Input { next_layout } => Operation::Input {

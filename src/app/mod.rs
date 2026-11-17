@@ -5,6 +5,7 @@ mod events;
 mod idle;
 mod input;
 mod locking;
+mod storage;
 #[cfg(feature = "voice")]
 mod voice;
 
@@ -34,6 +35,8 @@ pub struct App {
     idle_effects: Mutex<idle::Effects>,
     input_gate: Arc<Mutex<()>>,
     credentials_gate: Arc<Mutex<()>>,
+    #[cfg(target_os = "linux")]
+    storage_gate: Arc<Mutex<()>>,
     state: watch::Sender<State>,
     pending: Mutex<Option<commands::Pending>>,
     lock_pause: Mutex<Option<u64>>,
@@ -82,6 +85,8 @@ impl App {
             idle_effects: Mutex::new(idle::Effects::default()),
             input_gate: Arc::new(Mutex::new(())),
             credentials_gate: Arc::new(Mutex::new(())),
+            #[cfg(target_os = "linux")]
+            storage_gate: Arc::new(Mutex::new(())),
             clipboard: crate::services::clipboard::Controller::new(socket, demo),
             capture: crate::services::capture::Controller::new(demo),
             state,
@@ -108,6 +113,11 @@ impl App {
                 state.desktop_panel = None;
                 state.confirmation = None;
                 state.feedback = None;
+            }
+            if state.desktop_panel != Some(crate::protocol::DesktopPanel::Storage)
+                && !state.storage.busy
+            {
+                state.storage = crate::services::storage::State::default();
             }
         });
     }
@@ -175,6 +185,7 @@ impl App {
             Operation::NotificationsStatus | Operation::NotificationsSubscribe => {
                 Ok(json!(self.notifications.state()))
             }
+            Operation::Storage { request } => self.storage(request),
             Operation::Credentials { request } => self.credentials(request),
             Operation::Input { request } => self.input(request).await,
             Operation::SystemKey { key } => self.system_key(key),

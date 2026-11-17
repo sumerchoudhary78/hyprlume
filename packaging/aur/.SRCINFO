@@ -37,6 +37,7 @@ pkgbase = hyprlume
 	optdepends = wl-clipboard: opt-in text clipboard history
 	optdepends = grim: Wayland screenshots
 	optdepends = slurp: capture region and display selection
+	optdepends = udisks2: removable drive mounting, unlocking and safe removal
 	optdepends = gnome-keyring: Secret Service provider with PAM login integration
 	optdepends = playerctl: hardware media keys for MPRIS players
 	optdepends = wf-recorder: silent screen recording

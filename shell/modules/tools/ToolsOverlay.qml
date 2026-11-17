@@ -35,6 +35,7 @@ Item {
             RowLayout {
                 GlassButton {objectName:"toolsClipboard"; text:"Clipboard"; primary:root.clipboardMode; onClicked:root.backend.send({op:"panel",panel:"clipboard",open:true})}
                 GlassButton {objectName:"toolsCapture"; text:"Capture"; primary:!root.clipboardMode; onClicked:root.backend.send({op:"panel",panel:"capture",open:true})}
+                GlassButton {objectName:"toolsDrives"; text:"Drives"; onClicked:root.backend.send({op:"panel",panel:"storage",open:true})}
                 Item {Layout.fillWidth:true}
             }
             RowLayout {

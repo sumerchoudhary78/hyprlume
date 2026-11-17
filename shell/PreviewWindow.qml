@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import qs.modules.home
 import qs.modules.settings
+import qs.modules.storage
 import qs.modules.tools
 import qs.modules.launcher
 import qs.modules.tray
@@ -83,6 +84,11 @@ FloatingWindow {
         anchors.fill: parent
         active: window.backend.online && ["clipboard","capture"].includes(window.backend.snapshot.desktop_panel)
         sourceComponent: ToolsOverlay { outputName:window.screen ? window.screen.name : ""; anchors.fill: parent; backend: window.backend; reducedEffects: window.state.reducedEffects }
+    }
+    Loader {
+        anchors.fill: parent
+        active: window.backend.online && window.backend.snapshot.desktop_panel === "storage"
+        sourceComponent: StorageOverlay { anchors.fill: parent; backend: window.backend; reducedEffects: window.state.reducedEffects }
     }
     Loader {
         anchors.fill:parent
