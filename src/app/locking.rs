@@ -32,6 +32,8 @@ impl App {
         self.update(|state| {
             state.confirmation = None;
             state.actions.clear();
+            state.phase = "ready".into();
+            state.message = "Desktop actions paused for session locking".into();
         });
         let _ = self.set_voice(crate::protocol::VoiceMode::Off).await;
         self.clipboard.shutdown().await;
@@ -99,7 +101,10 @@ mod tests {
             .is_err());
         assert!(app
             .handle(Operation::Capture {
-                request: crate::services::capture::Request::Record { region: false }
+                request: crate::services::capture::Request::Record {
+                    region: false,
+                    output: None
+                }
             })
             .await
             .is_err());

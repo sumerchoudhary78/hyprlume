@@ -16,6 +16,7 @@ pub(super) async fn start() -> Result<()> {
         "--unit",
         UNIT,
         "--property=NotifyAccess=all",
+        "--property=PartOf=graphical-session.target",
         "--property=NoNewPrivileges=no",
         "--property=Restart=on-failure",
         "--property=RestartSec=1",

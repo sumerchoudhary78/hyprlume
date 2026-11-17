@@ -7,6 +7,7 @@ import qs.theme
 Item {
     id: root
     required property var backend
+    property string outputName:""
     property bool reducedEffects: false
     readonly property bool clipboardMode: backend.snapshot.desktop_panel === "clipboard"
     readonly property var clipboard: backend.clipboard
@@ -81,7 +82,7 @@ Item {
                 }
                 RowLayout {
                     Layout.fillWidth:true
-                    GlassButton {objectName:"recordScreen"; text:"Record display"; enabled:root.capture.recording_available && !root.capture.busy; onClicked:root.captureRequest({action:"record",region:false})}
+                    GlassButton {objectName:"recordScreen"; text:"Record this display"; enabled:root.capture.recording_available && !root.capture.busy; onClicked:root.captureRequest({action:"record",region:false,output:root.outputName || null})}
                     GlassButton {objectName:"recordRegion"; text:"Record area"; enabled:root.capture.recording_available && root.capture.region_available && !root.capture.busy; onClicked:root.captureRequest({action:"record",region:true})}
                     GlassButton {objectName:"captureStop"; text:root.capture.recording ? "Stop & save" : "Cancel"; primary:true; visible:root.capture.busy; onClicked:root.captureRequest({action:"stop"})}
                 }

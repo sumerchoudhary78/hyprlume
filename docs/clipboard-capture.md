@@ -29,7 +29,9 @@ it does not spin in a restart loop. Install Arch's `wl-clipboard` package.
 ## Screenshots and recordings
 
 - Screenshot captures the output layout with `grim`; Select area opens `slurp`.
-- Record display lets you select one output. Record area selects a rectangle.
+- Record this display targets the monitor hosting the panel directly. Record area
+  selects a rectangle. API clients without an output name fall back to selecting
+  an output.
   Both use `wf-recorder`, 30 fps, damage-based capture and Matroska. They record
   **no microphone or desktop audio**.
 - The overlay dismisses before capture. A persistent bar button appears while
@@ -47,7 +49,7 @@ base directory. The service does not evaluate shell syntax in `user-dirs.dirs`.
 Hyprlume creates an owned 0700 output directory and exclusive 0600 files. An
 existing public or symlinked Hyprlume output directory is refused. Paths appear
 in the Capture tab, and files are not uploaded or sent to a model. Multi-output
-recording is deliberately an explicit single-display selection.
+recording is deliberately an explicit single-display target.
 
 Install `grim`, `slurp`, and `wf-recorder`. Compositor screencopy/layer-shell and
 a usable encoder are required. The UI disables unavailable tools. Newly

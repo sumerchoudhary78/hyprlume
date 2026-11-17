@@ -14,7 +14,7 @@ def run(driver):
     driver.wait_controls('closeTools',False)
     driver.click('openDesktopTools');driver.request('panel');driver.wait_controls('toolsCapture');driver.click('toolsCapture');driver.request('panel')
     driver.wait_controls('recordScreen');driver.click('recordScreen')
-    assert driver.request('capture')['request']=={'action':'record','region':False}
+    assert driver.request('capture')['request']=={'action':'record','region':False,'output':'PREVIEW-1'}
     driver.wait_controls('stopRecording');driver.click('stopRecording')
     assert driver.request('capture')['request']=={'action':'stop'}
     print('TOOLS INTERACTION PASS: opt-in, copy/remove/clear, screenshot selection and persistent recording stop')

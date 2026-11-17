@@ -53,7 +53,8 @@ def provision(binary):
         result=subprocess.run(['runuser','-u',user,'--',sys.executable,str(base/'check.py'),'--inside-user','--base',str(base)],text=True)
         output=ROOT/'output/design/wayland';output.mkdir(parents=True,exist_ok=True)
         for name in ['sway.log','daemon.log','lock-journal.log','report.json','private-screenshot.png']:
-            if (base/name).exists():shutil.copy2(base/name,output/name)
+            if (base/name).exists():
+                shutil.copyfile(base/name,output/name);(output/name).chmod(0o644)
         run(['rsvg-convert','-w','1920','-h','1080','-o',str(output/'lock-background.png'),str(assets/'lock.svg')])
         return result.returncode
     finally:
@@ -118,12 +119,10 @@ def inside(base):
         call('capture',request={'action':'screenshot','region':False})
         capture=wait(lambda:value if (value:=state('capture'))['output'].endswith('.png') and not value['busy'] else None,'native screenshot')
         image=Path(capture['output']);assert image.read_bytes().startswith(b'\x89PNG\r\n\x1a\n')
+        assert image.stat().st_mode&0o777==0o600
         shutil.copy2(image,base/'private-screenshot.png')
-        call('capture',request={'action':'record','region':False})
-        time.sleep(.6)
-        # Select the one private headless output through Sway's own input IPC.
-        for command in ['seat seat0 cursor set 200 200','seat seat0 cursor press button1','seat seat0 cursor release button1']:
-            run(['swaymsg',command],env=env,stdout=subprocess.DEVNULL)
+        outputs=json.loads(subprocess.check_output(['swaymsg','-t','get_outputs','-r'],env=env,text=True))
+        call('capture',request={'action':'record','region':False,'output':outputs[0]['name']})
         wait(lambda:state('capture')['recording'],'native screen recorder')
         run(['swaymsg','output * bg #19394c solid_color'],env=env,stdout=subprocess.DEVNULL)
         time.sleep(.6)

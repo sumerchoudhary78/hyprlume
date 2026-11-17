@@ -94,7 +94,7 @@ ShellRoot {
     Loader {
         anchors.fill: parent
         active: previewData.backend.online && ["clipboard","capture"].includes(previewData.backend.snapshot.desktop_panel)
-        sourceComponent: ToolsOverlay { anchors.fill: parent; backend: previewData.backend; reducedEffects: previewData.state.reducedEffects }
+        sourceComponent: ToolsOverlay { outputName:"PREVIEW-1"; anchors.fill: parent; backend: previewData.backend; reducedEffects: previewData.state.reducedEffects }
     }
     Loader {
         anchors.fill:parent

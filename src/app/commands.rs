@@ -75,7 +75,9 @@ impl App {
                 .execute(&plan.plan, plan.active_window.as_deref(), plan.epoch)
                 .await
             {
-                app.fail(&error.to_string());
+                if app.locking.epoch() == plan.epoch && !app.locking.active() {
+                    app.fail(&error.to_string());
+                }
             }
             drop(permit);
         });
@@ -106,7 +108,9 @@ impl App {
         let app = self.clone();
         tokio::spawn(async move {
             if let Err(error) = app.prepare_command(text, direct, dry_run, epoch).await {
-                app.fail(&error.to_string());
+                if app.locking.epoch() == epoch && !app.locking.active() {
+                    app.fail(&error.to_string());
+                }
             }
             drop(permit);
         });
