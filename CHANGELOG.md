@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Add the glass Sound & media panel using native Quickshell PipeWire/MPRIS
+  adapters, default-device selection, input/output/stream volume and mute,
+  player selection and capability-aware playback controls.
+- Validate audio adapters against a private software-only PipeWire server and
+  fake MPRIS player, plus real pointer/keyboard and unavailable-state previews.
 - Add a Rust freedesktop notification server, glass popups and notification
   centre with actions, history, unread state and Do Not Disturb.
 - Respect existing notification-server ownership, direct signals to the owning

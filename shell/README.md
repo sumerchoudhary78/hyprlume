@@ -20,8 +20,9 @@ shell/
 │   ├── topbar/               bar content and navigation primitives
 │   ├── command/              panel composition, editor, plan review and overlay
 │   ├── connectivity/         Wi-Fi, Bluetooth and modal pairing prompts
-│   └── notifications/        centre, shared notice cards and non-focusing popups
-├── services/                 daemon socket, metrics, clock, workspace state
+│   ├── notifications/        centre, shared notice cards and non-focusing popups
+│   └── audio/                input/output/stream controls and selected media player
+├── services/                 daemon socket, native audio, metrics, clock, workspace state
 ├── fixtures/                 synthetic data and UI-control probe; QA only
 └── theme/Theme.qml           shared palette, typography and interaction timing
 ```
@@ -51,6 +52,11 @@ drives these same controls with real pointer/keyboard input.
 Keep entry files at that root. The AUR package excludes fixtures and QA entries.
 The old separate plain-Qt palette was removed: tests now exercise the actual
 command component, so a passing test cannot accidentally cover a different UI.
+
+`services/AudioController.qml` validates native object handles and player
+capabilities. `NativeAudio.qml` connects it to Quickshell's existing event-driven
+adapters; `fixtures/AudioFixture.qml` supplies the same interface in tests. Audio
+views use neither a separate Rust PipeWire client nor polling subprocesses.
 
 Run `python3 scripts/check-qml.py shell` for static checks. Rendering, input QA,
 scaling, layers and reduced effects are documented in

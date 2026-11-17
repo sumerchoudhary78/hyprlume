@@ -54,7 +54,7 @@ use the existing service interfaces and shared view state; see
 
 ## Processes and ownership
 
-Quickshell owns rendering, input widgets, and layer-shell surfaces. The Rust
+Quickshell owns rendering, input widgets, native PipeWire/MPRIS adapters and layer-shell surfaces. The Rust
 daemon owns configuration, the bounded action planner/executor, model work,
 and observed desktop state. A CLI sends the same protocol as the UI.
 
@@ -72,7 +72,7 @@ HyprPilot, without a polling loop for desktop status.
 
 ## Shell surfaces
 
-Quickshell renders seven layer-shell surface roles and one ordinary window for
+Quickshell renders eight layer-shell surface roles and one ordinary window for
 preview:
 
 - `hyprlume-wallpaper`, one per monitor, Background layer with no input region.
@@ -90,9 +90,12 @@ preview:
   its centre is open; it excludes command and connectivity overlays.
 - `hyprlume-notification-popups`, a small Overlay on the focused screen with no
   keyboard focus or exclusive zone, loaded only while popups are present.
+- `hyprlume-audio`, an exclusive-keyboard Overlay for native devices and media,
+  coordinated with the other panels through Rust's typed `desktop_panel` state.
 
 Surfaces contain no protocol logic. `services/Backend.qml` owns the socket and
 the reconnecting subscription; `services/Workspaces.qml` wraps Hyprland state;
+`services/NativeAudio.qml` uses native event streams without polling processes;
 `services/Metrics.qml` owns the only child process the shell starts; `Clock` and
 `ShellState` are local. Modules receive these as required properties, which keeps
 every panel usable in isolation and previewable without a daemon.

@@ -81,7 +81,7 @@ Item {
             visible: !root.compact
             x: 29; y: 704; width: 313; height: 210; rotation: -4.5
             metrics: root.metrics; backdrop: wallpaper
-            animationsActive: root.animationsActive && !root.backend.snapshot.panel_open && !root.backend.connectivity.panel_open && !root.backend.notifications.panel_open
+            animationsActive: root.animationsActive && !root.backend.snapshot.panel_open && !root.backend.connectivity.panel_open && !root.backend.notifications.panel_open && !root.backend.snapshot.desktop_panel
             secondaryColor: Theme.violet; glowColor: Theme.amber
             reducedEffects: root.state.reducedEffects
         }

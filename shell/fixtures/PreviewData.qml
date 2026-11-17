@@ -12,6 +12,7 @@ QtObject {
         property var lastRequest: ({})
         property int requestCount: 0
         property int pairCount: 0
+        property QtObject audio: AudioFixture { active: sampleBackend.snapshot.desktop_panel === "audio" }
         property var notifications: ({
             available:true,error:"",panel_open:Quickshell.env("HYPRLUME_NOTIFICATIONS_PREVIEW") === "1",dnd:false,unread:3,
             items:[
@@ -42,7 +43,7 @@ QtObject {
             // Simulate unrelated D-Bus snapshots while the user types a PIN.
             onTriggered: sampleBackend.connectivity = JSON.parse(JSON.stringify(sampleBackend.connectivity))
         }
-        property var snapshot: ({phase:"ready",message:"Your desktop, within reach.",transcript:"workspace two",actions:[],receipts:["Focused Development workspace","Desktop state verified","Ready for your next command"],confirmation:null,panel_open:false,voice:"off",workspace:2,active_app:"hyprlume"})
+        property var snapshot: ({phase:"ready",message:"Your desktop, within reach.",transcript:"workspace two",actions:[],receipts:["Focused Development workspace","Desktop state verified","Ready for your next command"],confirmation:null,panel_open:false,desktop_panel:Quickshell.env("HYPRLUME_AUDIO_PREVIEW") === "1" ? "audio" : null,voice:"off",workspace:2,active_app:"hyprlume"})
         property Timer planningDelay: Timer {
             interval: 600
             onTriggered: sampleBackend.snapshot = Object.assign({}, sampleBackend.snapshot,
@@ -56,7 +57,14 @@ QtObject {
             if (publicOperation.request && publicOperation.request.value) publicOperation.request.value = "[credential]";
             lastRequest = publicOperation; requestCount++;
             if (Quickshell.env("HYPRLUME_QA") === "1") console.log("HYPRLUME_QA " + JSON.stringify({kind:"request",operation:publicOperation}));
-            if (operation.op === "notifications") {
+            if (operation.op === "panel") {
+                if (operation.open) {
+                    notifications = Object.assign({}, notifications, {panel_open:false});
+                    connectivity = Object.assign({}, connectivity, {panel_open:false});
+                    snapshot = Object.assign({}, snapshot, {panel_open:false,desktop_panel:operation.panel});
+                } else if (snapshot.desktop_panel === operation.panel) snapshot = Object.assign({}, snapshot, {desktop_panel:null});
+            }
+            else if (operation.op === "notifications") {
                 const action = operation.request;
                 const next = JSON.parse(JSON.stringify(notifications));
                 if (action.action === "toggle") {
@@ -64,7 +72,7 @@ QtObject {
                     if (next.panel_open) {
                         next.unread = 0;
                         for (const item of next.items) { item.read = true; item.popup = false; }
-                        snapshot = Object.assign({}, snapshot, {panel_open:false});
+                        snapshot = Object.assign({}, snapshot, {panel_open:false,desktop_panel:null});
                         connectivity = Object.assign({}, connectivity, {panel_open:false});
                     }
                 } else if (action.action === "close") next.panel_open = false;
@@ -83,7 +91,7 @@ QtObject {
                 const action = operation.request;
                 const next = JSON.parse(JSON.stringify(connectivity));
                 next.error = "";
-                if (action.action === "toggle") { next.panel_open = !next.panel_open; snapshot = Object.assign({}, snapshot, {panel_open:false}); notifications = Object.assign({}, notifications, {panel_open:false}); }
+                if (action.action === "toggle") { next.panel_open = !next.panel_open; snapshot = Object.assign({}, snapshot, {panel_open:false,desktop_panel:null}); notifications = Object.assign({}, notifications, {panel_open:false}); }
                 else if (action.action === "close") { next.panel_open = false; next.prompt = null; next.busy = false; }
                 else if (action.action === "wifi_power") next.wifi.enabled = action.enabled;
                 else if (action.action === "wifi_connect") { for (const network of next.wifi.networks) network.connected = network.id === action.network; }
@@ -111,7 +119,7 @@ QtObject {
             else if (operation.op === "toggle") {
                 notifications = Object.assign({}, notifications, {panel_open:false});
                 connectivity = Object.assign({}, connectivity, {panel_open:false});
-                snapshot = Object.assign({}, snapshot, {panel_open:!snapshot.panel_open});
+                snapshot = Object.assign({}, snapshot, {panel_open:!snapshot.panel_open || !!snapshot.desktop_panel,desktop_panel:null});
             }
             else if (operation.op === "voice") snapshot = Object.assign({}, snapshot, {voice:operation.mode});
             else if (operation.op === "command") {

@@ -49,6 +49,8 @@ enum Commands {
         #[arg(long)]
         status: bool,
     },
+    /// Open the sound and media panel without changing any audio settings.
+    Audio,
     Toggle,
     Cancel,
     /// Confirm a specific preview token (expires after 30 seconds).
@@ -184,6 +186,10 @@ async fn main() -> Result<()> {
                     }
                 }
                 Commands::Toggle => Operation::Toggle,
+                Commands::Audio => Operation::Panel {
+                    panel: hyprlume::protocol::DesktopPanel::Audio,
+                    open: true,
+                },
                 Commands::Cancel => Operation::Cancel,
                 Commands::Confirm { token } => Operation::Confirm { token },
                 Commands::Voice { mode } => Operation::Voice { mode },

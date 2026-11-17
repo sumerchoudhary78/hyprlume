@@ -44,9 +44,10 @@ Still open:
 
 ## Desktop-service sequence
 
-Each service gets a Rust owner, an independent state topic, themed QML controls,
-unavailable/busy/error states and native UI tests before the next one starts.
-No custom C++ service code is needed. User-selected priority is connectivity:
+Services use Rust controllers where needed or existing event-driven Quickshell
+adapters. Each has a separate interface, themed controls, explicit unavailable
+states and native UI tests before the next one starts. No custom C++ service
+code is needed. User-selected priority is connectivity:
 
 1. **Wi-Fi/Bluetooth:** implemented; physical connection/pairing qualification,
    hidden/enterprise profile editing and Bluetooth battery indicators remain.
@@ -54,7 +55,10 @@ No custom C++ service code is needed. User-selected priority is connectivity:
    dismissal, bounded session history and Do Not Disturb. Markup, images, sounds,
    durable settings/history and activation tokens remain outside this milestone.
    See [notification behavior and isolation](notifications.md).
-3. **Audio/media:** PipeWire devices/routing, volume and MPRIS playback.
+3. **Audio/media:** implemented on main (unreleased): PipeWire devices, preferred
+   input/output, node volume/mute and capability-aware MPRIS playback. Per-stream
+   routing, profiles/ports and physical hot-plug qualification remain. See
+   [supported controls and isolated checks](audio.md).
 4. **Power/session:** battery, brightness, power profiles, suspend and logout.
 5. **System tray:** StatusNotifier items and menus.
 6. **App launcher:** desktop-entry indexing, search and app/window activation.

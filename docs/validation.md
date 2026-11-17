@@ -206,6 +206,20 @@ or notification-server takeover was performed. Layer-shell popup keyboard
 policy is explicitly `None`; a physical Wayland notification-client matrix
 remains to be qualified. See [notification limits](notifications.md).
 
+## Audio/media (unreleased)
+
+On 17 November, the native audio adapter passed against a private software-only
+PipeWire server and fake MPRIS player. Volume, mute, playback and metadata made
+real protocol round trips; independent server queries observed the requested
+volume/mute and configured default. Controller checks rejected invalid volumes,
+unavailable/unbound/stale nodes, stale players and unsupported playback actions.
+Native pointer/keyboard tests cover mute, volume, default selection, player
+selection, capability disabling and Escape. Full, compact reduced-effects and
+unavailable states render with the production components. Existing command and
+notification input tests still pass. These checks never connect to the active
+desktop's PipeWire socket or players. See [audio limits](audio.md) for the
+remaining physical-device, policy and performance qualification.
+
 ## Packaging and remaining qualification
 
 The AUR recipe fetches during `prepare` and builds/tests with `--frozen`. GCC
