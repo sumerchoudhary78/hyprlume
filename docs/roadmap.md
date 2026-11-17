@@ -83,9 +83,11 @@ code is needed. User-selected priority is connectivity:
     locking has a bounded logind delay; physical lid/sleep/driver qualification
     remains. See [idle policy and guarantees](idle-sleep.md).
 
-Next environment services: Polkit authentication agent, XDG portal integration,
-login/session bootstrap, monitor/input settings, Secret Service integration and
-removable storage. These are not supplied by the existing shell panels.
+11. **Polkit:** implemented on main (unreleased). The optional Wayland dialog
+    uses the system authentication helper. See [setup and verification](polkit.md).
+
+Next environment services include XDG portal integration, login/session
+bootstrap, monitor/input settings, Secret Service integration and removable storage.
 
 ## Agent work
 

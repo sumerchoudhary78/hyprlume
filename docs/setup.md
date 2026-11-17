@@ -92,6 +92,9 @@ confirmation rules are not an operating-system sandbox. Launchers must be
 able to write their own settings and cache, so the service does not impose a
 read-only home on child applications.
 
+The optional [Polkit agent](polkit.md) can supply system authorization prompts
+in a matching development build. Its separate user service is enabled explicitly.
+
 ## Fonts
 
 The shell asks for **Inter** and **JetBrains Mono**. On Arch:

@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install native D-Bus development headers
-        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev pkg-config dbus-daemon
+        run: sudo apt-get update && sudo apt-get install -y libdbus-1-dev libpolkit-agent-1-dev pkg-config dbus-daemon
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
@@ -56,6 +56,8 @@ jobs:
           python3 -m compileall -q scripts
       - name: Smoke the actual offline shell entry
         run: python3 scripts/qa/check-shell.py
+      - name: Exercise the Polkit dialog and private UI pipes
+        run: python3 scripts/qa/check-polkit-ui.py
       - name: Check liquid volume and paused motion
         run: python3 scripts/qa/check-effects.py
       - name: Render the desktop with real Qt Quick 3D
@@ -151,7 +153,11 @@ jobs:
           name: native-service-test-binary
           path: output/native
       - name: Install disposable Wayland/PAM test dependencies
-        run: sudo apt-get update && sudo apt-get install -y sway swayidle swaylock wl-clipboard grim slurp wf-recorder wtype ffmpeg librsvg2-bin dbus-user-session
+        run: sudo apt-get update && sudo apt-get install -y sway swayidle swaylock wl-clipboard grim slurp wf-recorder wtype ffmpeg librsvg2-bin dbus-user-session polkitd libpolkit-agent-1-0
+      - name: Qualify real Polkit authorization and PAM
+        run: |
+          chmod +x output/native/hyprlume
+          sudo --preserve-env=GITHUB_ACTIONS python3 scripts/qa/check-polkit-native.py --binary output/native/hyprlume
       - name: Qualify real clipboard, capture and secure locking
         run: |
           chmod +x output/native/hyprlume

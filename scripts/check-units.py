@@ -20,9 +20,9 @@ def main():
         runtime = root / "runtime"
         runtime.mkdir(mode=0o700)
         target = root / "graphical-session.target"
-        target.write_text("[Unit]\nDescription=Isolated graphical-session validation\nRequires=basic.target\nWants=hyprlume-daemon.service hyprlume-shell.service\n")
+        target.write_text("[Unit]\nDescription=Isolated graphical-session validation\nRequires=basic.target\nWants=hyprlume-daemon.service hyprlume-shell.service hyprlume-polkit.service\n")
         units = []
-        for name in ["hyprlume-daemon.service", "hyprlume-shell.service"]:
+        for name in ["hyprlume-daemon.service", "hyprlume-shell.service", "hyprlume-polkit.service"]:
             path = root / name
             path.write_text((source / name).read_text().replace("/usr/bin/hyprlume", str(binary)))
             units.append(str(path))

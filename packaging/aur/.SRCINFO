@@ -11,11 +11,14 @@ pkgbase = hyprlume
 	makedepends = git
 	makedepends = qt6-shadertools
 	makedepends = pkgconf
+	makedepends = glib2-devel
 	depends = coreutils
 	depends = gtk3
 	depends = glibc
 	depends = gcc-libs
 	depends = dbus
+	depends = polkit
+	depends = glib2
 	depends = systemd>=257
 	depends = quickshell
 	depends = qt6-declarative
