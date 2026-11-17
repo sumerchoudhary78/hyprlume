@@ -68,7 +68,7 @@ is protocol-tested; model-specific planning quality must be evaluated separately
 Run these from a terminal **inside your graphical session**:
 
 ```sh
-systemctl --user import-environment WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE XDG_CURRENT_DESKTOP
+systemctl --user import-environment WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE XDG_CURRENT_DESKTOP XDG_SESSION_ID
 systemctl --user restart hyprlume-daemon.service hyprlume-shell.service
 ```
 

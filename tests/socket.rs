@@ -45,6 +45,71 @@ impl Drop for Daemon {
 }
 
 #[tokio::test]
+async fn power_topic_and_panel_do_not_consume_an_agent_confirmation() {
+    let daemon = Daemon::start().await;
+    server::call(
+        &daemon.path,
+        Operation::Command {
+            text: "workspace 2".into(),
+            dry_run: true,
+        },
+    )
+    .await
+    .unwrap();
+    let before = server::call(&daemon.path, Operation::Status).await.unwrap();
+    assert!(before["confirmation"].is_number());
+    let mut observer = Framed::new(
+        UnixStream::connect(&daemon.path).await.unwrap(),
+        LinesCodec::new(),
+    );
+    observer
+        .send(r#"{"id":1,"op":"power_subscribe"}"#)
+        .await
+        .unwrap();
+    let initial: Value = serde_json::from_str(&observer.next().await.unwrap().unwrap()).unwrap();
+    assert_eq!(initial["id"], 1);
+    assert!(initial["result"]["battery"].is_object());
+    assert!(initial["result"]["session"].is_object());
+    let opened = server::call(
+        &daemon.path,
+        Operation::Panel {
+            panel: hyprlume::protocol::DesktopPanel::Power,
+            open: true,
+        },
+    )
+    .await
+    .unwrap();
+    assert_eq!(opened["desktop_panel"], "power");
+    assert_eq!(opened["panel_open"], false);
+    assert_eq!(opened["confirmation"], before["confirmation"]);
+    assert!(server::call(
+        &daemon.path,
+        Operation::Power {
+            request: hyprlume::services::power::Request::Prepare {
+                kind: hyprlume::services::power::SessionAction::Suspend
+            }
+        }
+    )
+    .await
+    .is_err());
+    assert_eq!(
+        server::call(&daemon.path, Operation::Status).await.unwrap()["confirmation"],
+        before["confirmation"]
+    );
+    assert!(
+        tokio::time::timeout(Duration::from_millis(50), observer.next())
+            .await
+            .is_err(),
+        "power-only client received an unrelated agent event"
+    );
+    let closed = server::call(&daemon.path, Operation::Toggle).await.unwrap();
+    assert!(closed["desktop_panel"].is_null());
+    assert_eq!(closed["panel_open"], true);
+    assert_eq!(closed["confirmation"], before["confirmation"]);
+    daemon.stop().await;
+}
+
+#[tokio::test]
 async fn notification_topic_is_opt_in_and_overlay_switches_preserve_agent_state() {
     let daemon = Daemon::start().await;
     let mut observer = Framed::new(

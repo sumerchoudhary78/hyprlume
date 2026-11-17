@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import qs.fixtures
 import qs.modules.home
+import qs.modules.power
 import qs.modules.audio
 import qs.modules.command
 import qs.modules.notifications
@@ -66,6 +67,11 @@ ShellRoot {
                 anchors.fill: parent
                 active: previewData.backend.online && previewData.backend.snapshot.desktop_panel === "audio"
                 sourceComponent: AudioOverlay { anchors.fill: parent; backend: previewData.backend; reducedEffects: previewData.state.reducedEffects }
+            }
+            Loader {
+                anchors.fill: parent
+                active: previewData.backend.online && previewData.backend.snapshot.desktop_panel === "power"
+                sourceComponent: PowerOverlay { anchors.fill: parent; backend: previewData.backend; reducedEffects: previewData.state.reducedEffects }
             }
             ControlProbe {
                 targetItem: window.contentItem

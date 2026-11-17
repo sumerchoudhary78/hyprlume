@@ -21,7 +21,8 @@ shell/
 │   ├── command/              panel composition, editor, plan review and overlay
 │   ├── connectivity/         Wi-Fi, Bluetooth and modal pairing prompts
 │   ├── notifications/        centre, shared notice cards and non-focusing popups
-│   └── audio/                input/output/stream controls and selected media player
+│   ├── audio/                input/output/stream controls and selected media player
+│   └── power/                battery, brightness, profiles and session review
 ├── services/                 daemon socket, native audio, metrics, clock, workspace state
 ├── fixtures/                 synthetic data and UI-control probe; QA only
 └── theme/Theme.qml           shared palette, typography and interaction timing
@@ -57,6 +58,11 @@ command component, so a passing test cannot accidentally cover a different UI.
 capabilities. `NativeAudio.qml` connects it to Quickshell's existing event-driven
 adapters; `fixtures/AudioFixture.qml` supplies the same interface in tests. Audio
 views use neither a separate Rust PipeWire client nor polling subprocesses.
+
+`modules/power/` consumes the independent Rust power topic. It renders only
+advertised capabilities and sends typed brightness/profile or prepare/confirm
+requests. The session review has its own token; it never sends an agent command.
+`fixtures/PowerFixture.qml` drives the same views without a native power API.
 
 Run `python3 scripts/check-qml.py shell` for static checks. Rendering, input QA,
 scaling, layers and reduced effects are documented in

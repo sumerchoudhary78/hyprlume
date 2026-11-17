@@ -220,6 +220,22 @@ notification input tests still pass. These checks never connect to the active
 desktop's PipeWire socket or players. See [audio limits](audio.md) for the
 remaining physical-device, policy and performance qualification.
 
+## Power/session (unreleased)
+
+Native power tests use owned private D-Bus services and temporary backlights.
+They observe UPower state, profile/brightness read-back and exact logind method
+arguments, including inhibitor flags. Remote/other-user/ambiguous/replaced
+sessions, service loss, inhibitor changes and stale backlights are rejected.
+Controller tests cover single-use confirmation, cancellation/expiry, closing
+during reads, concurrency, bounded errors and late disconnected snapshots.
+An idle regression checks that closed panels stop D-Bus polling and periodic
+brightness observation. Socket coverage keeps the power topic independent and
+preserves agent confirmations. Native pointer/keyboard checks exercise the
+production panel and compact scrolling, unavailable/inhibited controls and
+separate session review. These do not invoke a real host power method. Physical
+hardware, policy, sleep/resume and logout teardown remain unqualified; see
+[power details](power.md).
+
 ## Packaging and remaining qualification
 
 The AUR recipe fetches during `prepare` and builds/tests with `--frozen`. GCC

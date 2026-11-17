@@ -59,7 +59,11 @@ code is needed. User-selected priority is connectivity:
    input/output, node volume/mute and capability-aware MPRIS playback. Per-stream
    routing, profiles/ports and physical hot-plug qualification remain. See
    [supported controls and isolated checks](audio.md).
-4. **Power/session:** battery, brightness, power profiles, suspend and logout.
+4. **Power/session:** implemented on main (unreleased): battery/UPS, kernel
+   brightness, power profiles and separately confirmed suspend/logout/restart/
+   shutdown. Physical driver, policy, sleep/resume and login teardown
+   qualification remain. Secure locking is a separate milestone. See
+   [power behavior and isolation](power.md).
 5. **System tray:** StatusNotifier items and menus.
 6. **App launcher:** desktop-entry indexing, search and app/window activation.
 7. **Clipboard/capture:** Wayland clipboard history, screenshots and recording.

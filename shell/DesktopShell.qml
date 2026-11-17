@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Wayland
 import qs.components
+import qs.modules.power
 import qs.modules.audio
 import qs.modules.command
 import qs.modules.notifications
@@ -151,6 +152,18 @@ Item {
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
             AudioOverlay { anchors.fill: parent; backend: desktop.backend; reducedEffects: desktop.state.reducedEffects }
+        }
+    }
+    Loader {
+        active: desktop.backend.online && desktop.backend.snapshot.desktop_panel === "power"
+        sourceComponent: PanelWindow {
+            screen: desktop.focusedScreen
+            anchors { top: true; bottom: true; left: true; right: true }
+            exclusiveZone: 0; color: "transparent"
+            WlrLayershell.namespace: "hyprlume-power"
+            WlrLayershell.layer: WlrLayer.Overlay
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+            PowerOverlay { anchors.fill: parent; backend: desktop.backend; reducedEffects: desktop.state.reducedEffects }
         }
     }
 
