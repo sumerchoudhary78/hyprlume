@@ -189,7 +189,9 @@ impl Controller {
         let result = async {
             if record {
                 let mut command = Command::new("wf-recorder");
-                command.args(["--overwrite", "--muxer", "matroska", "--framerate", "30", "--file"]).arg(&path);
+                // Continuous frame requests also wake a completely static output,
+                // so SIGINT can leave the recorder's Wayland dispatch loop.
+                command.args(["--overwrite", "--no-damage", "--muxer", "matroska", "--framerate", "30", "--file"]).arg(&path);
                 if let Some(geometry) = &geometry { command.arg("--geometry").arg(geometry); }
                 if let Some(output) = &output { command.arg("--output").arg(output); }
                 let mut child = command.stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null())

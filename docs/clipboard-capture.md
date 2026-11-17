@@ -32,8 +32,10 @@ it does not spin in a restart loop. Install Arch's `wl-clipboard` package.
 - Record this display targets the monitor hosting the panel directly. Record area
   selects a rectangle. API clients without an output name fall back to selecting
   an output.
-  Both use `wf-recorder`, 30 fps, damage-based capture and Matroska. They record
+  Both use `wf-recorder`, fixed 30 fps capture and Matroska. They record
   **no microphone or desktop audio**.
+  Fixed-frame capture keeps the recorder responsive to Stop even when a selected
+  output is completely static; no recorder runs while idle.
 - The overlay dismisses before capture. A persistent bar button appears while
   the recorder process is running; Stop sends SIGINT to that owned child and
   waits up to eight seconds for finalization. `hyprlume capture --stop` also

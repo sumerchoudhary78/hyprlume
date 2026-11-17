@@ -145,8 +145,11 @@ def inside(base):
         type_text('incorrect-fixture-password');time.sleep(4)
         assert state('lock')['active'] and worker_pid()==worker,'incorrect password ended locking'
         # Restart only our private daemon: the independent lock unit must survive.
+        preferences=base/'config/hyprlume/config.toml';preferences.parent.mkdir(parents=True,exist_ok=True)
+        preferences.write_text('[preferences.services]\nclipboard_history = true\n')
         daemon.terminate();daemon.wait(timeout=15);daemon=start_daemon()
         wait(lambda:state('lock')['phase']=='locked','lock observation after daemon restart')
+        assert not state('clipboard')['enabled'],'startup preference collected clipboard during locking'
         assert worker_pid()==worker
         # Kill only the known lock child; the compositor stays fail-closed and
         # the dedicated unit restores the authentication surface.
@@ -165,6 +168,10 @@ def inside(base):
         (base/'report.json').write_text(json.dumps(report,indent=2)+'\n')
         print('WAYLAND SERVICES PASS: '+json.dumps(report))
         return 0
+    except Exception:
+        try:print('NATIVE FAILURE STATE '+json.dumps({'capture':state('capture'),'locking':state('lock')}),flush=True)
+        except Exception:pass
+        raise
     finally:
         with (base/'lock-journal.log').open('w') as journal:
             subprocess.run(['journalctl','--user','-u',UNIT,'--no-pager','-n','100'],env=env,stdout=journal,stderr=subprocess.STDOUT)
