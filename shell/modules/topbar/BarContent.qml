@@ -45,7 +45,7 @@ GlassSurface {
         }
         Item { Layout.fillWidth: true }
         SearchBox {
-            onActivated: root.backend.send({op:"toggle"})
+            onActivated: root.backend.send({op:"panel",panel:"launcher",open:true})
         }
         Item {
             width: 34; height: 34

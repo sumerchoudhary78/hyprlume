@@ -70,23 +70,44 @@ impl Desktop {
             );
         }
         let target = &matches[0];
-        if uses_lua(conn).await? {
-            let selector = lua_window(&target.address)?;
-            conn.dispatch(&format!("hl.dsp.focus({{ window = {selector} }})"))
-                .await?;
-        } else {
-            conn.focus_window(&WindowSelector::Address(target.address.clone()))
-                .await?;
-        }
-        if !conn
-            .active_window()
-            .await?
-            .is_some_and(|w| w.address == target.address)
-        {
-            bail!("Hyprland did not confirm the focused window");
-        }
+        focus_bound(conn, &target.address).await?;
         Ok(format!("{} focused", target.class))
     }
+
+    pub async fn focus_address(&self, address: &str) -> Result<String> {
+        lua_window(address)?;
+        if self.demo {
+            return Ok(format!("Demo only · focus {address}"));
+        }
+        let conn = self.connection.as_ref().context("No Hyprland session")?;
+        let target = conn
+            .clients()
+            .await?
+            .into_iter()
+            .find(|window| window.address == address)
+            .context("The selected window is no longer open")?;
+        focus_bound(conn, &target.address).await?;
+        Ok(format!("{} focused", target.class))
+    }
+}
+
+async fn focus_bound(conn: &Connection, address: &str) -> Result<()> {
+    let selector = lua_window(address)?;
+    if uses_lua(conn).await? {
+        conn.dispatch(&format!("hl.dsp.focus({{ window = {selector} }})"))
+            .await?;
+    } else {
+        conn.focus_window(&WindowSelector::Address(address.to_owned()))
+            .await?;
+    }
+    if !conn
+        .active_window()
+        .await?
+        .is_some_and(|w| w.address == address)
+    {
+        bail!("Hyprland did not confirm the focused window");
+    }
+    Ok(())
 }
 
 // The pinned HyprPilot transport predates Lua dispatchers. Detect the same

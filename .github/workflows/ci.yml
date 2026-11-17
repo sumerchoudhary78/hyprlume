@@ -35,7 +35,7 @@ jobs:
     container: archlinux:base
     steps:
       - name: Install the native shell and isolated display tools
-        run: pacman -Syu --noconfirm --needed git python python-pillow python-dbus-next pipewire quickshell qt6-quick3d qt6-shadertools xorg-server-xvfb xorg-xauth dbus xdotool inter-font ttf-jetbrains-mono
+        run: pacman -Syu --noconfirm --needed git python python-pillow python-dbus-next gtk3 pipewire quickshell qt6-quick3d qt6-shadertools xorg-server-xvfb xorg-xauth dbus xdotool inter-font ttf-jetbrains-mono
       - uses: actions/checkout@v4
       - name: Record graphics runtime versions
         run: pacman -Q quickshell qt6-declarative qt6-quick3d mesa
@@ -60,6 +60,12 @@ jobs:
         run: python3 scripts/qa/check-audio.py
       - name: Exercise private StatusNotifier and DBusMenu adapters
         run: python3 scripts/qa/check-tray.py
+      - name: Exercise desktop-entry indexing and launcher input
+        run: |
+          python3 scripts/qa/check-launcher.py
+          python3 scripts/qa/render-desktop.py --launcher --interact
+          python3 scripts/qa/render-desktop.py --launcher --output output/design/launcher.png
+          python3 scripts/qa/render-desktop.py --launcher --width 960 --height 640 --reduced-effects --output output/design/launcher-compact.png
       - name: Exercise tray icons, menus and keyboard navigation
         run: |
           python3 scripts/qa/render-desktop.py --tray --interact

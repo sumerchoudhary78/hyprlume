@@ -6,7 +6,7 @@ pkgdesc='Glass command shell and local English voice companion for Hyprland, pow
 arch=('x86_64' 'aarch64')
 url='https://github.com/sumerchoudhary78/hyprlume'
 license=('MIT' 'Apache-2.0')
-depends=('glibc' 'gcc-libs' 'dbus' 'systemd>=257' 'quickshell' 'qt6-declarative' 'qt6-wayland' 'qt6-quick3d>=6.9' 'hyprland' 'pipewire-audio' 'wireplumber' 'python')
+depends=('glibc' 'gtk3' 'gcc-libs' 'dbus' 'systemd>=257' 'quickshell' 'qt6-declarative' 'qt6-wayland' 'qt6-quick3d>=6.9' 'hyprland' 'pipewire-audio' 'wireplumber' 'python')
 makedepends=('cargo' 'git' 'qt6-shadertools' 'pkgconf')
 optdepends=('espeak-ng: phonemization for local Piper speech output'
             'networkmanager: native Wi-Fi connectivity service'

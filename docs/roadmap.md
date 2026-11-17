@@ -33,9 +33,6 @@ Delivered in the current tree:
 
 Still open:
 
-- Launcher search results and task switcher. The bar
-  currently opens the command panel; there is no result list behind the search
-  field.
 - Full task-specific pages and persisted workflows behind navigation. Existing
   tabs select the console, action activity, assistant focus or live system data.
 - Remaining desktop services in the implementation sequence below.
@@ -68,7 +65,9 @@ code is needed. User-selected priority is connectivity:
    activation/secondary/scroll actions and themed DBusMenu navigation with
    check/radio states. Legacy XEmbed and the physical app matrix remain outside
    this milestone. See [tray behavior and isolated checks](tray.md).
-6. **App launcher:** desktop-entry indexing, search and app/window activation.
+6. **App launcher:** implemented on main (unreleased): native desktop-entry indexing,
+   ranked application search and exact-address window switching. See
+   [behavior and isolated checks](launcher.md).
 7. **Clipboard/capture:** Wayland clipboard history, screenshots and recording.
 8. **Settings:** persisted preferences, effects/motion and service configuration.
 9. **Screen locking:** a real session-lock integration with authentication and

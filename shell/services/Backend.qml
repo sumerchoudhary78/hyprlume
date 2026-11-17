@@ -9,6 +9,7 @@ Item {
     property int sequence: 0
     property var audio: null
     property var tray: null
+    property var launcher: null
     property var snapshot: ({phase: "offline", message: "Start hyprlume daemon to connect", transcript: "", actions: [], receipts: [], confirmation: null, panel_open: false, desktop_panel:null, voice: "off", workspace: null, active_app: ""})
     property var connectivity: ({panel_open:false,busy:false,message:"Connecting to desktop services",error:"",wifi:{available:false,enabled:false,hardware_enabled:false,interfaces:[],networks:[],error:""},bluetooth:{available:false,adapters:[],devices:[],error:""},prompt:null})
     property var notifications: ({available:false,error:"Connecting to notifications",panel_open:false,dnd:false,unread:0,items:[]})
@@ -26,12 +27,13 @@ Item {
     function send(operation) {
         if (!socket.connected) {
             error = "Daemon disconnected. Start hyprlume daemon in this session."
-            return
+            return 0
         }
         error = ""
         operation.id = ++sequence
         socket.write(JSON.stringify(operation) + "\n")
         socket.flush()
+        return operation.id
     }
 
     Socket {
@@ -48,6 +50,7 @@ Item {
                 backend.send({op: "notifications_subscribe"})
                 backend.send({op: "power_subscribe"})
             } else {
+                if (backend.launcher && backend.launcher.busy) backend.launcher.finish(false, "The desktop service disconnected");
                 reconnect.restart()
             }
         }
@@ -59,6 +62,7 @@ Item {
             onRead: message => {
                 try {
                     const data = JSON.parse(message)
+                    if (backend.launcher && backend.launcher.pending && data.id === backend.launcher.pending) backend.launcher.finish(!data.error, data.error || (data.result && data.result.message));
                     if (data.event === "state") backend.snapshot = data.state
                     else if (data.event === "connectivity") backend.connectivity = data.state
                     else if (data.event === "notifications") backend.notifications = data.state

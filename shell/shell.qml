@@ -12,7 +12,8 @@ ShellRoot {
 
     readonly property bool preview: Quickshell.env("HYPRLUME_PREVIEW") === "1"
 
-    Backend { id: backend; audio: audioService; tray: trayService }
+    Backend { id: backend; audio: audioService; tray: trayService; launcher: launcherService }
+    NativeLauncher { id: launcherService; backend: backend; active: backend.online && ["launcher","switcher"].includes(backend.snapshot.desktop_panel) }
     NativeTray { id: trayService; active: backend.online && backend.snapshot.desktop_panel === "tray" }
     NativeAudio { id: audioService; active: backend.online && backend.snapshot.desktop_panel === "audio" }
     Clock { id: clock }
