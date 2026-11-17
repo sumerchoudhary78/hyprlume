@@ -32,6 +32,13 @@ enum Commands {
         #[arg(long)]
         preview: bool,
     },
+    /// Run the desktop authorization agent for this Wayland login.
+    Polkit {
+        #[arg(long)]
+        path: Option<PathBuf>,
+    },
+    #[command(hide = true)]
+    PolkitWorker,
     /// Preview a command; --execute runs a direct command immediately.
     Send {
         text: String,
@@ -207,6 +214,8 @@ async fn main() -> Result<()> {
             use std::os::unix::process::CommandExt;
             return Err(command.exec()).context("start Quickshell (install quickshell)");
         }
+        Commands::Polkit { path } => return hyprlume::services::polkit::launch(path, cli.socket),
+        Commands::PolkitWorker => return hyprlume::services::polkit::worker().await,
         Commands::LockWorker => return hyprlume::services::locking::run_worker().await,
         Commands::Doctor => {
             println!(

@@ -34,6 +34,7 @@ implemented with shared glass controls and isolated checks:
 | [Clipboard/capture](docs/clipboard-capture.md) | Opt-in text history, screenshots and silent recording |
 | [Settings](docs/settings.md) | Live appearance, saved model/startup preferences and shortcut exports |
 | [Session locking](docs/locking.md) | Real Wayland/PAM locking, independent supervision and recovery |
+| [Polkit](docs/polkit.md) | Opt-in system authorization prompts with the native PAM helper |
 
 Each linked page documents dependencies, limits and qualification. The published
 v0.4.1/AUR package does not include these development features. No compositor
@@ -152,8 +153,10 @@ Requires Rust 1.90 or newer. The checked-in lockfile pins the Rust
 dependencies and the exact HyprPilot commit. On Linux, install Quickshell,
 Qt 6 Quick/Controls/Wayland, **Qt Quick 3D (6.9+)**, Hyprland, PipeWire tools, and
 WirePlumber separately. Native wireless builds also need D-Bus development
-headers and `pkg-config` (`dbus` and `pkgconf` on Arch); NetworkManager and BlueZ
-are optional runtime services. Tested with Quickshell 0.3.2 and Qt 6.12 on Arch.
+headers and `pkg-config` (`dbus` and `pkgconf` on Arch). The Polkit worker links
+`libpolkit-agent-1` and GLib (`polkit`, `glib2` and `glib2-devel` on Arch).
+NetworkManager and BlueZ are optional runtime services. Tested with Quickshell
+0.3.2 and Qt 6.12 on Arch.
 
 ```sh
 git clone https://github.com/sumerchoudhary78/hyprlume.git

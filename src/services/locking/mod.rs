@@ -4,6 +4,8 @@ mod marker;
 mod native;
 mod worker;
 use anyhow::{bail, ensure, Result};
+#[cfg(target_os = "linux")]
+pub(super) use marker::exists as has_episode;
 use serde::{Deserialize, Serialize};
 use std::sync::{
     atomic::{AtomicBool, AtomicU64, Ordering},

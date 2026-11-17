@@ -9,7 +9,7 @@ pub(super) fn path() -> Result<PathBuf> {
     let runtime = std::env::var_os("XDG_RUNTIME_DIR").context("XDG_RUNTIME_DIR is required")?;
     Ok(PathBuf::from(runtime).join("hyprlume-lock/episode"))
 }
-pub(super) fn exists() -> bool {
+pub(in crate::services) fn exists() -> bool {
     path().is_ok_and(|path| std::fs::symlink_metadata(path).is_ok())
 }
 pub(super) fn begin() -> Result<()> {

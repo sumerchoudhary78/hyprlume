@@ -1,0 +1,16 @@
+[Unit]
+Description=Hyprlume graphical Polkit authentication agent
+Documentation=https://github.com/sumerchoudhary78/hyprlume/blob/main/docs/polkit.md
+PartOf=graphical-session.target
+After=hyprlume-daemon.service
+Wants=hyprlume-daemon.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/hyprlume polkit
+UMask=0077
+# libpolkit-agent starts the distribution's setuid PAM helper.
+NoNewPrivileges=false
+
+[Install]
+WantedBy=graphical-session.target
