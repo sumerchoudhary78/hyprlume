@@ -21,7 +21,11 @@ async fn compositor(
         .collect();
     let server = tokio::spawn(async move {
         for (expected, response) in responses {
-            let (mut stream, _) = listener.accept().await.unwrap();
+            let (mut stream, _) =
+                tokio::time::timeout(std::time::Duration::from_secs(3), listener.accept())
+                    .await
+                    .unwrap()
+                    .unwrap();
             let mut request = String::new();
             stream.read_to_string(&mut request).await.unwrap();
             assert_eq!(request, expected);

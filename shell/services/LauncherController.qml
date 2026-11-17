@@ -31,6 +31,6 @@ Item {
     }
     function finish(ok, message) {
         busy = false; pending = 0;
-        if (ok) activated(); else error = label(message || "The request failed");
+        if (ok) { query = ""; activated(); } else error = label(message || "The request failed");
     }
 }
