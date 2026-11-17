@@ -26,7 +26,7 @@ Item {
 
     function submitReview() {
         if (!root.review) return;
-        const request = {action: root.review.action, id: root.review.id};
+        const request = {action: root.review.action, "id": root.review.id};
         if (request.action === "unlock") {
             request.password = passphrase.text;
             passphrase.clear();
@@ -122,7 +122,7 @@ Item {
                                     text: "Safely remove…"
                                     compact: true
                                     enabled: drive.modelData.can_eject
-                                    onClicked: root.review = {id: drive.modelData.id, action: "eject", label: drive.modelData.label}
+                                    onClicked: root.review = {"id": drive.modelData.id, action: "eject", label: drive.modelData.label}
                                 }
                             }
                             Repeater {
@@ -150,14 +150,14 @@ Item {
                                             visible: volume.modelData.filesystem
                                             text: volume.modelData.mounted ? "Unmount" : "Mount"
                                             compact: true
-                                            onClicked: root.send({action: volume.modelData.mounted ? "unmount" : "mount", id: volume.modelData.id})
+                                            onClicked: root.send({action: volume.modelData.mounted ? "unmount" : "mount", "id": volume.modelData.id})
                                         }
                                         GlassButton {
                                             objectName: "driveOpen" + drive.index + "_" + volume.index
                                             visible: volume.modelData.mounted
                                             text: "Open files"
                                             compact: true
-                                            onClicked: root.send({action: "open", id: volume.modelData.id})
+                                            onClicked: root.send({action: "open", "id": volume.modelData.id})
                                         }
                                         GlassButton {
                                             objectName: "driveUnlock" + drive.index + "_" + volume.index
@@ -167,9 +167,9 @@ Item {
                                             compact: true
                                             onClicked: {
                                                 if (volume.modelData.locked) {
-                                                    root.review = {id: volume.modelData.id, action: "unlock", label: volume.modelData.label};
+                                                    root.review = {"id": volume.modelData.id, action: "unlock", label: volume.modelData.label};
                                                     passphrase.forceActiveFocus();
-                                                } else root.send({action: "lock", id: volume.modelData.id});
+                                                } else root.send({action: "lock", "id": volume.modelData.id});
                                             }
                                         }
                                     }
