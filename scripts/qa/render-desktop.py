@@ -18,7 +18,7 @@ import sys
 import tempfile
 
 from ui_driver import UiDriver
-from cases import commands as command_case, connectivity as connectivity_case, notifications as notification_case, audio as audio_case, power as power_case, tray as tray_case, launcher as launcher_case, tools as tools_case, settings as settings_case
+from cases import commands as command_case, connectivity as connectivity_case, notifications as notification_case, audio as audio_case, power as power_case, tray as tray_case, launcher as launcher_case, tools as tools_case, settings as settings_case, locking as locking_case
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -38,6 +38,7 @@ def main():
     parser.add_argument('--audio-state', choices=['normal', 'unavailable'], default='normal')
     parser.add_argument('--power', action='store_true', help='render or exercise power controls with synthetic services')
     parser.add_argument('--power-state', choices=['normal', 'unavailable', 'desktop', 'inhibited', 'review'], default='normal')
+    parser.add_argument('--locking', action='store_true')
     parser.add_argument('--settings', action='store_true')
     parser.add_argument('--settings-tab',type=int,choices=range(4),default=0)
     parser.add_argument('--tools-capture',action='store_true')
@@ -48,7 +49,7 @@ def main():
     parser.add_argument('--effects', action='store_true', help='render isolated liquid materials and test their motion clock')
     parser.add_argument('--inside-display', action='store_true', help=argparse.SUPPRESS)
     args = parser.parse_args()
-    if sum([args.effects, args.connectivity, args.notifications, args.notification_popups, args.audio, args.power, args.tray, args.launcher, args.tools, args.settings]) > 1:
+    if sum([args.effects, args.connectivity, args.notifications, args.notification_popups, args.audio, args.power, args.tray, args.launcher, args.tools, args.settings, args.locking]) > 1:
         parser.error('choose one preview surface per check')
     if args.effects and args.interact:
         parser.error('--effects and --interact are separate checks')
@@ -103,7 +104,9 @@ def main():
         else:
             if not shutil.which('xdotool'):
                 raise AssertionError('xdotool is required for --interact')
-            if args.settings:
+            if args.locking:
+                locking_case.run(driver)
+            elif args.settings:
                 settings_case.run(driver)
             elif args.tools:
                 tools_case.run(driver)

@@ -18,6 +18,7 @@ QtObject {
         property QtObject launcher: LauncherFixture {}
         property QtObject tray: TrayFixture { active: sampleBackend.snapshot.desktop_panel === "tray" }
         property QtObject powerService: PowerFixture { active: sampleBackend.snapshot.desktop_panel === "power" }
+        property var locking: ({available:true,active:false,phase:"idle",message:"Synthetic lock control · no session will be locked"})
         property var clipboard: ({available:true,enabled:false,error:"",items:[{id:1,preview:"cargo build --release",bytes:21},{id:2,preview:"The next idea is already within reach.",bytes:36}]})
         property var capture: ({screenshot_available:true,recording_available:true,region_available:true,busy:false,recording:false,output:"",message:"Screen capture is idle · recordings have no audio",error:""})
         property var power: powerService.snapshot

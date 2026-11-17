@@ -12,6 +12,7 @@ use std::{
 
 pub(super) struct Pending {
     token: u64,
+    epoch: u64,
     plan: Plan,
     created: Instant,
     active_window: Option<String>,
@@ -45,6 +46,7 @@ impl App {
         if plan.token != token {
             bail!("confirmation token does not match");
         }
+        self.check_epoch(plan.epoch)?;
         let plan = pending.take().unwrap();
         drop(pending);
         self.update(|state| state.confirmation = None);
@@ -69,8 +71,13 @@ impl App {
         }
         let app = self.clone();
         tokio::spawn(async move {
-            if let Err(error) = app.execute(&plan.plan, plan.active_window.as_deref()).await {
-                app.fail(&error.to_string());
+            if let Err(error) = app
+                .execute(&plan.plan, plan.active_window.as_deref(), plan.epoch)
+                .await
+            {
+                if app.locking.epoch() == plan.epoch && !app.locking.active() {
+                    app.fail(&error.to_string());
+                }
             }
             drop(permit);
         });
@@ -78,6 +85,8 @@ impl App {
     }
 
     pub(super) async fn submit(self: &Arc<Self>, text: String, dry_run: bool) -> Result<Value> {
+        let epoch = self.locking.epoch();
+        self.check_epoch(epoch)?;
         let permit = self
             .busy
             .clone()
@@ -98,8 +107,10 @@ impl App {
         });
         let app = self.clone();
         tokio::spawn(async move {
-            if let Err(error) = app.prepare_command(text, direct, dry_run).await {
-                app.fail(&error.to_string());
+            if let Err(error) = app.prepare_command(text, direct, dry_run, epoch).await {
+                if app.locking.epoch() == epoch && !app.locking.active() {
+                    app.fail(&error.to_string());
+                }
             }
             drop(permit);
         });
@@ -111,11 +122,16 @@ impl App {
         text: String,
         direct: Option<Plan>,
         dry_run: bool,
+        epoch: u64,
     ) -> Result<()> {
         let plan = match direct {
             Some(plan) => plan,
-            None => planner::plan(&text, &self.config).await?,
+            None => tokio::select! {
+                result=planner::plan(&text,&self.config)=>result?,
+                _=self.locking.invalidated(epoch)=>bail!("Planning cancelled for session locking"),
+            },
         };
+        self.check_epoch(epoch)?;
         let active_window = if plan
             .actions
             .iter()
@@ -132,6 +148,7 @@ impl App {
         } else {
             None
         };
+        self.check_epoch(epoch)?;
         self.update(|state| {
             state.actions = plan
                 .actions
@@ -141,12 +158,16 @@ impl App {
         });
         if dry_run || plan.source == "local_llm" {
             let token = self.sequence.fetch_add(1, Ordering::Relaxed);
-            *self.pending.lock().await = Some(Pending {
+            let mut pending = self.pending.lock().await;
+            self.check_epoch(epoch)?;
+            *pending = Some(Pending {
                 token,
+                epoch,
                 plan,
                 created: Instant::now(),
                 active_window,
             });
+            drop(pending);
             self.update(|state| {
                 state.phase = "review".into();
                 state.message = "Review the action before running it".into();
@@ -154,18 +175,22 @@ impl App {
                 state.panel_open = true;
             });
         } else {
-            self.execute(&plan, active_window.as_deref()).await?;
+            self.execute(&plan, active_window.as_deref(), epoch).await?;
         }
         Ok(())
     }
 
-    async fn execute(&self, plan: &Plan, target: Option<&str>) -> Result<()> {
+    async fn execute(&self, plan: &Plan, target: Option<&str>, epoch: u64) -> Result<()> {
         self.update(|s| {
             s.phase = "executing".into();
             s.message = "Applying your action".into();
         });
         for action in &plan.actions {
-            let receipt = self.desktop.execute(action, &self.config, target).await?;
+            self.check_epoch(epoch)?;
+            let receipt = tokio::select! {
+                result=self.desktop.execute(action,&self.config,target)=>result?,
+                _=self.locking.invalidated(epoch)=>bail!("Desktop action cancelled for session locking"),
+            };
             self.update(|s| s.receipts.push(receipt));
         }
         self.update(|s| {
@@ -177,6 +202,7 @@ impl App {
             }
             .into();
         });
+        self.check_epoch(epoch)?;
         #[cfg(feature = "voice")]
         if self.config.voice.speak_results && self.state().voice == VoiceMode::Wake {
             if let Err(e) = self.feedback().await {

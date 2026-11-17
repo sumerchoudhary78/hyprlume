@@ -24,3 +24,37 @@ pub async fn call(path: &Path, operation: Operation) -> Result<Value> {
     }
     Ok(response["result"].clone())
 }
+
+/// Wait on pushed lock state; startup acknowledgment alone is not a lock.
+pub async fn wait_for_lock(path: &Path) -> Result<()> {
+    timeout(Duration::from_secs(45), async {
+        let stream = UnixStream::connect(path).await?;
+        let mut framed = Framed::new(stream, LinesCodec::new_with_max_length(64 * 1024));
+        framed
+            .send(serde_json::to_string(&Request {
+                id: 1,
+                operation: Operation::LockSubscribe,
+            })?)
+            .await?;
+        while let Some(message) = framed.next().await {
+            let message: Value = serde_json::from_str(&message?)?;
+            if let Some(error) = message.get("error") {
+                bail!("{}", error.as_str().unwrap_or("Lock status failed"));
+            }
+            let value = message
+                .get("result")
+                .or_else(|| message.get("state"))
+                .context("Invalid lock response")?;
+            let state: crate::services::locking::State = serde_json::from_value(value.clone())?;
+            if state.phase == "locked" && state.active {
+                return Ok(());
+            }
+            if matches!(state.phase.as_str(), "error" | "recovery" | "idle") {
+                bail!("{}", state.message);
+            }
+        }
+        bail!("Daemon disconnected before confirming the lock")
+    })
+    .await
+    .context("Timed out waiting for compositor lock confirmation")?
+}

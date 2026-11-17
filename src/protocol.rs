@@ -16,6 +16,9 @@ pub enum Operation {
     ConnectivityStatus,
     NotificationsSubscribe,
     NotificationsStatus,
+    Lock,
+    LockStatus,
+    LockSubscribe,
     SettingsSubscribe,
     SettingsStatus,
     Settings {

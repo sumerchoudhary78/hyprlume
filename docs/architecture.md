@@ -7,11 +7,13 @@ src/
 ├── main.rs                   CLI arguments and process entry
 ├── lib.rs                    public module surface
 ├── config.rs                 configuration validation and XDG paths
+├── config/preferences.rs     bounded appearance, shortcut and startup settings
 ├── protocol.rs               shared wire operations and state snapshots
 ├── app/
 │   ├── mod.rs                state ownership and operation routing
 │   ├── commands.rs           admission, planning, review and execution lifecycle
 │   ├── events.rs             compositor observations
+│   ├── locking.rs            epoch revocation and coordinated service pausing
 │   └── voice.rs              voice lifecycle, event handling and feedback
 ├── server/
 │   ├── mod.rs                bounded sessions, subscriptions and daemon lifetime
@@ -30,8 +32,12 @@ src/
 │   ├── connectivity/         wireless state, validation, admission and pairing
 │   │   └── native/           NetworkManager/BlueZ adapters and event streams
 │   ├── notifications/        bounded lifecycle, D-Bus server, expiry and UI topic
-│   └── power/                native observations, bounded mutations and session review
-│       └── native/           UPower, backlights, profiles and logind adapters
+│   ├── power/                native observations, bounded mutations and session review
+│   │   └── native/           UPower, backlights, profiles and logind adapters
+│   ├── clipboard/            opt-in watcher and bounded volatile text store
+│   ├── capture/              owned jobs, validated targets and private storage
+│   ├── settings/             versioned drafts, validation and atomic persistence
+│   └── locking/              independent notify unit, PAM client and recovery marker
 └── voice/
     ├── mod.rs                public speech API and events
     ├── models.rs             model discovery and recognizer configuration
@@ -203,3 +209,13 @@ atomic writes on a blocking worker. The shell applies appearance tokens live;
 voice/model and service defaults are applied on the next explicit daemon start.
 `modules/settings` holds a local draft and matches acknowledgments by request
 ID. An unrelated update cannot approve a pending save or retarget an agent plan.
+
+## Locking
+
+`services/locking` supervises a dedicated systemd notify unit and maintained
+Swaylock client. Readiness follows the compositor acknowledgment; authentication
+is never transported through shell/agent IPC. A private episode marker and
+D-Bus unit observation survive daemon restarts. `app/locking` coordinates service
+pausing, and command epochs prevent stale confirmations, late model plans or
+post-lock playback. Native session tests use a new disposable CI user and
+headless compositor, never the installed desktop. See [locking](locking.md).

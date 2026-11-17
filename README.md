@@ -20,15 +20,23 @@ The panels, text and controls are QML; the room is a cached wallpaper asset.*
 
 ## What works
 
-On `main` (unreleased): a native notification server, glass popups, session
-history, actions and Do Not Disturb, plus a Sound & media panel for PipeWire
-devices, volume/mute, preferred input/output and MPRIS players. Power & session
-adds battery, brightness, profiles and separately confirmed session actions.
-The application tray adds StatusNotifier icons and themed menus. See
-[notifications](docs/notifications.md), [audio](docs/audio.md), [power](docs/power.md)
-and [tray](docs/tray.md) for ownership,
-isolated previews and current limits. The v0.4.1 package does not include these
-development features.
+On `main` **(unreleased; build from source)**, the desktop-service sequence is
+implemented with shared glass controls and isolated checks:
+
+| Service | Current behavior |
+| --- | --- |
+| [Notifications](docs/notifications.md) | Popups, actions, bounded history and Do Not Disturb |
+| [Audio/media](docs/audio.md) | PipeWire devices, volume/mute, preferred I/O and MPRIS |
+| [Power/session](docs/power.md) | Battery, brightness, profiles and confirmed session actions |
+| [System tray](docs/tray.md) | StatusNotifier icons, activation and themed DBusMenu menus |
+| [Launcher/windows](docs/launcher.md) | XDG app indexing, ranked search and exact-address switching |
+| [Clipboard/capture](docs/clipboard-capture.md) | Opt-in text history, screenshots and silent recording |
+| [Settings](docs/settings.md) | Live appearance, saved model/startup preferences and shortcut exports |
+| [Session locking](docs/locking.md) | Real Wayland/PAM locking, independent supervision and recovery |
+
+Each linked page documents dependencies, limits and qualification. The published
+v0.4.1/AUR package does not include these development features. No compositor
+configuration or existing desktop session is automatically replaced.
 
 - A top bar on every monitor, a glass home dashboard on empty workspaces, and an
   on-demand command panel. The dashboard carries quick actions, live workspace

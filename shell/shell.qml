@@ -18,7 +18,7 @@ ShellRoot {
     NativeTray { id: trayService; active: backendService.online && backendService.snapshot.desktop_panel === "tray" }
     NativeAudio { id: audioService; active: backendService.online && backendService.snapshot.desktop_panel === "audio" }
     Clock { id: clock }
-    Metrics { id: metrics; active: backendService.settings.values.preferences.appearance.metrics && (root.preview || workspaces.desktopVisible) }
+    Metrics { id: metrics; active: !backendService.locking.active && backendService.settings.values.preferences.appearance.metrics && (root.preview || workspaces.desktopVisible) }
     Workspaces { id: workspaces }
     ShellState { id: shellState; backend: backendService }
     Binding {target:Theme;property:"scale";value:backendService.settings.values.preferences.appearance.scale}

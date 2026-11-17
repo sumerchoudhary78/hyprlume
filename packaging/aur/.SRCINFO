@@ -11,6 +11,7 @@ pkgbase = hyprlume
 	makedepends = git
 	makedepends = qt6-shadertools
 	makedepends = pkgconf
+	depends = coreutils
 	depends = gtk3
 	depends = glibc
 	depends = gcc-libs
@@ -24,6 +25,8 @@ pkgbase = hyprlume
 	depends = pipewire-audio
 	depends = wireplumber
 	depends = python
+	optdepends = swaylock>=1.6: secure Wayland locking with PAM
+	optdepends = librsvg: themed SVG lock background
 	optdepends = wl-clipboard: opt-in text clipboard history
 	optdepends = grim: Wayland screenshots
 	optdepends = slurp: capture region and display selection

@@ -27,7 +27,7 @@ FloatingWindow {
     color: "#030914"
     Dashboard {
         anchors.fill: parent
-        animationsActive: window.visible && Window.visibility !== Window.Minimized
+        animationsActive: !window.backend.locking.active && window.visible && Window.visibility !== Window.Minimized
         backend: window.backend; workspaces: window.workspaces; metrics: window.metrics; clock: window.clock; state: window.state
     }
     Loader {
@@ -82,7 +82,7 @@ FloatingWindow {
     Loader {
         anchors.fill: parent
         active: window.backend.online && ["clipboard","capture"].includes(window.backend.snapshot.desktop_panel)
-        sourceComponent: ToolsOverlay { anchors.fill: parent; backend: window.backend; reducedEffects: window.state.reducedEffects }
+        sourceComponent: ToolsOverlay { outputName:window.screen ? window.screen.name : ""; anchors.fill: parent; backend: window.backend; reducedEffects: window.state.reducedEffects }
     }
     Loader {
         anchors.fill:parent

@@ -74,8 +74,9 @@ code is needed. User-selected priority is connectivity:
 8. **Settings:** implemented on main (unreleased): persisted appearance, voice/
    model preferences, shortcut exports and service startup defaults. See
    [application semantics and verification](settings.md).
-9. **Screen locking:** a real session-lock integration with authentication and
-   recovery qualification; a fullscreen panel alone cannot provide a lock.
+9. **Screen locking:** implemented on main (unreleased): dedicated ext-session-lock/
+   PAM supervision, themed authentication, action/voice/capture pausing and
+   fail-closed recovery. See [security behavior and qualification](locking.md).
 
 ## Agent work
 

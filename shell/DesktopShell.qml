@@ -205,7 +205,7 @@ Item {
             WlrLayershell.namespace: "hyprlume-tools"
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
-            ToolsOverlay { anchors.fill: parent; backend: desktop.backend; reducedEffects: desktop.state.reducedEffects }
+            ToolsOverlay { outputName:desktop.focusedScreenName; anchors.fill: parent; backend: desktop.backend; reducedEffects: desktop.state.reducedEffects }
         }
     }
     Loader {

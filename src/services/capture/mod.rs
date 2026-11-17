@@ -27,8 +27,14 @@ pub struct State {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(tag = "action", rename_all = "snake_case", deny_unknown_fields)]
 pub enum Request {
-    Screenshot { region: bool },
-    Record { region: bool },
+    Screenshot {
+        region: bool,
+    },
+    Record {
+        region: bool,
+        #[serde(default)]
+        output: Option<String>,
+    },
     Stop,
 }
 
@@ -42,8 +48,7 @@ impl Controller {
     pub fn new(demo: bool) -> Arc<Self> {
         let (state, _) = watch::channel(State {
             screenshot_available: super::tools::available("grim"),
-            recording_available: super::tools::available("wf-recorder")
-                && super::tools::available("slurp"),
+            recording_available: super::tools::available("wf-recorder"),
             region_available: super::tools::available("slurp"),
             message: "Screen capture is idle · recordings have no audio".into(),
             ..State::default()
@@ -72,11 +77,15 @@ impl Controller {
             .clone()
             .try_acquire_owned()
             .context("A capture is already in progress; stop it first")?;
-        let (record, region) = match request {
-            Request::Screenshot { region } => (false, region),
-            Request::Record { region } => (true, region),
+        let (record, region, output) = match request {
+            Request::Screenshot { region } => (false, region, None),
+            Request::Record { region, output } => (true, region, output),
             Request::Stop => unreachable!(),
         };
+        if let Some(output) = &output {
+            validate_output(output)?;
+            ensure!(!region, "Choose a display or a region, not both");
+        }
         let state = self.state();
         ensure!(
             self.demo
@@ -88,7 +97,7 @@ impl Controller {
             "Install the screen capture tool first"
         );
         ensure!(
-            self.demo || !region || state.region_available,
+            self.demo || !(region || (record && output.is_none())) || state.region_available,
             "Install slurp to select a region"
         );
         ensure!(
@@ -109,7 +118,7 @@ impl Controller {
         });
         let controller = self.clone();
         tokio::spawn(async move {
-            let result = controller.capture(record, region, stop).await;
+            let result = controller.capture(record, region, output, stop).await;
             controller.state.send_modify(|s| {
                 s.busy = false;
                 s.recording = false;
@@ -133,6 +142,7 @@ impl Controller {
         &self,
         record: bool,
         region: bool,
+        output: Option<String>,
         mut stop: watch::Receiver<bool>,
     ) -> Result<Option<String>> {
         if self.demo {
@@ -140,7 +150,7 @@ impl Controller {
         }
         // Let the shell dismiss its overlay before either the selector or screenshot.
         tokio::select! { _=tokio::time::sleep(Duration::from_millis(200)) => {}, _=stop.changed()=>return Ok(None) }
-        let geometry = if region || record {
+        let geometry = if region || (record && output.is_none()) {
             let mut selector = Command::new("slurp");
             selector.args(["-f", "%x,%y %wx%h"]);
             if record && !region {
@@ -179,8 +189,11 @@ impl Controller {
         let result = async {
             if record {
                 let mut command = Command::new("wf-recorder");
-                command.args(["--overwrite", "--muxer", "matroska", "--framerate", "30", "--file"]).arg(&path);
+                // Continuous frame requests also wake a completely static output,
+                // so SIGINT can leave the recorder's Wayland dispatch loop.
+                command.args(["--overwrite", "--no-damage", "--muxer", "matroska", "--framerate", "30", "--file"]).arg(&path);
                 if let Some(geometry) = &geometry { command.arg("--geometry").arg(geometry); }
+                if let Some(output) = &output { command.arg("--output").arg(output); }
                 let mut child = command.stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null())
                     .kill_on_drop(true).spawn().context("Start screen recorder")?;
                 self.state.send_modify(|state| {
@@ -238,6 +251,19 @@ impl Controller {
     }
 }
 
+fn validate_output(value: &str) -> Result<()> {
+    ensure!(
+        !value.is_empty()
+            && value.len() <= 128
+            && !value.starts_with('-')
+            && value
+                .bytes()
+                .all(|c| c.is_ascii_alphanumeric() || b"-_.".contains(&c)),
+        "Invalid display output name"
+    );
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -257,10 +283,23 @@ mod tests {
             assert!(validate_geometry(invalid).is_err(), "{invalid}");
         }
     }
+    #[test]
+    fn output_names_cannot_be_paths_or_tool_options() {
+        for value in ["HEADLESS-1", "DP-2", "eDP-1"] {
+            validate_output(value).unwrap();
+        }
+        for value in ["", "--help", "../recording", "DP-1\n--file=bad", "DP-1 foo"] {
+            assert!(validate_output(value).is_err());
+        }
+    }
     #[tokio::test]
     async fn a_capture_is_serialized_and_a_demo_never_starts_tools() {
         let c = Controller::new(true);
-        c.handle(Request::Record { region: false }).unwrap();
+        c.handle(Request::Record {
+            region: false,
+            output: None,
+        })
+        .unwrap();
         assert!(c.handle(Request::Screenshot { region: false }).is_err());
         c.shutdown().await;
         assert!(!c.state().busy);
