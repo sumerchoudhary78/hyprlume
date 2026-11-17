@@ -128,7 +128,22 @@ impl Controller {
         }
         store.revision += 1;
         let values = Values::from(&store.config);
-        let state=State {values:values.clone(),revision:store.revision,restart_required:restart_required(&self.active,&store.config),path:self.path.to_string_lossy().into_owned(),message:if self.demo {"Demo settings · no file was changed"} else {"Settings saved. Appearance is live; restart the daemon for voice/model and startup defaults. Include the exported bindings to enable shortcuts."}.into(),hyprlang:shortcuts::hyprlang(&values.preferences.shortcuts),lua:shortcuts::lua(&values.preferences.shortcuts)};
+        let message = if self.demo {
+            "Demo settings · no file was changed"
+        } else if reload {
+            "Configuration reloaded. Appearance is live; voice/model and startup defaults need a daemon restart."
+        } else {
+            "Settings saved. Appearance is live; voice/model and startup defaults need a daemon restart."
+        };
+        let state = State {
+            values: values.clone(),
+            revision: store.revision,
+            restart_required: restart_required(&self.active, &store.config),
+            path: self.path.to_string_lossy().into_owned(),
+            message: message.into(),
+            hyprlang: shortcuts::hyprlang(&values.preferences.shortcuts),
+            lua: shortcuts::lua(&values.preferences.shortcuts),
+        };
         self.state.send_replace(state.clone());
         Ok(state)
     }

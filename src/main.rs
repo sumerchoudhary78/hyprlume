@@ -129,7 +129,19 @@ async fn main() -> Result<()> {
         .config
         .clone()
         .unwrap_or_else(hyprlume::config::config_path);
-    let config = Config::load(cli.config)?;
+    let needs_config = match &cli.command {
+        Commands::Daemon { .. } | Commands::Config | Commands::Doctor => true,
+        #[cfg(feature = "voice")]
+        Commands::Transcribe { .. } | Commands::Speak { .. } | Commands::DetectWake { .. } => true,
+        _ => false,
+    };
+    // Socket clients, especially per-offer clipboard delivery, do not need
+    // inference configuration or unrelated config-file I/O.
+    let config = if needs_config {
+        Config::load(cli.config)?
+    } else {
+        Config::default()
+    };
     match cli.command {
         Commands::Config => {
             println!("{}", toml::to_string_pretty(&config)?);
