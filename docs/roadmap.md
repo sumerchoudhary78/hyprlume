@@ -68,7 +68,9 @@ code is needed. User-selected priority is connectivity:
 6. **App launcher:** implemented on main (unreleased): native desktop-entry indexing,
    ranked application search and exact-address window switching. See
    [behavior and isolated checks](launcher.md).
-7. **Clipboard/capture:** Wayland clipboard history, screenshots and recording.
+7. **Clipboard/capture:** implemented on main (unreleased): opt-in bounded text
+   history, screenshots, display/region recording and persistent stop controls.
+   See [behavior, dependencies and isolated checks](clipboard-capture.md).
 8. **Settings:** persisted preferences, effects/motion and service configuration.
 9. **Screen locking:** a real session-lock integration with authentication and
    recovery qualification; a fullscreen panel alone cannot provide a lock.

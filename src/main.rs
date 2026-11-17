@@ -63,6 +63,16 @@ enum Commands {
         #[arg(long)]
         status: bool,
     },
+    /// Open clipboard history, or deliver an offer from wl-paste.
+    Clipboard {
+        #[command(subcommand)]
+        action: Option<ClipboardCommand>,
+    },
+    /// Open screen capture; --stop finalizes the owned recording.
+    Capture {
+        #[arg(long)]
+        stop: bool,
+    },
     Toggle,
     Cancel,
     /// Confirm a specific preview token (expires after 30 seconds).
@@ -94,6 +104,15 @@ enum Commands {
     /// Test keyword detection on a prerecorded WAV.
     DetectWake {
         file: PathBuf,
+    },
+}
+
+#[derive(Subcommand)]
+enum ClipboardCommand {
+    #[command(hide = true)]
+    Ingest {
+        #[arg(long)]
+        generation: u64,
     },
 }
 
@@ -145,7 +164,19 @@ async fn main() -> Result<()> {
                     "not found in this session"
                 }
             );
-            for tool in ["qs", "pw-record", "pw-play", "wpctl", "espeak-ng"] {
+            for tool in [
+                "qs",
+                "pw-record",
+                "pw-play",
+                "wpctl",
+                "espeak-ng",
+                "gtk-launch",
+                "wl-paste",
+                "wl-copy",
+                "grim",
+                "slurp",
+                "wf-recorder",
+            ] {
                 let found = std::env::var_os("PATH")
                     .is_some_and(|p| std::env::split_paths(&p).any(|dir| dir.join(tool).is_file()));
                 println!("{tool}: {}", if found { "found" } else { "missing" });
@@ -197,6 +228,35 @@ async fn main() -> Result<()> {
                         }
                     }
                 }
+                Commands::Clipboard {
+                    action: Some(ClipboardCommand::Ingest { generation }),
+                } => {
+                    let Some(text) = hyprlume::services::clipboard::read_offer()? else {
+                        return Ok(());
+                    };
+                    let operation = Operation::ClipboardIngest { generation, text };
+                    anyhow::ensure!(
+                        serde_json::to_vec(&hyprlume::protocol::Request {
+                            id: 1,
+                            operation: operation.clone()
+                        })?
+                        .len()
+                            < server::MAX_FRAME,
+                        "Clipboard offer exceeds the wire limit"
+                    );
+                    operation
+                }
+                Commands::Clipboard { action: None } => Operation::Panel {
+                    panel: hyprlume::protocol::DesktopPanel::Clipboard,
+                    open: true,
+                },
+                Commands::Capture { stop: true } => Operation::Capture {
+                    request: hyprlume::services::capture::Request::Stop,
+                },
+                Commands::Capture { stop: false } => Operation::Panel {
+                    panel: hyprlume::protocol::DesktopPanel::Capture,
+                    open: true,
+                },
                 Commands::Toggle => Operation::Toggle,
                 Commands::Audio => Operation::Panel {
                     panel: hyprlume::protocol::DesktopPanel::Audio,

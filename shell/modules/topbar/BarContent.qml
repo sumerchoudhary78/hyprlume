@@ -66,6 +66,16 @@ GlassSurface {
             Accessible.name: "Open sound and media"
             onClicked: root.backend.send({op:"panel",panel:"audio",open:root.backend.snapshot.desktop_panel !== "audio"})
         }
+        GlassButton {
+            objectName: "stopRecording"; visible: root.backend.capture.recording
+            text: "Stop recording"; compact: true; primary: true
+            onClicked: root.backend.send({op:"capture",request:{action:"stop"}})
+        }
+        IconTile {
+            objectName:"openDesktopTools"; iconName:"layers"; size:34; iconSize:19
+            Accessible.name:"Open clipboard and screen capture"
+            onClicked:root.backend.send({op:"panel",panel:"clipboard",open:true})
+        }
         IconTile {
             objectName: "openTray"
             iconName: "grid"; size: 34; iconSize: 19

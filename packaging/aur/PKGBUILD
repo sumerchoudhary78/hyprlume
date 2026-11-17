@@ -8,7 +8,11 @@ url='https://github.com/sumerchoudhary78/hyprlume'
 license=('MIT' 'Apache-2.0')
 depends=('glibc' 'gtk3' 'gcc-libs' 'dbus' 'systemd>=257' 'quickshell' 'qt6-declarative' 'qt6-wayland' 'qt6-quick3d>=6.9' 'hyprland' 'pipewire-audio' 'wireplumber' 'python')
 makedepends=('cargo' 'git' 'qt6-shadertools' 'pkgconf')
-optdepends=('espeak-ng: phonemization for local Piper speech output'
+optdepends=('wl-clipboard: opt-in text clipboard history'
+            'grim: Wayland screenshots'
+            'slurp: capture region and display selection'
+            'wf-recorder: silent screen recording'
+            'espeak-ng: phonemization for local Piper speech output'
             'networkmanager: native Wi-Fi connectivity service'
             'bluez: native Bluetooth connectivity service'
             'upower: system battery and UPS status'
