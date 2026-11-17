@@ -179,7 +179,7 @@ jobs:
           name: native-service-test-binary
           path: output/native
       - name: Install the portal and isolated display tools
-        run: sudo apt-get update && sudo apt-get install -y xdg-desktop-portal xdg-desktop-portal-gtk libpolkit-agent-1-0 python3-dbus-next xvfb xauth xdotool dbus
+        run: sudo apt-get update && sudo apt-get install -y xdg-desktop-portal xdg-desktop-portal-gtk libpolkit-agent-1-0 python3-dbus-next python3-pyatspi xvfb xauth xdotool dbus
       - name: Exercise the real portal gateway and GTK file dialogs
         run: |
           chmod +x output/native/hyprlume

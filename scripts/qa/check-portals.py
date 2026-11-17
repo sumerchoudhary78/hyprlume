@@ -10,6 +10,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 
 from dbus_next import Message, MessageType, Variant
 from dbus_next.aio import MessageBus
@@ -53,7 +54,7 @@ def private_setup(binary, base):
         XDG_DATA_HOME=str(data), XDG_DATA_DIRS="/usr/share", XDG_STATE_HOME=str(base / "state"),
         XDG_CURRENT_DESKTOP="Hyprlume:Hyprland", XDG_DESKTOP_PORTAL_DIR=str(descriptors),
         HYPRLUME_SOCKET=str(runtime / "hyprlume/control.sock"), GTK_USE_PORTAL="0", GDK_BACKEND="x11",
-        GSETTINGS_BACKEND="memory",
+        GSETTINGS_BACKEND="memory", LC_ALL="C.UTF-8",
     )
     return subprocess.call([
         "xvfb-run", "-a", "dbus-run-session", "--", sys.executable, __file__,
@@ -79,7 +80,7 @@ async def subscribe(bus, interface, member):
 async def portal_request(bus, name, method, signature, args, token, interact=None, **options):
     request = PORTAL + "Request"
     sender = bus.unique_name[1:].replace(".", "_")
-    handle = f"/org/freedesktop/portal/request/{sender}/{token}"
+    handle = f"{DESKTOP}/request/{sender}/{token}"
     answer = asyncio.get_running_loop().create_future()
 
     def listen(message):
@@ -94,23 +95,41 @@ async def portal_request(bus, name, method, signature, args, token, interact=Non
         assert result == [handle], result
         if interact:
             await asyncio.to_thread(interact)
-        return await asyncio.wait_for(answer, 12)
+        try:
+            return await asyncio.wait_for(answer, 12)
+        except TimeoutError as error:
+            raise AssertionError(f"No Response signal for {name}.{method} ({token})") from error
     finally:
         bus.remove_message_handler(listen)
 
 
 def respond_to_dialog(title, file=None):
-    def xdo(*args):
-        return subprocess.check_output(["xdotool", *args], text=True, timeout=8).strip()
+    import pyatspi
 
-    window = xdo("search", "--sync", "--onlyvisible", "--name", "^" + title + "$").splitlines()[0]
-    xdo("windowfocus", "--sync", window)
-    if file:
-        xdo("key", "ctrl+l")
-        xdo("type", "--clearmodifiers", str(file))
-        xdo("key", "Return")
-    else:
-        xdo("key", "Escape")
+    def find(node, name):
+        if node.name == name and node.getState().contains(pyatspi.STATE_SHOWING):
+            return node
+        for child in node:
+            match = find(child, name)
+            if match is not None:
+                return match
+        return None
+
+    target = file.name if file else "Cancel"
+    deadline = time.monotonic() + 8
+    while time.monotonic() < deadline:
+        desktops = pyatspi.Registry.getDesktop(0)
+        dialog = find(desktops, title)
+        node = find(dialog, target) if dialog is not None else None
+        if node is not None:
+            x, y, width, height = node.queryComponent().getExtents(pyatspi.DESKTOP_COORDS)
+            if width > 0 and height > 0:
+                subprocess.run(["xdotool", "mousemove", str(x + width // 2), str(y + height // 2),
+                                "click", "--repeat", "2" if file else "1", "--delay", "80", "1"],
+                               check=True, timeout=4)
+                return
+        time.sleep(0.1)
+    raise AssertionError(f"Could not find {target} in the GTK chooser")
 
 
 async def rpc(operation, **fields):
@@ -128,8 +147,11 @@ async def rpc(operation, **fields):
 
 async def check(binary, base, children):
     bus = await MessageBus().connect()
+    backend = await MessageBus().connect()
     events = []
-    await portal_hyprland.bind(bus, events)
+    sender = bus.unique_name[1:].replace(".", "_")
+    session_path = f"{DESKTOP}/session/{sender}/hyprlume_qa"
+    await portal_hyprland.bind(backend, session_path, events)
     status = json.loads(subprocess.check_output([binary, "portals"], text=True, timeout=4))
     assert status["frontend"] == "on_demand" and not status["interfaces"], status
     assert status["appearance"] == "on_demand" and status["profile_requested"], status
@@ -137,12 +159,6 @@ async def check(binary, base, children):
         ROOT / "packaging/portals/hyprlume-portals.conf"
     ).read_text()
 
-    children.append(subprocess.Popen([binary, "daemon", "--demo"]))
-    for _ in range(100):
-        if Path(os.environ["HYPRLUME_SOCKET"]).is_socket():
-            break
-        await asyncio.sleep(0.05)
-    assert Path(os.environ["HYPRLUME_SOCKET"]).is_socket()
     await subscribe(bus, PORTAL + "Request", "Response")
     await subscribe(bus, PORTAL + "Settings", "SettingChanged")
     # This first call activates the packaged appearance backend through D-Bus.
@@ -153,6 +169,13 @@ async def check(binary, base, children):
     assert appearance["color-scheme"].value == 1
     assert appearance["accent-color"].value == [92 / 255, 225 / 255, 1.0]
     assert await call(bus, FRONTEND, settings, "ReadAll", "as", [["org.unrelated.*"]]) == [{}]
+
+    children.append(subprocess.Popen([binary, "daemon", "--demo"]))
+    for _ in range(100):
+        if Path(os.environ["HYPRLUME_SOCKET"]).is_socket():
+            break
+        await asyncio.sleep(0.05)
+    assert Path(os.environ["HYPRLUME_SOCKET"]).is_socket()
 
     changed = {}
     complete = asyncio.Event()
@@ -179,7 +202,8 @@ async def check(binary, base, children):
     fixture.write_text("Only this temporary file is shared in the test.\n")
     title = "Hyprlume portal file fixture"
     code, result = await portal_request(bus, "FileChooser", "OpenFile", "ssa{sv}", ["", title], "file_open",
-                                        lambda: respond_to_dialog(title, fixture))
+                                        lambda: respond_to_dialog(title, fixture),
+                                        current_folder=Variant("ay", os.fsencode(base) + b"\0"))
     assert code == 0 and result["uris"].value == [fixture.as_uri()], (code, result)
     code, _ = await portal_request(bus, "FileChooser", "OpenFile", "ssa{sv}", ["", title], "file_cancel",
                                    lambda: respond_to_dialog(title))
@@ -207,6 +231,7 @@ async def check(binary, base, children):
     assert status["frontend"] == status["hyprland"] == status["gtk"] == status["appearance"] == "running", status
     assert len(status["interfaces"]) == 5 and all(item["version"] for item in status["interfaces"]), status
     bus.disconnect()
+    backend.disconnect()
     print("PORTALS PASS: app-facing gateway, live appearance, GTK file approval/cancel and Hyprland routing fixtures")
 
 

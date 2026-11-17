@@ -38,9 +38,9 @@ class Session(ServiceInterface):
 
 
 class ScreenCast(ServiceInterface):
-    def __init__(self, bus, calls):
+    def __init__(self, session_path, calls):
         super().__init__(IMPL + "ScreenCast")
-        self.bus = bus
+        self.session_path = session_path
         self.calls = calls
 
     @dbus_property(access=PropertyAccess.READ)
@@ -57,8 +57,8 @@ class ScreenCast(ServiceInterface):
 
     @method()
     def CreateSession(self, handle: "o", session: "o", app_id: "s", options: "a{sv}") -> "ua{sv}":
+        assert session == self.session_path, session
         self.calls.append("create")
-        self.bus.export(session, Session(self.calls))
         return [0, {}]
 
     @method()
@@ -81,7 +81,8 @@ class GlobalShortcuts(ServiceInterface):
         return 1
 
 
-async def bind(bus, calls):
-    for interface in (Screenshot(calls), ScreenCast(bus, calls), GlobalShortcuts()):
+async def bind(bus, session_path, calls):
+    bus.export(session_path, Session(calls))
+    for interface in (Screenshot(calls), ScreenCast(session_path, calls), GlobalShortcuts()):
         bus.export(DESKTOP, interface)
     await bus.request_name(NAME)
