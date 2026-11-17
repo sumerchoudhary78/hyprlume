@@ -1,6 +1,6 @@
 use super::{session, Backend, Native};
 use crate::services::power::{Backlight, Hardware, Request};
-use anyhow::{Context, Result};
+use anyhow::{ensure, Context, Result};
 use std::{fs, io::Read, os::unix::fs::MetadataExt, path::Path};
 
 fn number(path: &Path) -> Result<u32> {
@@ -89,4 +89,41 @@ pub(super) async fn set(
         .find(|light| light.id == id && light.value == value)
         .context("Driver did not confirm the requested brightness")?;
     Ok(format!("Brightness {}%", confirmed.percent))
+}
+
+pub(super) async fn restore(
+    native: &Native,
+    observed: Hardware,
+    id: &str,
+    expected: u32,
+    value: u32,
+) -> Result<String> {
+    let target = observed
+        .session
+        .target
+        .context("No graphical session for brightness restoration")?;
+    session::verify(native, &target).await?;
+    let lights = native.backlights().await?;
+    let light = lights
+        .iter()
+        .find(|light| light.id == id)
+        .context("Backlight changed or disappeared")?;
+    ensure!(value > 0 && value <= light.max, "Invalid saved brightness");
+    if light.value != expected {
+        return Ok("Brightness was adjusted independently; leaving it unchanged".into());
+    }
+    native
+        .proxy(&target.binding)
+        .await?
+        .call::<_, _, ()>("SetBrightness", &("backlight", light.name.as_str(), value))
+        .await?;
+    ensure!(
+        native
+            .backlights()
+            .await?
+            .iter()
+            .any(|light| light.id == id && light.value == value),
+        "Driver did not confirm restored brightness"
+    );
+    Ok("Previous brightness restored".into())
 }

@@ -1,7 +1,9 @@
 //! Concrete desktop adapters. Validation and demo handling happen once here.
 mod applications;
 mod audio;
+mod display;
 mod hyprland;
+pub(crate) use display::Display;
 
 use crate::{config::Config, planner::Action};
 use anyhow::{bail, Context, Result};

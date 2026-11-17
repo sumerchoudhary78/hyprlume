@@ -82,6 +82,16 @@ enum Commands {
     },
     #[command(hide = true)]
     LockWorker,
+    #[command(hide = true)]
+    IdleEvent {
+        #[arg(value_enum)]
+        event: hyprlume::services::idle::Event,
+    },
+    /// Read idle policy status or temporarily pause automatic timers.
+    Idle {
+        #[arg(long, value_enum)]
+        presentation: Option<Toggle>,
+    },
     Toggle,
     Cancel,
     /// Confirm a specific preview token (expires after 30 seconds).
@@ -124,6 +134,11 @@ enum ClipboardCommand {
         generation: u64,
     },
 }
+#[derive(Clone, Copy, clap::ValueEnum)]
+enum Toggle {
+    On,
+    Off,
+}
 
 #[tokio::main(flavor = "multi_thread", worker_threads = 2)]
 async fn main() -> Result<()> {
@@ -150,6 +165,22 @@ async fn main() -> Result<()> {
         Config::default()
     };
     match cli.command {
+        Commands::IdleEvent { event } => return hyprlume::services::idle::callback(event).await,
+        Commands::Idle { presentation } => {
+            let operation = match presentation {
+                Some(value) => Operation::Idle {
+                    request: hyprlume::services::idle::Request::Presentation {
+                        enabled: matches!(value, Toggle::On),
+                    },
+                },
+                None => Operation::IdleStatus,
+            };
+            let socket = cli.socket.unwrap_or(server::socket_path()?);
+            println!(
+                "{}",
+                serde_json::to_string_pretty(&server::call(&socket, operation).await?)?
+            );
+        }
         Commands::Config => {
             println!("{}", toml::to_string_pretty(&config)?);
         }

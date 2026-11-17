@@ -27,6 +27,8 @@ async fn session(stream: UnixStream, app: Arc<App>) -> Result<()> {
     let mut notifications = app.notifications.subscribe();
     let mut locking = app.locking.subscribe();
     let mut lock_subscribed = false;
+    let mut idle = app.idle.subscribe();
+    let mut idle_subscribed = false;
     let mut settings = app.settings.subscribe();
     let mut settings_subscribed = false;
     let mut clipboard = app.clipboard.subscribe();
@@ -49,6 +51,7 @@ async fn session(stream: UnixStream, app: Arc<App>) -> Result<()> {
                         if matches!(request.operation, Operation::ConnectivitySubscribe) { connectivity_subscribed = true; connectivity.borrow_and_update(); }
                         if matches!(request.operation, Operation::NotificationsSubscribe) { notifications_subscribed = true; notifications.borrow_and_update(); }
                         if matches!(request.operation,Operation::LockSubscribe) {lock_subscribed=true; locking.borrow_and_update();}
+                        if matches!(request.operation,Operation::IdleSubscribe) {idle_subscribed=true; idle.borrow_and_update();}
                         if matches!(request.operation,Operation::SettingsSubscribe) {settings_subscribed=true; settings.borrow_and_update();}
                         if matches!(request.operation,Operation::ClipboardSubscribe) {clipboard_subscribed=true; clipboard.borrow_and_update();}
                         if matches!(request.operation,Operation::CaptureSubscribe) {capture_subscribed=true; capture.borrow_and_update();}
@@ -81,6 +84,9 @@ async fn session(stream: UnixStream, app: Arc<App>) -> Result<()> {
             }
             change=locking.changed(), if lock_subscribed => {
                 change?; let snapshot=locking.borrow_and_update().clone(); json!({"event":"locking","state":snapshot})
+            }
+            change=idle.changed(), if idle_subscribed => {
+                change?; let snapshot=idle.borrow_and_update().clone(); json!({"event":"idle","state":snapshot})
             }
             change=settings.changed(), if settings_subscribed => {
                 change?; let snapshot=settings.borrow_and_update().clone(); json!({"event":"settings","state":snapshot})
@@ -134,6 +140,8 @@ pub async fn serve_with_config(
     services.spawn(app.power.clone().run());
     services.spawn(app.locking.clone().run());
     services.spawn(app.clone().watch_lock());
+    services.spawn(app.clone().run_idle());
+    services.spawn(app.clone().idle_actions());
     let connections = Arc::new(Semaphore::new(16));
     let mut terminate = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())?;
     tracing::info!(socket = %path.display(), "hyprlume ready; microphone off");
@@ -156,6 +164,9 @@ pub async fn serve_with_config(
     .ok();
     app.clipboard.shutdown().await;
     app.capture.shutdown().await;
+    app.idle.shutdown();
     services.abort_all();
+    while services.join_next().await.is_some() {}
+    app.restore_idle().await;
     Ok(())
 }

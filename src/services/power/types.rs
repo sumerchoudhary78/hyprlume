@@ -192,6 +192,16 @@ pub(crate) enum Mutation {
         device: String,
         percent: u8,
     },
+    BrightnessRestore {
+        device: String,
+        expected: u32,
+        value: u32,
+    },
+    BrightnessDim {
+        device: String,
+        expected: u32,
+        percent: u8,
+    },
     Profile(Profile),
     Session {
         kind: SessionAction,

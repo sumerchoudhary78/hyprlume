@@ -1,5 +1,5 @@
 mod preferences;
-pub use preferences::{Accent, Appearance, Preferences, Services, Shortcuts};
+pub use preferences::{Accent, Appearance, Idle, Preferences, Services, Shortcuts};
 
 use anyhow::{bail, Context, Result};
 use serde::{Deserialize, Serialize};

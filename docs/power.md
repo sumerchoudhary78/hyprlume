@@ -39,8 +39,9 @@ state rather than an invented percentage.
 
 Restart/shutdown affect the whole computer. Logout terminates only the selected
 logind session; it does not terminate every login or the user's service manager.
-Save application work first. Suspend does **not** provide a screen lock: secure
-session locking is a separate roadmap item, and the suspend review says so.
+Save application work first. Suspend waits for a confirmed compositor lock and
+revalidates the login before dispatch. A failed lock or authorization challenge
+cancels sleep. See [idle/sleep behavior and external-sleep limits](idle-sleep.md).
 
 Power requests are outside the AI planner. Their confirmations do not consume
 or replace a pending agent confirmation. Escape cancels an open session review;
@@ -65,9 +66,10 @@ cannot retarget a reviewed logout to a new session.
 Modern logind is required for the `*WithFlags` calls; systemd 257+ is the
 supported baseline for inhibitor behavior. Hyprlume checks blocking inhibitors
 and uses `ROOT_CHECK_INHIBITORS`, including weak blocks. It never requests an
-inhibitor bypass. Authorization can use an existing polkit agent; Hyprlume
+inhibitor bypass. Reboot/shutdown authorization can use an existing polkit agent; Hyprlume
 installs no policy rules and grants itself no privileges. A missing permission
-or service error appears in the panel.
+or service error appears in the panel. Suspend requires authorization to be
+already available; it never opens an interactive prompt behind a lock screen.
 
 Once a confirmed request has been dispatched, closing the panel cannot undo
 it. A D-Bus timeout does not prove the remote request was cancelled. Its token

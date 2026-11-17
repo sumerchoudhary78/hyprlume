@@ -89,6 +89,7 @@ jobs:
           python3 scripts/qa/render-desktop.py --settings --output output/design/settings.png
           python3 scripts/qa/render-desktop.py --settings --settings-tab 1 --output output/design/settings-voice.png
           python3 scripts/qa/render-desktop.py --settings --settings-tab 2 --output output/design/settings-shortcuts.png
+          python3 scripts/qa/render-desktop.py --settings --settings-tab 4 --output output/design/settings-idle.png
           python3 scripts/qa/render-desktop.py --settings --width 960 --height 640 --reduced-effects --output output/design/settings-compact.png
           python3 scripts/qa/render-desktop.py --tools --tools-capture --output output/design/capture.png
       - name: Exercise tray icons, menus and keyboard navigation
@@ -150,7 +151,7 @@ jobs:
           name: native-service-test-binary
           path: output/native
       - name: Install disposable Wayland/PAM test dependencies
-        run: sudo apt-get update && sudo apt-get install -y sway swaylock wl-clipboard grim slurp wf-recorder wtype ffmpeg librsvg2-bin dbus-user-session
+        run: sudo apt-get update && sudo apt-get install -y sway swayidle swaylock wl-clipboard grim slurp wf-recorder wtype ffmpeg librsvg2-bin dbus-user-session
       - name: Qualify real clipboard, capture and secure locking
         run: |
           chmod +x output/native/hyprlume

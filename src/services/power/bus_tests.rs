@@ -352,7 +352,7 @@ async fn native_properties_profiles_brightness_and_session_calls_use_private_ser
         .native
         .apply(
             Mutation::Brightness {
-                device: light,
+                device: light.clone(),
                 percent: 37,
             },
             hardware.clone(),
@@ -362,6 +362,38 @@ async fn native_properties_profiles_brightness_and_session_calls_use_private_ser
     assert_eq!(
         std::fs::read_to_string(fixture.root.path().join("sample_panel/brightness")).unwrap(),
         "370"
+    );
+    fixture
+        .native
+        .apply(
+            Mutation::BrightnessRestore {
+                device: light.clone(),
+                expected: 111,
+                value: 600,
+            },
+            hardware.clone(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(
+        std::fs::read_to_string(fixture.root.path().join("sample_panel/brightness")).unwrap(),
+        "370"
+    );
+    fixture
+        .native
+        .apply(
+            Mutation::BrightnessRestore {
+                device: light,
+                expected: 370,
+                value: 600,
+            },
+            hardware.clone(),
+        )
+        .await
+        .unwrap();
+    assert_eq!(
+        std::fs::read_to_string(fixture.root.path().join("sample_panel/brightness")).unwrap(),
+        "600"
     );
     assert_eq!(
         fixture.native.snapshot().await.unwrap().profiles.active,
@@ -390,6 +422,7 @@ async fn native_properties_profiles_brightness_and_session_calls_use_private_ser
         [
             "profile:power-saver",
             "brightness:sample_panel:370",
+            "brightness:sample_panel:600",
             "suspend:1",
             "reboot:1",
             "power_off:1",

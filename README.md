@@ -28,6 +28,7 @@ implemented with shared glass controls and isolated checks:
 | [Notifications](docs/notifications.md) | Popups, actions, bounded history and Do Not Disturb |
 | [Audio/media](docs/audio.md) | PipeWire devices, volume/mute, preferred I/O and MPRIS |
 | [Power/session](docs/power.md) | Battery, brightness, profiles and confirmed session actions |
+| [Idle/sleep](docs/idle-sleep.md) | Opt-in dim/lock/screen-off timers, presentation mode and lock-before-suspend |
 | [System tray](docs/tray.md) | StatusNotifier icons, activation and themed DBusMenu menus |
 | [Launcher/windows](docs/launcher.md) | XDG app indexing, ranked search and exact-address switching |
 | [Clipboard/capture](docs/clipboard-capture.md) | Opt-in text history, screenshots and silent recording |

@@ -68,6 +68,39 @@ impl Backend for Fake {
     }
     fn apply(&self, mutation: Mutation, _: Hardware) -> BoxFuture<'_, Result<String>> {
         Box::pin(async move {
+            {
+                let mut hardware = self.hardware.lock().unwrap();
+                match &mutation {
+                    Mutation::BrightnessDim {
+                        device,
+                        expected,
+                        percent,
+                    } => {
+                        if let Some(light) = hardware
+                            .backlights
+                            .iter_mut()
+                            .find(|l| l.id == *device && l.value == *expected)
+                        {
+                            light.value = ((u64::from(light.max) * u64::from(*percent) + 50) / 100)
+                                .max(1) as u32;
+                        }
+                    }
+                    Mutation::BrightnessRestore {
+                        device,
+                        expected,
+                        value,
+                    } => {
+                        if let Some(light) = hardware
+                            .backlights
+                            .iter_mut()
+                            .find(|l| l.id == *device && l.value == *expected)
+                        {
+                            light.value = *value;
+                        }
+                    }
+                    _ => (),
+                }
+            }
             self.calls.lock().unwrap().push(mutation);
             let gate = self.apply_gate.lock().unwrap().clone();
             if let Some(gate) = gate {
@@ -80,8 +113,43 @@ impl Backend for Fake {
         })
     }
 }
+
+#[tokio::test]
+async fn idle_dimming_never_raises_brightness_and_only_restores_its_own_value() {
+    for adjustment in [None, Some(0), Some(1), Some(2)] {
+        let (controller, backend) = fixture().await;
+        let mut lease = DimLease::default();
+        controller.dim(20, &mut lease).await.unwrap();
+        assert_eq!(backend.hardware.lock().unwrap().backlights[0].value, 200);
+        assert!(lease.active());
+        if let Some(adjustment) = adjustment {
+            let mut hardware = backend.hardware.lock().unwrap();
+            match adjustment {
+                0 => hardware.backlights[0].value = 350,
+                1 => hardware.backlights[0].id = "replacement-device".into(),
+                _ => hardware.session.target.as_mut().unwrap().timestamp += 1,
+            }
+        }
+        controller.restore_brightness(&mut lease).await.unwrap();
+        assert_eq!(
+            backend.calls.lock().unwrap().len(),
+            if adjustment.is_none() { 2 } else { 1 }
+        );
+        if adjustment.is_none() {
+            assert_eq!(backend.hardware.lock().unwrap().backlights[0].value, 700);
+        }
+        assert!(!lease.active());
+    }
+    let (controller, backend) = fixture().await;
+    backend.hardware.lock().unwrap().backlights[0].value = 100;
+    let mut lease = DimLease::default();
+    controller.dim(20, &mut lease).await.unwrap();
+    assert!(!lease.active());
+    assert!(backend.calls.lock().unwrap().is_empty());
+}
 async fn fixture() -> (Arc<Controller>, Arc<Fake>) {
     let controller = Controller::new(true);
+    controller.set_sleep_guard(Arc::new(ReadyLock));
     let backend = Arc::new(Fake {
         hardware: Mutex::new(hardware()),
         calls: Mutex::new(Vec::new()),
@@ -94,6 +162,108 @@ async fn fixture() -> (Arc<Controller>, Arc<Fake>) {
     controller.refresh(backend.as_ref()).await.unwrap();
     controller.set_active(true);
     (controller, backend)
+}
+struct ReadyLock;
+impl SleepGuard for ReadyLock {
+    fn lock_before_sleep(&self) -> BoxFuture<'_, Result<()>> {
+        Box::pin(async { Ok(()) })
+    }
+    fn locked(&self) -> bool {
+        true
+    }
+}
+
+struct GatedLock {
+    ready: Arc<Notify>,
+    started: Arc<Notify>,
+    fail: bool,
+}
+impl SleepGuard for GatedLock {
+    fn lock_before_sleep(&self) -> BoxFuture<'_, Result<()>> {
+        Box::pin(async {
+            self.started.notify_one();
+            self.ready.notified().await;
+            ensure!(!self.fail, "Compositor refused the lock");
+            Ok(())
+        })
+    }
+    fn locked(&self) -> bool {
+        !self.fail
+    }
+}
+
+#[tokio::test]
+async fn suspend_waits_for_lock_and_revalidates_the_login_after_locking() {
+    for change_login in [false, true] {
+        let (controller, backend) = fixture().await;
+        let ready = Arc::new(Notify::new());
+        let started = Arc::new(Notify::new());
+        controller.set_sleep_guard(Arc::new(GatedLock {
+            ready: ready.clone(),
+            started: started.clone(),
+            fail: false,
+        }));
+        let prompt = prepare(&controller).await;
+        controller
+            .handle(Request::Confirm {
+                token: prompt.token,
+            })
+            .await
+            .unwrap();
+        started.notified().await;
+        assert!(backend.calls.lock().unwrap().is_empty());
+        // Locking closes the UI; an approved sleep must survive that transition.
+        controller.set_active(false);
+        if change_login {
+            backend
+                .hardware
+                .lock()
+                .unwrap()
+                .session
+                .target
+                .as_mut()
+                .unwrap()
+                .timestamp += 1;
+        }
+        ready.notify_one();
+        settle(&controller).await;
+        assert_eq!(
+            backend.calls.lock().unwrap().len(),
+            usize::from(!change_login)
+        );
+    }
+}
+
+#[tokio::test]
+async fn lock_failure_missing_guard_and_auth_challenge_never_dispatch_suspend() {
+    for case in 0..3 {
+        let (controller, backend) = fixture().await;
+        if case == 0 {
+            *controller.sleep_guard.lock().unwrap() = None;
+        }
+        if case == 1 {
+            let ready = Arc::new(Notify::new());
+            ready.notify_one();
+            controller.set_sleep_guard(Arc::new(GatedLock {
+                ready,
+                started: Arc::new(Notify::new()),
+                fail: true,
+            }));
+        }
+        if case == 2 {
+            backend.hardware.lock().unwrap().session.suspend = "challenge".into();
+        }
+        let prompt = prepare(&controller).await;
+        controller
+            .handle(Request::Confirm {
+                token: prompt.token,
+            })
+            .await
+            .unwrap();
+        settle(&controller).await;
+        assert!(backend.calls.lock().unwrap().is_empty());
+        assert!(!controller.state().error.is_empty());
+    }
 }
 async fn settle(controller: &Controller) {
     tokio::time::timeout(Duration::from_secs(1), async {

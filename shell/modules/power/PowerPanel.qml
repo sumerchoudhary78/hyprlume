@@ -50,6 +50,19 @@ GlassSurface {
                     Text {Layout.fillWidth:true;text:root.backend.locking.message;textFormat:Text.PlainText;wrapMode:Text.Wrap;color:Theme.inkFaint;font.family:Theme.fontSans;font.pixelSize:10}
                 }
                 BatteryCard { Layout.fillWidth: true; battery: root.snapshot.battery; reducedEffects: root.reducedEffects }
+                Rectangle {
+                    Layout.fillWidth:true; implicitHeight:idleContent.implicitHeight+24
+                    radius:16; color:"#38182740"; border.color:Theme.rim
+                    ColumnLayout {
+                        id:idleContent; anchors.fill:parent; anchors.margins:12; spacing:8
+                        RowLayout {
+                            Layout.fillWidth:true
+                            Text {Layout.fillWidth:true; text:"Presentation mode"; color:Theme.ink; font.family:Theme.fontSans; font.pixelSize:13}
+                            GlassButton {objectName:"powerPresentation"; compact:true; text:root.backend.idle.presentation?"On":"Off"; primary:root.backend.idle.presentation; onClicked:root.backend.send({op:"idle",request:{action:"presentation",enabled:!root.backend.idle.presentation}})}
+                        }
+                        Text {Layout.fillWidth:true; wrapMode:Text.Wrap; text:root.backend.idle.error || (root.backend.idle.presentation?"Idle timers paused. Lock-before-suspend stays active.":root.backend.idle.recording_inhibits?"Recording pauses automatic idle actions.":root.backend.idle.message); textFormat:Text.PlainText; color:root.backend.idle.error?Theme.amber:Theme.inkFaint; font.family:Theme.fontSans; font.pixelSize:10}
+                    }
+                }
                 ColumnLayout {
                     Layout.fillWidth: true; spacing: 8
                     Text { text: "Display brightness"; color: Theme.inkDim; font.family: Theme.fontSans; font.pixelSize: 12; font.weight: Font.DemiBold }
@@ -107,7 +120,7 @@ GlassSurface {
                                 required property var modelData
                                 objectName: "powerAction" + modelData.kind
                                 Layout.fillWidth: true; text: modelData.title; iconName: modelData.icon
-                                enabled: root.snapshot.session.available && !root.snapshot.busy && ["yes","challenge"].indexOf(root.snapshot.session[modelData.kind]) >= 0
+                                enabled: root.snapshot.session.available && !root.snapshot.busy && (modelData.kind==="suspend" ? root.snapshot.session.suspend==="yes" && root.backend.locking.available : ["yes","challenge"].indexOf(root.snapshot.session[modelData.kind]) >= 0)
                                 onClicked: root.send({action:"prepare",kind:modelData.kind})
                             }
                         }

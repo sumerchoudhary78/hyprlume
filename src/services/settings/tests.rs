@@ -10,6 +10,8 @@ async fn saves_are_validated_private_atomic_and_preserve_the_launch_allowlist() 
     let controller = Controller::new(&initial, path.clone(), false);
     let mut values = controller.state().values;
     values.preferences.appearance.reduced_effects = true;
+    values.preferences.idle.enabled = true;
+    values.preferences.idle.suspend_after_seconds = 900;
     let state = controller
         .handle(Request::Save {
             revision: 1,

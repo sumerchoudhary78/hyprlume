@@ -62,6 +62,21 @@ impl Controller {
     pub fn epoch(&self) -> u64 {
         self.epoch.load(Ordering::SeqCst)
     }
+    pub(crate) async fn wait_ready(&self) -> Result<()> {
+        let mut changes = self.subscribe();
+        tokio::time::timeout(std::time::Duration::from_secs(45), async {
+            loop {
+                let state = changes.borrow_and_update().clone();
+                if state.active && state.phase == "locked" {
+                    return Ok(());
+                }
+                ensure!(state.phase == "starting", "{}", state.message);
+                changes.changed().await?;
+            }
+        })
+        .await
+        .map_err(|_| anyhow::anyhow!("Timed out waiting for compositor lock confirmation"))?
+    }
     pub(crate) async fn invalidated(&self, epoch: u64) {
         let mut state = self.subscribe();
         while self.epoch() == epoch && !self.active() {
