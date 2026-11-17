@@ -40,7 +40,7 @@ FloatingWindow {
 
     Loader {
         anchors.fill: parent
-        active: window.backend.notifications.panel_open
+        active: window.backend.online && window.backend.notifications.panel_open
         sourceComponent: NotificationOverlay { anchors.fill: parent; backend: window.backend; reducedEffects: window.state.reducedEffects }
     }
     PopupStack {

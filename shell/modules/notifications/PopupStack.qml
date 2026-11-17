@@ -5,7 +5,7 @@ Item {
     required property var backend
     property bool reducedEffects: false
     property real availableHeight: 800
-    readonly property var notices: backend.notifications.panel_open || backend.notifications.dnd ? [] : backend.notifications.items.filter(notice => notice.popup && notice.active).slice(0, Math.max(1, Math.min(3, Math.floor(availableHeight / 280))))
+    readonly property var notices: !backend.online || backend.notifications.panel_open || backend.notifications.dnd ? [] : backend.notifications.items.filter(notice => notice.popup && notice.active).slice(0, Math.max(1, Math.min(3, Math.floor(availableHeight / 280))))
     implicitHeight: stack.implicitHeight
     Column {
         id: stack

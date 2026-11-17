@@ -294,6 +294,24 @@ async fn wireless_validation_cannot_replace_an_agent_confirmation() {
     assert_eq!(after["confirmation"], before["confirmation"]);
     assert_eq!(after["actions"], before["actions"]);
     assert_eq!(after["panel_open"], false);
+    server::call(
+        &daemon.path,
+        Operation::Notifications {
+            request: hyprlume::services::notifications::Request::Toggle,
+        },
+    )
+    .await
+    .unwrap();
+    let after = server::call(&daemon.path, Operation::Status).await.unwrap();
+    assert_eq!(after["confirmation"], before["confirmation"]);
+    assert_eq!(after["actions"], before["actions"]);
+    server::call(&daemon.path, Operation::Toggle).await.unwrap();
+    assert_eq!(
+        server::call(&daemon.path, Operation::NotificationsStatus)
+            .await
+            .unwrap()["panel_open"],
+        false
+    );
     daemon.stop().await;
 }
 
