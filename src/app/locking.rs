@@ -145,4 +145,25 @@ mod tests {
         assert!(app.state().confirmation.is_none());
         assert!(app.pending.lock().await.is_none());
     }
+    #[cfg(feature = "voice")]
+    #[tokio::test]
+    async fn a_queued_voice_start_cannot_cross_a_lock_and_unlock_episode() {
+        let app = App::new(Config::default(), true);
+        let held = app.voice.lock().await;
+        let queued = app.clone();
+        let request =
+            tokio::spawn(async move { queued.set_voice(crate::protocol::VoiceMode::Wake).await });
+        tokio::task::yield_now().await;
+        app.locking.simulate(true);
+        app.locking.simulate(false);
+        drop(held);
+        let error = tokio::time::timeout(Duration::from_secs(1), request)
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap_err();
+        assert!(error.to_string().contains("invalidated"));
+        assert_eq!(app.state().voice, crate::protocol::VoiceMode::Off);
+        assert!(app.voice.lock().await.is_none());
+    }
 }

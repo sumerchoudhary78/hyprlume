@@ -70,10 +70,14 @@ impl App {
     }
 
     pub(super) async fn set_voice(self: &Arc<Self>, mode: VoiceMode) -> Result<()> {
+        let epoch = self.locking.epoch();
         if mode != VoiceMode::Off {
-            self.check_epoch(self.locking.epoch())?;
+            self.check_epoch(epoch)?;
         }
         let mut voice = self.voice.lock().await;
+        if mode != VoiceMode::Off {
+            self.check_epoch(epoch)?;
+        }
         if let Some(task) = voice.take() {
             task.abort();
             let _ = task.await;
@@ -90,10 +94,12 @@ impl App {
         if mode == VoiceMode::Off {
             return Ok(());
         }
+        self.check_epoch(epoch)?;
         if self.desktop.demo {
             bail!("microphone capture is unavailable in demo mode");
         }
         crate::voice::check_models(&self.config.voice, mode)?;
+        self.check_epoch(epoch)?;
         self.update(|s| {
             s.voice = mode;
             if s.confirmation.is_none()
