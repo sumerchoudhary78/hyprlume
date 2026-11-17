@@ -21,6 +21,7 @@ pub struct App {
     pub desktop: Desktop,
     pub(crate) connectivity: Arc<crate::services::connectivity::Controller>,
     pub(crate) notifications: Arc<crate::services::notifications::Controller>,
+    pub(crate) power: Arc<crate::services::power::Controller>,
     state: watch::Sender<State>,
     pending: Mutex<Option<commands::Pending>>,
     busy: Arc<Semaphore>,
@@ -45,6 +46,7 @@ impl App {
             desktop: Desktop::new(demo),
             connectivity: crate::services::connectivity::Controller::new(demo),
             notifications: crate::services::notifications::Controller::new(demo),
+            power: crate::services::power::Controller::new(demo),
             state,
             pending: Mutex::new(None),
             busy: Arc::new(Semaphore::new(1)),
@@ -79,11 +81,14 @@ impl App {
             Operation::NotificationsStatus | Operation::NotificationsSubscribe => {
                 Ok(json!(self.notifications.state()))
             }
+            Operation::PowerStatus | Operation::PowerSubscribe => Ok(json!(self.power.state())),
+            Operation::Power { request } => self.power.handle(request).await,
             Operation::Notifications { request } => {
                 if matches!(request, crate::services::notifications::Request::Toggle)
                     && !self.notifications.state().panel_open
                 {
                     self.connectivity.close().await;
+                    self.power.set_active(false);
                     self.update(|state| {
                         state.panel_open = false;
                         state.desktop_panel = None;
@@ -96,6 +101,7 @@ impl App {
                     && !self.connectivity.state().panel_open
                 {
                     self.notifications.close();
+                    self.power.set_active(false);
                     self.update(|state| {
                         state.panel_open = false;
                         state.desktop_panel = None;
@@ -104,6 +110,7 @@ impl App {
                 self.connectivity.handle(request).await
             }
             Operation::Toggle => {
+                self.power.set_active(false);
                 let opening = !self.state().panel_open
                     || self.connectivity.state().panel_open
                     || self.notifications.state().panel_open
@@ -131,6 +138,9 @@ impl App {
                         state.desktop_panel = None;
                     }
                 });
+                self.power.set_active(
+                    self.state().desktop_panel == Some(crate::protocol::DesktopPanel::Power),
+                );
                 Ok(json!(self.state()))
             }
             Operation::Cancel => {

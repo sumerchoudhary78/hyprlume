@@ -67,6 +67,13 @@ GlassSurface {
             onClicked: root.backend.send({op:"panel",panel:"audio",open:root.backend.snapshot.desktop_panel !== "audio"})
         }
         IconTile {
+            objectName: "openPower"
+            iconName: "power"; size: 34; iconSize: 19
+            active: root.backend.snapshot.desktop_panel === "power"
+            Accessible.name: "Open power and session controls"
+            onClicked: root.backend.send({op:"panel",panel:"power",open:root.backend.snapshot.desktop_panel !== "power"})
+        }
+        IconTile {
             iconName: "audio-input-microphone"; size: 34; iconSize: 20
             active: root.backend.snapshot.voice !== "off"; accent: Theme.violet
             onClicked: root.backend.send({op:"voice",mode:root.backend.snapshot.voice === "off" ? "wake" : "off"})

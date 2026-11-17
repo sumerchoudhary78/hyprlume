@@ -60,6 +60,19 @@ jobs:
         run: python3 scripts/qa/check-audio.py
       - name: Exercise sound and media controls with real input
         run: python3 scripts/qa/render-desktop.py --audio --interact
+      - name: Exercise power and session controls using synthetic services
+        run: |
+          python3 scripts/qa/render-desktop.py --power --interact
+          python3 scripts/qa/render-desktop.py --power --interact --width 960 --height 640 --reduced-effects
+          python3 scripts/qa/render-desktop.py --power --power-state unavailable --interact
+          python3 scripts/qa/render-desktop.py --power --power-state inhibited --interact
+      - name: Render power, review and unavailable states
+        run: |
+          python3 scripts/qa/render-desktop.py --power --output output/design/power.png
+          python3 scripts/qa/render-desktop.py --power --power-state review --output output/design/power-review.png
+          python3 scripts/qa/render-desktop.py --power --power-state unavailable --output output/design/power-unavailable.png
+          python3 scripts/qa/render-desktop.py --power --power-state desktop --output output/design/power-desktop.png
+          python3 scripts/qa/render-desktop.py --power --width 960 --height 640 --reduced-effects --output output/design/power-compact.png
       - name: Render audio, compact and unavailable states
         run: |
           python3 scripts/qa/render-desktop.py --audio --output output/design/audio.png

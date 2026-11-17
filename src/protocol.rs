@@ -16,6 +16,11 @@ pub enum Operation {
     ConnectivityStatus,
     NotificationsSubscribe,
     NotificationsStatus,
+    PowerSubscribe,
+    PowerStatus,
+    Power {
+        request: crate::services::power::Request,
+    },
     Notifications {
         request: crate::services::notifications::Request,
     },
@@ -46,6 +51,7 @@ pub enum Operation {
 #[serde(rename_all = "snake_case")]
 pub enum DesktopPanel {
     Audio,
+    Power,
 }
 
 fn yes() -> bool {

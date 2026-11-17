@@ -44,7 +44,11 @@ CONNECTIVITY = {
 }
 
 NOTIFICATIONS = {"available": False, "error": "No notification server in this IPC fixture", "panel_open": False, "dnd": False, "unread": 0, "items": []}
-TOPICS = {"state": STATE, "connectivity": CONNECTIVITY, "notifications": NOTIFICATIONS}
+POWER = {"busy": False, "message": "No native power services in this IPC fixture", "error": "", "prompt": None,
+         "battery": {"available": False, "present": False, "percentage": None, "state": "unknown", "seconds_remaining": None, "error": ""},
+         "backlights": [], "profiles": {"available": False, "active": None, "choices": [], "degraded": "", "error": ""},
+         "session": {"available": False, "id": "", "suspend": "no", "logout": "no", "reboot": "no", "power_off": "no", "error": "No graphical session in this fixture"}}
+TOPICS = {"state": STATE, "connectivity": CONNECTIVITY, "notifications": NOTIFICATIONS, "power": POWER}
 CLIENTS = {}
 PLAN_TASK = None
 
@@ -115,7 +119,7 @@ async def handle(reader, writer):
             operation = request.get("op")
             request_id = request.get("id")
 
-            if operation in ("subscribe", "connectivity_subscribe", "connectivity_status", "notifications_subscribe", "notifications_status"):
+            if operation in ("subscribe", "connectivity_subscribe", "connectivity_status", "notifications_subscribe", "notifications_status", "power_subscribe", "power_status"):
                 topic = "state" if operation == "subscribe" else operation.rsplit("_", 1)[0]
                 if operation.endswith("subscribe"):
                     CLIENTS[writer].add(topic)
@@ -124,19 +128,24 @@ async def handle(reader, writer):
                 continue
 
             if operation == "panel":
-                if request.get("panel") != "audio":
+                if request.get("panel") not in ("audio", "power"):
                     writer.write((json.dumps({"id": request_id, "error": "unknown panel"}) + "\n").encode())
                     await writer.drain()
                     continue
                 if request.get("open"):
-                    STATE.update(desktop_panel="audio", panel_open=False)
+                    STATE.update(desktop_panel=request["panel"], panel_open=False)
                     CONNECTIVITY["panel_open"] = NOTIFICATIONS["panel_open"] = False
-                elif STATE["desktop_panel"] == "audio":
+                elif STATE["desktop_panel"] == request["panel"]:
                     STATE["desktop_panel"] = None
                 writer.write((json.dumps({"id": request_id, "result": STATE}) + "\n").encode())
                 await writer.drain()
                 for topic in TOPICS:
                     await broadcast(topic)
+                continue
+
+            if operation == "power":
+                writer.write((json.dumps({"id": request_id, "error": "No power actions in this IPC fixture"}) + "\n").encode())
+                await writer.drain()
                 continue
 
             if operation == "notifications":

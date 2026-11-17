@@ -29,7 +29,9 @@ src/
 ├── services/
 │   ├── connectivity/         wireless state, validation, admission and pairing
 │   │   └── native/           NetworkManager/BlueZ adapters and event streams
-│   └── notifications/        bounded lifecycle, D-Bus server, expiry and UI topic
+│   ├── notifications/        bounded lifecycle, D-Bus server, expiry and UI topic
+│   └── power/                native observations, bounded mutations and session review
+│       └── native/           UPower, backlights, profiles and logind adapters
 └── voice/
     ├── mod.rs                public speech API and events
     ├── models.rs             model discovery and recognizer configuration
@@ -64,7 +66,7 @@ socket is mode 0600. A file lock prevents a second daemon replacing a live
 instance. Only a socket, never a regular file or symlink, can be replaced on
 restart. At most 16 clients connect, with bounded frames and write deadlines.
 
-The UI uses one socket with agent, connectivity and notification subscriptions. Independent
+The UI uses one socket with agent, connectivity, notification and power subscriptions. Independent
 Tokio watch channels coalesce state into the latest
 snapshot rather than retaining an unbounded event queue. Reconnect timers run
 only while disconnected. The daemon reads Hyprland's event socket through
@@ -72,7 +74,7 @@ HyprPilot, without a polling loop for desktop status.
 
 ## Shell surfaces
 
-Quickshell renders eight layer-shell surface roles and one ordinary window for
+Quickshell renders nine layer-shell surface roles and one ordinary window for
 preview:
 
 - `hyprlume-wallpaper`, one per monitor, Background layer with no input region.
@@ -92,6 +94,8 @@ preview:
   keyboard focus or exclusive zone, loaded only while popups are present.
 - `hyprlume-audio`, an exclusive-keyboard Overlay for native devices and media,
   coordinated with the other panels through Rust's typed `desktop_panel` state.
+- `hyprlume-power`, another exclusive-keyboard Overlay with independent power
+  state and a separate session-action review, coordinated by `desktop_panel`.
 
 Surfaces contain no protocol logic. `services/Backend.qml` owns the socket and
 the reconnecting subscription; `services/Workspaces.qml` wraps Hyprland state;

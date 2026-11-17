@@ -14,6 +14,11 @@ Item {
     implicitHeight: size
     readonly property string path: {
         const n = name;
+        if (n === "power") return "M12 2V12M6 5C-2 11 3 23 12 23C21 23 26 11 18 5";
+        if (n === "brightness") return "M16 12A4 4 0 1 1 8 12A4 4 0 1 1 16 12M12 1V4M12 20V23M1 12H4M20 12H23M4 4L6 6M18 18L20 20M4 20L6 18M18 6L20 4";
+        if (n === "refresh") return "M20 8C17 0 3 3 3 12C3 22 18 25 21 15M20 2V8H14";
+        if (n === "moon") return "M21 15C11 18 6 8 11 2C-2 4 0 22 12 22C16 22 19 20 21 15Z";
+        if (n === "logout") return "M10 3H3V21H10M10 12H22M17 7L22 12L17 17";
         if (n === "wifi") return "M2 8C7 2 17 2 22 8M5 12C9 7 15 7 19 12M8 16C10 13 14 13 16 16M12 20V20.2";
         if (n === "bluetooth") return "M12 2V22L19 16L5 5M5 19L19 8L12 2";
         if (n.indexOf("terminal") >= 0) return "M4 6L10 12L4 18M13 18H21";

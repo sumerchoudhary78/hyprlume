@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Add a glass Power & session panel with a liquid battery vessel, native UPower
+  state, verified kernel brightness, power profiles and session controls.
+- Bind logout/power actions to a verified graphical login, use separate expiring
+  confirmations, respect inhibitors, and keep hidden-panel polling stopped.
+- Test power adapters on private D-Bus services and temporary backlights, plus
+  native full/compact/unavailable/inhibited UI and confirmation interactions.
 - Add the glass Sound & media panel using native Quickshell PipeWire/MPRIS
   adapters, default-device selection, input/output/stream volume and mute,
   player selection and capability-aware playback controls.
