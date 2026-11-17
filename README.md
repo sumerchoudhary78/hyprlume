@@ -2,6 +2,8 @@
 
 # Hyprlume
 
+[Project website](https://sumerchoudhary78.github.io/hyprlume/) · [Setup guide](docs/setup.md) · [AUR](https://aur.archlinux.org/packages/hyprlume)
+
 A glass command shell and local English voice companion for **Hyprland**.
 Rust handles desktop services, the agent and audio; Quickshell / Qt Quick renders the interface;
 [HyprPilot](https://github.com/sumerchoudhary78/HyprPilot) supplies typed desktop control.

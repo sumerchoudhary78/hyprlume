@@ -1,0 +1,58 @@
+name: website
+
+on:
+  push:
+    branches: [main]
+    paths:
+      [
+        "site/**",
+        "tests/site/**",
+        "scripts/site-assets.py",
+        ".github/workflows/pages.yml",
+      ]
+  pull_request:
+    paths:
+      [
+        "site/**",
+        "tests/site/**",
+        "scripts/site-assets.py",
+        ".github/workflows/pages.yml",
+      ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check content, local resources and GitHub Pages paths
+        run: python3 -m unittest discover -s tests/site -v
+      - name: Check JavaScript syntax
+        run: node --check site/assets/app.js
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/configure-pages@v6
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+      - name: Publish
+        id: deployment
+        uses: actions/deploy-pages@v5

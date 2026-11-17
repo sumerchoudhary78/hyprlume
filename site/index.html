@@ -1,0 +1,734 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#090b14" />
+    <meta
+      name="description"
+      content="Hyprlume is a liquid-glass desktop shell for Hyprland, with real 3D, native Wi-Fi and Bluetooth controls, and a local English voice companion. Built with Rust and Quickshell."
+    />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; font-src 'self'; base-uri 'self'; form-action 'none'"
+    />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:title"
+      content="Hyprlume — Your desktop. Another dimension."
+    />
+    <meta
+      property="og:description"
+      content="Liquid glass. Local intelligence. A cinematic Linux shell built with Rust, Quickshell and Hyprland."
+    />
+    <meta
+      property="og:url"
+      content="https://sumerchoudhary78.github.io/hyprlume/"
+    />
+    <meta
+      property="og:image"
+      content="https://sumerchoudhary78.github.io/hyprlume/assets/media/desktop-1600.webp"
+    />
+    <meta
+      property="og:image:alt"
+      content="Hyprlume's glass desktop rendered by Quickshell, with labelled sample session data"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="canonical" href="https://sumerchoudhary78.github.io/hyprlume/" />
+    <link rel="icon" href="assets/brand.svg" type="image/svg+xml" />
+    <link
+      rel="preload"
+      href="assets/fonts/space-grotesk-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link rel="stylesheet" href="assets/styles.css" />
+    <script src="assets/app.js" defer></script>
+    <title>Hyprlume — Your desktop. Another dimension.</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <svg
+      class="icon-library"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <symbol id="icon-arrow" viewBox="0 0 24 24">
+        <path d="M5 12h14m-6-6 6 6-6 6" />
+      </symbol>
+      <symbol id="icon-external" viewBox="0 0 24 24">
+        <path d="M7 17 17 7M7 7h10v10" />
+      </symbol>
+      <symbol id="icon-copy" viewBox="0 0 24 24">
+        <rect x="8" y="8" width="12" height="12" rx="3" />
+        <path d="M15 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h3" />
+      </symbol>
+      <symbol id="icon-github" viewBox="0 0 24 24">
+        <path
+          d="M9 19c-4 1-4-2-6-2m12 5v-4a3.5 3.5 0 0 0-1-2.7c3.3-.4 6.7-1.6 6.7-7.3a5.7 5.7 0 0 0-1.5-4A5.3 5.3 0 0 0 19 0s-1.3-.4-4.2 1.5a14 14 0 0 0-7.6 0C4.3-.4 3 0 3 0a5.3 5.3 0 0 0-.2 4A5.7 5.7 0 0 0 1.3 8c0 5.7 3.4 6.9 6.7 7.3A3.5 3.5 0 0 0 7 18v4"
+          transform="translate(1 1) scale(.9)"
+        />
+      </symbol>
+      <symbol id="icon-spark" viewBox="0 0 24 24">
+        <path
+          d="m12 2 2.5 7.5L22 12l-7.5 2.5L12 22l-2.5-7.5L2 12l7.5-2.5L12 2Z"
+        />
+      </symbol>
+      <symbol id="icon-close" viewBox="0 0 24 24">
+        <path d="m6 6 12 12M6 18 18 6" />
+      </symbol>
+    </svg>
+
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="#" aria-label="Hyprlume home"
+          ><img
+            src="assets/brand.svg"
+            width="30"
+            height="30"
+            alt=""
+          />Hyprlume<span class="brand-mark">/</span></a
+        >
+        <button
+          class="menu-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="site-nav"
+          aria-label="Open navigation"
+        >
+          <span></span><span></span>
+        </button>
+        <nav class="site-nav" id="site-nav" aria-label="Main navigation">
+          <a href="#desktop">The desktop</a>
+          <a href="#intelligence">Local intelligence</a>
+          <a href="#install">Get started</a>
+          <a
+            class="nav-source"
+            href="https://github.com/sumerchoudhary78/hyprlume"
+            ><svg class="icon" aria-hidden="true">
+              <use href="#icon-github" /></svg
+            >Source<span class="external-mark">↗</span></a
+          >
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero container" aria-labelledby="hero-title">
+        <div class="hero-topline">
+          <a
+            class="release-pill"
+            href="https://github.com/sumerchoudhary78/hyprlume/releases/tag/v0.4.1"
+            ><span class="status-light"></span>v0.4.1
+            <span class="pill-divider">/</span> desktop preview
+            <span aria-hidden="true">↗</span></a
+          ><span class="eyebrow hero-coordinate"
+            >BUILT FOR LINUX. OPEN BY DESIGN.</span
+          >
+        </div>
+        <div class="hero-heading">
+          <h1 id="hero-title">
+            Your desktop.<br /><span>Another dimension.</span>
+          </h1>
+          <div class="hero-intro">
+            <p>
+              A cinematic shell for Hyprland. Liquid-glass panels, real 3D, and
+              a voice companion that runs locally.
+            </p>
+            <a class="button button-primary" href="#install"
+              >Install on Arch<svg class="icon" aria-hidden="true">
+                <use href="#icon-arrow" /></svg></a
+            ><a
+              class="text-link hero-secondary"
+              href="https://github.com/sumerchoudhary78/hyprlume"
+              >Explore the source <span aria-hidden="true">↗</span></a
+            >
+          </div>
+        </div>
+        <figure class="hero-figure">
+          <div class="screenshot-frame hero-screen">
+            <img
+              src="assets/media/desktop-1600.webp"
+              srcset="
+                assets/media/desktop-800.webp   800w,
+                assets/media/desktop-1600.webp 1600w
+              "
+              sizes="(max-width: 700px) calc(100vw - 36px), (max-width: 1400px) calc(100vw - 96px), 1320px"
+              width="1600"
+              height="900"
+              fetchpriority="high"
+              alt="Hyprlume's observatory desktop, with floating glass panels, a holographic action deck and liquid system gauges"
+            />
+          </div>
+          <figcaption>
+            <span
+              ><span class="tiny-square"></span>Actual Quickshell render
+              <span class="caption-divider">/</span> sample session data</span
+            ><a href="#desktop"
+              >Take a closer look <span aria-hidden="true">↓</span></a
+            >
+          </figcaption>
+        </figure>
+        <div class="technology-strip">
+          <span class="eyebrow">THE FOUNDATION</span>
+          <div>
+            <span>Rust</span
+            ><span>Quickshell<span class="tech-detail"> / QML</span></span
+            ><span>Wayland</span><span>Hyprland</span
+            ><a href="https://github.com/sumerchoudhary78/HyprPilot"
+              >HyprPilot <span aria-hidden="true">↗</span></a
+            >
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="desktop-section section-space"
+        id="desktop"
+        aria-labelledby="desktop-title"
+      >
+        <div class="container">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">
+                <span class="section-number">01</span> A DIFFERENT POINT OF VIEW
+              </p>
+              <h2 id="desktop-title">
+                Your tools.<br /><span class="muted">Within reach.</span>
+              </h2>
+            </div>
+            <p class="section-intro">
+              The observatory is the backdrop. The panels are real: workspaces,
+              system metrics, commands and connections, all within reach.
+            </p>
+          </div>
+          <div class="desktop-explorer">
+            <div class="explorer-details">
+              <div
+                class="view-tabs"
+                role="tablist"
+                aria-label="Desktop previews"
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  id="tab-desktop"
+                  aria-selected="false"
+                  aria-controls="panel-desktop"
+                  tabindex="-1"
+                >
+                  Desktop
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  id="tab-connections"
+                  aria-selected="true"
+                  aria-controls="panel-connections"
+                >
+                  Connections
+                </button>
+              </div>
+              <div
+                role="tabpanel"
+                id="panel-desktop"
+                aria-labelledby="tab-desktop"
+                hidden
+              >
+                <span class="feature-symbol" aria-hidden="true">◇</span>
+                <h3>Glass with <br />some substance.</h3>
+                <p>
+                  Curved reflections. Refracted edges. Liquid gauges that follow
+                  CPU, memory and GPU readings.
+                </p>
+                <ul class="detail-list">
+                  <li>Real Qt Quick 3D globe and city</li>
+                  <li>Live workspaces and system data</li>
+                  <li>Compact and reduced-effects layouts</li>
+                </ul>
+              </div>
+              <div
+                role="tabpanel"
+                id="panel-connections"
+                aria-labelledby="tab-connections"
+              >
+                <span
+                  class="feature-symbol connections-symbol"
+                  aria-hidden="true"
+                  >⌁</span
+                >
+                <h3>Your world. <br />Connected.</h3>
+                <p>
+                  Native Wi-Fi and Bluetooth controls, with the same glass
+                  treatment as the rest of your desktop.
+                </p>
+                <ul class="detail-list">
+                  <li>Scan and connect to Wi-Fi</li>
+                  <li>Discover and pair Bluetooth devices</li>
+                  <li>Explicit passwords and pairing prompts</li>
+                </ul>
+              </div>
+              <a
+                class="text-link explorer-guide"
+                href="https://github.com/sumerchoudhary78/hyprlume/blob/main/docs/connectivity.md"
+                >Service guide <span aria-hidden="true">↗</span></a
+              >
+            </div>
+            <figure class="explorer-figure">
+              <button
+                class="image-expand screenshot-frame"
+                type="button"
+                aria-label="View full screen: Connections screenshot"
+                data-expand-image
+              >
+                <img
+                  id="explorer-image"
+                  src="assets/media/connections-1600.webp"
+                  srcset="
+                    assets/media/connections-800.webp   800w,
+                    assets/media/connections-1600.webp 1600w
+                  "
+                  sizes="(max-width: 900px) calc(100vw - 36px), 900px"
+                  width="1600"
+                  height="900"
+                  loading="lazy"
+                  decoding="async"
+                  alt="The Connections overlay with Wi-Fi networks, Bluetooth devices and radio controls"
+                /><span class="expand-hint" aria-hidden="true"
+                  >VIEW FULL SCREEN <span>↗</span></span
+                >
+              </button>
+              <figcaption>
+                <span id="explorer-caption"
+                  >Connections · NetworkManager + BlueZ</span
+                ><span>Sample data · click to expand</span>
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="intelligence-section section-space container"
+        id="intelligence"
+        aria-labelledby="intelligence-title"
+      >
+        <div class="intelligence-copy">
+          <p class="eyebrow">
+            <span class="section-number">02</span> INTELLIGENCE, CLOSER TO HOME
+          </p>
+          <h2 id="intelligence-title">
+            Your voice.<br /><span class="muted">Your machine.</span>
+          </h2>
+          <p class="section-intro">
+            Say “Hey Pilot.” Switch a workspace, open your terminal, or set the
+            volume. Small English voice models run locally, and direct commands
+            work without an LLM.
+          </p>
+          <a
+            class="text-link"
+            href="https://github.com/sumerchoudhary78/hyprlume/blob/main/docs/voice.md"
+            >Meet your local companion <span aria-hidden="true">↗</span></a
+          >
+          <div class="privacy-note">
+            <svg class="icon" aria-hidden="true">
+              <use href="#icon-spark" />
+            </svg>
+            <p>
+              The microphone starts off. Voice commands preview by default.
+              Dictation stays text.
+            </p>
+          </div>
+        </div>
+        <div class="voice-demo" aria-label="Illustrated local command flow">
+          <div class="demo-heading">
+            <span class="eyebrow">LOCAL COMMAND FLOW</span
+            ><span class="demo-label">ILLUSTRATION</span>
+          </div>
+          <div class="waveform" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span
+            ><span></span><span></span><span></span><span></span><span></span
+            ><span></span><span></span><span></span><span></span><span></span
+            ><span></span><span></span><span></span><span></span><span></span
+            ><span></span><span></span><span></span><span></span><span></span
+            ><span></span><span></span><span></span><span></span><span></span
+            ><span></span><span></span><span></span>
+          </div>
+          <p class="wake-phrase">“Hey Pilot.”</p>
+          <div
+            class="command-examples"
+            role="group"
+            aria-label="Choose an illustrated command"
+          >
+            <button type="button" aria-pressed="true" data-command="workspace">
+              Workspace</button
+            ><button type="button" aria-pressed="false" data-command="terminal">
+              Terminal</button
+            ><button type="button" aria-pressed="false" data-command="volume">
+              Volume
+            </button>
+          </div>
+          <div class="command-result" aria-live="polite" aria-atomic="true">
+            <p class="demo-transcript" id="demo-transcript">
+              “Switch to workspace two.”
+            </p>
+            <div class="plan-line">
+              <span class="plan-number">01</span
+              ><span id="demo-plan">Switch to workspace 2</span
+              ><span class="preview-badge">PREVIEW</span>
+            </div>
+            <p class="confirmation-note">
+              <span class="status-light"></span>Your confirmation comes next.
+            </p>
+          </div>
+          <div class="demo-footer">
+            <span>WAKE → RECOGNIZE → REVIEW</span
+            ><span>No audio recorded on this page</span>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="architecture-section section-space"
+        aria-labelledby="architecture-title"
+      >
+        <div class="container architecture-layout">
+          <div class="architecture-copy">
+            <p class="eyebrow">
+              <span class="section-number">03</span> BEAUTY WITH A BACKBONE
+            </p>
+            <h2 id="architecture-title">
+              Built to belong<br /><span class="muted">on Linux.</span>
+            </h2>
+            <p class="section-intro">
+              Rust owns the services. Quickshell renders the shell. HyprPilot
+              handles typed desktop actions. Each layer has a clear job.
+            </p>
+            <a
+              class="text-link"
+              href="https://github.com/sumerchoudhary78/hyprlume/blob/main/docs/architecture.md"
+              >Under the glass <span aria-hidden="true">↗</span></a
+            >
+          </div>
+          <div class="architecture-stack" aria-label="Hyprlume architecture">
+            <div class="stack-layer stack-shell">
+              <span class="stack-index">UI</span>
+              <div>
+                <h3>Quickshell + QML</h3>
+                <p>Glass, layouts, input and real 3D</p>
+              </div>
+              <span class="layer-mark" aria-hidden="true">◇</span>
+            </div>
+            <div class="stack-connector"><span>PRIVATE UNIX SOCKET</span></div>
+            <div class="stack-layer stack-rust">
+              <span class="stack-index">CORE</span>
+              <div>
+                <h3>Rust services</h3>
+                <p>Voice · commands · NetworkManager · BlueZ</p>
+              </div>
+              <span class="layer-mark" aria-hidden="true">{ }</span>
+            </div>
+            <div class="stack-layer stack-base">
+              <span class="stack-index">BASE</span>
+              <div>
+                <h3>Hyprland + Wayland</h3>
+                <p>Your windows, workspaces and input</p>
+              </div>
+              <span class="layer-mark" aria-hidden="true">↗</span>
+            </div>
+          </div>
+        </div>
+        <div class="container engineering-notes">
+          <article>
+            <span class="note-number">01 /</span>
+            <h3>Get out of the way.</h3>
+            <p>
+              The dashboard unmaps behind apps. System sampling and liquid
+              motion pause while it is hidden.
+            </p>
+          </article>
+          <article>
+            <span class="note-number">02 /</span>
+            <h3>Choose your atmosphere.</h3>
+            <p>
+              A reduced-effects mode skips 3D, refraction and blur. Keep the
+              same controls with a quieter desktop.
+            </p>
+          </article>
+          <article>
+            <span class="note-number">03 /</span>
+            <h3>Read the real numbers.</h3>
+            <p>
+              Rendering has a cost. Our tests, measured overhead and remaining
+              hardware checks are public.
+            </p>
+            <a
+              class="text-link small-link"
+              href="https://github.com/sumerchoudhary78/hyprlume/blob/main/docs/validation.md"
+              >Validation notes <span aria-hidden="true">↗</span></a
+            >
+          </article>
+        </div>
+      </section>
+
+      <section
+        class="install-section section-space container"
+        id="install"
+        aria-labelledby="install-title"
+      >
+        <div class="install-intro">
+          <p class="eyebrow">
+            <span class="section-number">04</span> MAKE SOME SPACE
+          </p>
+          <h2 id="install-title">
+            Your next desktop<br /><span class="muted">starts here.</span>
+          </h2>
+          <p class="section-intro">
+            Available on the AUR. Open source, from the first pixel to the last
+            service.
+          </p>
+          <div class="install-links">
+            <a
+              class="text-link"
+              href="https://aur.archlinux.org/packages/hyprlume"
+              >AUR package <span aria-hidden="true">↗</span></a
+            ><a
+              class="text-link"
+              href="https://github.com/sumerchoudhary78/hyprlume/releases/tag/v0.4.1"
+              >v0.4.1 release <span aria-hidden="true">↗</span></a
+            >
+          </div>
+          <div class="preview-notice">
+            <span class="status-light"></span>
+            <p>
+              <strong>A preview, with room to grow.</strong> Notifications,
+              audio/media, power and other desktop services are next. New
+              hidden/enterprise Wi-Fi profile editing and physical
+              connection/pairing qualification remain open.
+            </p>
+            <a
+              href="https://github.com/sumerchoudhary78/hyprlume/blob/main/docs/roadmap.md"
+              aria-label="Read the development roadmap"
+              >↗</a
+            >
+          </div>
+        </div>
+        <div class="install-panel">
+          <div class="install-panel-heading">
+            <span class="eyebrow">INSTALL HYPRLUME</span
+            ><span class="platform-label">LINUX / WAYLAND</span>
+          </div>
+          <div
+            class="install-tabs"
+            role="tablist"
+            aria-label="Installation method"
+          >
+            <button
+              type="button"
+              role="tab"
+              id="tab-arch"
+              aria-controls="panel-arch"
+              aria-selected="true"
+            >
+              Arch Linux</button
+            ><button
+              type="button"
+              role="tab"
+              id="tab-source"
+              aria-controls="panel-source"
+              aria-selected="false"
+              tabindex="-1"
+            >
+              From source
+            </button>
+          </div>
+          <div role="tabpanel" id="panel-arch" aria-labelledby="tab-arch">
+            <div class="code-heading">
+              <span>01 / INSTALL FROM THE AUR</span
+              ><button
+                class="copy-button"
+                type="button"
+                data-copy="arch-command"
+                aria-label="Copy AUR install command"
+              >
+                <svg class="icon" aria-hidden="true">
+                  <use href="#icon-copy" /></svg
+                ><span>Copy</span>
+              </button>
+            </div>
+            <pre><code id="arch-command">yay -S hyprlume</code></pre>
+            <p class="code-help">
+              Prefer paru? Use <code>paru -S hyprlume</code>.
+            </p>
+            <p class="code-heading startup-label">
+              02 / START IN TWO TERMINALS
+            </p>
+            <div class="terminal-pair">
+              <div><span>TERMINAL 01</span><code>hyprlume daemon</code></div>
+              <div><span>TERMINAL 02</span><code>hyprlume shell</code></div>
+            </div>
+            <p class="install-footnote">
+              Run inside your Hyprland session. The package does not replace
+              your desktop configuration or enable services automatically.
+            </p>
+          </div>
+          <div
+            role="tabpanel"
+            id="panel-source"
+            aria-labelledby="tab-source"
+            hidden
+          >
+            <div class="code-heading">
+              <span>01 / CLONE &amp; BUILD</span
+              ><button
+                class="copy-button"
+                type="button"
+                data-copy="source-command"
+                aria-label="Copy source build commands"
+              >
+                <svg class="icon" aria-hidden="true">
+                  <use href="#icon-copy" /></svg
+                ><span>Copy</span>
+              </button>
+            </div>
+            <pre
+              class="source-code"
+            ><code id="source-command">git clone https://github.com/sumerchoudhary78/hyprlume.git
+cd hyprlume
+cargo build --release --locked</code></pre>
+            <p class="code-help">
+              Rust 1.90+, D-Bus development headers and pkg-config. Install the
+              Quickshell/Qt and Hyprland runtime dependencies first; see the
+              <a
+                href="https://github.com/sumerchoudhary78/hyprlume#build-from-source"
+                >source build guide</a
+              >.
+            </p>
+            <p class="code-heading startup-label">
+              02 / START IN TWO TERMINALS
+            </p>
+            <div class="source-start">
+              <code>./target/release/hyprlume daemon</code
+              ><code>./target/release/hyprlume shell --path ./shell</code>
+            </div>
+          </div>
+          <div class="install-panel-footer">
+            <span>Voice models are a separate, opt-in download.</span
+            ><a
+              href="https://github.com/sumerchoudhary78/hyprlume/blob/main/docs/setup.md"
+              >Full setup guide <span aria-hidden="true">↗</span></a
+            >
+          </div>
+        </div>
+      </section>
+
+      <section class="faq-section container" aria-labelledby="faq-title">
+        <div>
+          <p class="eyebrow">A FEW DETAILS</p>
+          <h2 id="faq-title">Before you step in.</h2>
+        </div>
+        <div class="faq-list">
+          <details>
+            <summary>
+              Is this a complete desktop environment?<span aria-hidden="true"
+                >+</span
+              >
+            </summary>
+            <p>
+              Not yet. The shell, command/voice path and Wi-Fi/Bluetooth panel
+              are implemented. Notifications, media, power, tray, clipboard and
+              screen-lock integration are on the roadmap. It is a preview you
+              can use and help develop.
+            </p>
+          </details>
+          <details>
+            <summary>
+              Does the voice companion need the cloud?<span aria-hidden="true"
+                >+</span
+              >
+            </summary>
+            <p>
+              No. English wake-word detection, speech recognition and Piper
+              speech output run locally after downloading the models. Simple
+              desktop commands use a direct parser. An optional local LLM can
+              plan more complex requests, with confirmation before
+              model-generated actions run.
+            </p>
+          </details>
+          <details>
+            <summary>
+              Can I use it outside Arch Linux?<span aria-hidden="true">+</span>
+            </summary>
+            <p>
+              The source is available for Linux systems with the required
+              Hyprland, Quickshell, Qt and audio dependencies. The packaged and
+              physical-session checks currently focus on Arch x86_64. Other
+              distributions, aarch64, multiple monitors and driver combinations
+              still need qualification.
+            </p>
+          </details>
+        </div>
+      </section>
+
+      <section class="closing-section container">
+        <span class="closing-star" aria-hidden="true">✳</span>
+        <div>
+          <p>Built in the open.</p>
+          <h2>Come shape what’s next.</h2>
+        </div>
+        <a
+          class="button button-secondary"
+          href="https://github.com/sumerchoudhary78/hyprlume"
+          ><svg class="icon" aria-hidden="true"><use href="#icon-github" /></svg
+          >Find us on GitHub<svg class="icon" aria-hidden="true">
+            <use href="#icon-external" /></svg
+        ></a>
+      </section>
+    </main>
+
+    <footer class="site-footer container">
+      <a class="brand" href="#" aria-label="Back to Hyprlume home"
+        ><img src="assets/brand.svg" width="25" height="25" alt="" />Hyprlume</a
+      >
+      <p>A little further into the future.</p>
+      <div>
+        <a
+          href="https://github.com/sumerchoudhary78/hyprlume/blob/main/LICENSE-MIT"
+          >MIT</a
+        ><span>OR</span
+        ><a
+          href="https://github.com/sumerchoudhary78/hyprlume/blob/main/LICENSE-APACHE"
+          >Apache-2.0</a
+        ><a href="https://github.com/sumerchoudhary78/hyprlume/issues"
+          >Issues <span aria-hidden="true">↗</span></a
+        >
+      </div>
+    </footer>
+    <div class="toast" role="status" id="copy-status"></div>
+    <dialog
+      class="screenshot-dialog"
+      id="screenshot-dialog"
+      aria-label="Expanded desktop preview"
+    >
+      <div class="dialog-toolbar">
+        <span id="dialog-caption">Connections · sample data</span
+        ><button
+          type="button"
+          class="dialog-close"
+          aria-label="Close expanded screenshot"
+        >
+          <svg class="icon" aria-hidden="true"><use href="#icon-close" /></svg>
+        </button>
+      </div>
+      <img
+        id="dialog-image"
+        src="assets/media/connections-1600.webp"
+        width="1600"
+        height="900"
+        loading="lazy"
+        alt="Expanded Connections screenshot with synthetic network and device data"
+      />
+    </dialog>
+  </body>
+</html>
