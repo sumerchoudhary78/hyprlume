@@ -11,6 +11,7 @@ pkgbase = hyprlume
 	makedepends = git
 	makedepends = qt6-shadertools
 	makedepends = pkgconf
+	depends = gtk3
 	depends = glibc
 	depends = gcc-libs
 	depends = dbus

@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Wayland
 import qs.components
+import qs.modules.launcher
 import qs.modules.tray
 import qs.modules.power
 import qs.modules.audio
@@ -180,4 +181,16 @@ Item {
         }
     }
 
+    Loader {
+        active: desktop.backend.online && ["launcher","switcher"].includes(desktop.backend.snapshot.desktop_panel)
+        sourceComponent: PanelWindow {
+            screen: desktop.focusedScreen
+            anchors { top: true; bottom: true; left: true; right: true }
+            exclusiveZone: 0; color: "transparent"
+            WlrLayershell.namespace: "hyprlume-launcher"
+            WlrLayershell.layer: WlrLayer.Overlay
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+            LauncherOverlay { anchors.fill: parent; backend: desktop.backend; reducedEffects: desktop.state.reducedEffects }
+        }
+    }
 }

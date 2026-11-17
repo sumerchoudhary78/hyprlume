@@ -21,7 +21,11 @@ async fn compositor(
         .collect();
     let server = tokio::spawn(async move {
         for (expected, response) in responses {
-            let (mut stream, _) = listener.accept().await.unwrap();
+            let (mut stream, _) =
+                tokio::time::timeout(std::time::Duration::from_secs(3), listener.accept())
+                    .await
+                    .unwrap()
+                    .unwrap();
             let mut request = String::new();
             stream.read_to_string(&mut request).await.unwrap();
             assert_eq!(request, expected);
@@ -213,11 +217,7 @@ async fn malformed_config_status_never_guesses_a_dispatcher() {
 async fn an_invalid_address_never_becomes_lua_code() {
     let address = "0xa\" }); injected() --";
     let clients = serde_json::json!([sample_window(address, 1)]).to_string();
-    let (_dir, desktop, server) = compositor(vec![
-        ("j/clients", &clients),
-        ("j/status", r#"{"configProvider":"lua"}"#),
-    ])
-    .await;
+    let (_dir, desktop, server) = compositor(vec![("j/clients", &clients)]).await;
     assert!(desktop
         .execute(
             &Action::Focus {
@@ -231,4 +231,48 @@ async fn an_invalid_address_never_becomes_lua_code() {
         .to_string()
         .contains("invalid window address"));
     server.await.unwrap();
+}
+
+#[tokio::test]
+async fn switcher_focuses_exact_address_and_requires_observed_focus() {
+    for lua in [false, true] {
+        let window = sample_window("0xb", 2).to_string();
+        let clients =
+            serde_json::json!([sample_window("0xa", 1), sample_window("0xb", 2)]).to_string();
+        let status = if lua {
+            r#"{"configProvider":"lua"}"#
+        } else {
+            r#"{"configProvider":"hyprlang"}"#
+        };
+        let dispatch = if lua {
+            "dispatch hl.dsp.focus({ window = \"address:0xb\" })"
+        } else {
+            "dispatch focuswindow address:0xb"
+        };
+        let (_dir, desktop, server) = compositor(vec![
+            ("j/clients", &clients),
+            ("j/status", status),
+            (dispatch, "ok"),
+            ("j/activewindow", &window),
+        ])
+        .await;
+        assert!(desktop
+            .focus_address("0xb")
+            .await
+            .unwrap()
+            .contains("focused"));
+        server.await.unwrap();
+    }
+    let (_dir, desktop, server) = compositor(vec![("j/clients", "[]")]).await;
+    assert!(desktop
+        .focus_address("0xa")
+        .await
+        .unwrap_err()
+        .to_string()
+        .contains("no longer open"));
+    server.await.unwrap();
+    assert!(Desktop::new(true)
+        .focus_address("0xa; exec bad")
+        .await
+        .is_err());
 }

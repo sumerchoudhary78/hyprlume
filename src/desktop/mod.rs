@@ -16,6 +16,13 @@ pub struct Desktop {
 }
 
 impl Desktop {
+    pub(crate) async fn launch_desktop(&self, id: &str) -> Result<String> {
+        let argv = applications::desktop_argv(id)?;
+        if self.demo {
+            return Ok(format!("Demo only · launch desktop application {id}"));
+        }
+        applications::launch("desktop", &argv).await
+    }
     pub fn new(demo: bool) -> Self {
         Self {
             connection: if demo { None } else { Connection::new().ok() },

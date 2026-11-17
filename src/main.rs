@@ -53,6 +53,11 @@ enum Commands {
     Audio,
     /// Open application tray icons and their menus.
     Tray,
+    /// Search installed applications; --windows opens the task switcher.
+    Launcher {
+        #[arg(long)]
+        windows: bool,
+    },
     /// Open power/session controls, or read the current state without changing power.
     Power {
         #[arg(long)]
@@ -199,6 +204,14 @@ async fn main() -> Result<()> {
                 },
                 Commands::Tray => Operation::Panel {
                     panel: hyprlume::protocol::DesktopPanel::Tray,
+                    open: true,
+                },
+                Commands::Launcher { windows } => Operation::Panel {
+                    panel: if windows {
+                        hyprlume::protocol::DesktopPanel::Switcher
+                    } else {
+                        hyprlume::protocol::DesktopPanel::Launcher
+                    },
                     open: true,
                 },
                 Commands::Power { status } => {

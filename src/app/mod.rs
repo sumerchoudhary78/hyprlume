@@ -83,6 +83,12 @@ impl App {
             }
             Operation::PowerStatus | Operation::PowerSubscribe => Ok(json!(self.power.state())),
             Operation::Power { request } => self.power.handle(request).await,
+            Operation::LaunchDesktop { desktop_id } => Ok(
+                json!({"desktop_launched":true,"message":self.desktop.launch_desktop(&desktop_id).await?}),
+            ),
+            Operation::FocusWindow { address } => Ok(
+                json!({"window_focused":true,"message":self.desktop.focus_address(&address).await?}),
+            ),
             Operation::Notifications { request } => {
                 if matches!(request, crate::services::notifications::Request::Toggle)
                     && !self.notifications.state().panel_open

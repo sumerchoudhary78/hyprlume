@@ -1,6 +1,17 @@
 //! Literal argv launches in independent systemd user units.
 use super::run;
-use anyhow::{Context, Result};
+use anyhow::{ensure, Context, Result};
+
+pub(super) fn desktop_argv(id: &str) -> Result<Vec<String>> {
+    ensure!(
+        !id.is_empty()
+            && id.len() <= 256
+            && !id.starts_with('-')
+            && id.chars().all(|c| c.is_alphanumeric() || "._-".contains(c)),
+        "Invalid desktop application id"
+    );
+    Ok(vec!["gtk-launch".into(), "--".into(), id.into()])
+}
 
 pub(super) async fn launch(app: &str, argv: &[String]) -> Result<String> {
     let stamp = std::time::SystemTime::now()
@@ -20,6 +31,7 @@ pub(super) async fn launch(app: &str, argv: &[String]) -> Result<String> {
         "--quiet".into(),
         "--service-type=exec".into(),
         "--expand-environment=no".into(),
+        "--property=ExitType=cgroup".into(),
         format!("--unit={unit}"),
     ];
     for name in [
@@ -28,6 +40,11 @@ pub(super) async fn launch(app: &str, argv: &[String]) -> Result<String> {
         "XDG_RUNTIME_DIR",
         "XDG_CURRENT_DESKTOP",
         "XDG_SESSION_TYPE",
+        "XDG_SESSION_ID",
+        "XDG_DATA_HOME",
+        "XDG_DATA_DIRS",
+        "XDG_CONFIG_HOME",
+        "XDG_CONFIG_DIRS",
         "DBUS_SESSION_BUS_ADDRESS",
         "XAUTHORITY",
         "LANG",
@@ -49,4 +66,27 @@ pub(super) async fn launch(app: &str, argv: &[String]) -> Result<String> {
         .await
         .with_context(|| format!("launch {app} through the systemd user manager"))?;
     Ok(format!("{app} launch requested · process started"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn desktop_launch_uses_an_id_and_literal_arguments() {
+        assert_eq!(
+            desktop_argv("org.example.Editor.desktop").unwrap(),
+            ["gtk-launch", "--", "org.example.Editor.desktop"]
+        );
+        for id in [
+            "",
+            "--help",
+            "../app.desktop",
+            "/tmp/app.desktop",
+            "app;sh",
+            "app\nname",
+            "a b.desktop",
+        ] {
+            assert!(desktop_argv(id).is_err());
+        }
+    }
 }

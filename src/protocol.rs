@@ -21,6 +21,12 @@ pub enum Operation {
     Power {
         request: crate::services::power::Request,
     },
+    LaunchDesktop {
+        desktop_id: String,
+    },
+    FocusWindow {
+        address: String,
+    },
     Notifications {
         request: crate::services::notifications::Request,
     },
@@ -53,6 +59,8 @@ pub enum DesktopPanel {
     Audio,
     Power,
     Tray,
+    Launcher,
+    Switcher,
 }
 
 fn yes() -> bool {
