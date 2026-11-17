@@ -9,6 +9,8 @@ QtObject {
         id: sampleBackend
         property bool online: true
         property string error: ""
+        signal response(int id, bool ok, var result, string error)
+        property var settings: ({revision:1,values:{preferences:{appearance:{reduced_effects:false,accent:"cyan",scale:1,refraction:16,metrics:true},shortcuts:{launcher:"SUPER+SPACE",windows:"SUPER+TAB",tools:"SUPER+V",lock:"SUPER+L"},services:{clipboard_history:false,notifications_dnd:false}},voice:{asr_dir:"/preview/models/asr",kws_dir:"/preview/models/kws",tts_dir:"/preview/models/tts",keywords_file:"/preview/models/kws/keywords.txt",threads:2,execute_commands:false,speak_results:true},llm:{endpoint:null,model:"local",timeout_seconds:20}},path:"/preview/config.toml",restart_required:false,message:"Preview settings are never written to disk",hyprlang:"bind = SUPER, SPACE, exec, hyprlume launcher",lua:"hl.bind(\"SUPER + SPACE\", hl.dsp.exec_cmd(\"hyprlume launcher\"))"})
         property var lastRequest: ({})
         property int requestCount: 0
         property int pairCount: 0
@@ -49,7 +51,7 @@ QtObject {
             // Simulate unrelated D-Bus snapshots while the user types a PIN.
             onTriggered: sampleBackend.connectivity = JSON.parse(JSON.stringify(sampleBackend.connectivity))
         }
-        property var snapshot: ({phase:"ready",message:"Your desktop, within reach.",transcript:"workspace two",actions:[],receipts:["Focused Development workspace","Desktop state verified","Ready for your next command"],confirmation:null,panel_open:false,desktop_panel:Quickshell.env("HYPRLUME_TOOLS_PREVIEW") === "1" ? "clipboard" : Quickshell.env("HYPRLUME_LAUNCHER_PREVIEW") === "1" ? "launcher" : Quickshell.env("HYPRLUME_TRAY_PREVIEW") === "1" ? "tray" : Quickshell.env("HYPRLUME_POWER_PREVIEW") === "1" ? "power" : Quickshell.env("HYPRLUME_AUDIO_PREVIEW") === "1" ? "audio" : null,voice:"off",workspace:2,active_app:"hyprlume"})
+        property var snapshot: ({phase:"ready",message:"Your desktop, within reach.",transcript:"workspace two",actions:[],receipts:["Focused Development workspace","Desktop state verified","Ready for your next command"],confirmation:null,panel_open:false,desktop_panel:Quickshell.env("HYPRLUME_SETTINGS_PREVIEW") === "1" ? "settings" : Quickshell.env("HYPRLUME_TOOLS_PREVIEW") === "1" ? (Quickshell.env("HYPRLUME_CAPTURE_PREVIEW") === "1" ? "capture" : "clipboard") : Quickshell.env("HYPRLUME_LAUNCHER_PREVIEW") === "1" ? "launcher" : Quickshell.env("HYPRLUME_TRAY_PREVIEW") === "1" ? "tray" : Quickshell.env("HYPRLUME_POWER_PREVIEW") === "1" ? "power" : Quickshell.env("HYPRLUME_AUDIO_PREVIEW") === "1" ? "audio" : null,voice:"off",workspace:2,active_app:"hyprlume"})
         property Timer planningDelay: Timer {
             interval: 600
             onTriggered: sampleBackend.snapshot = Object.assign({}, sampleBackend.snapshot,
@@ -63,7 +65,14 @@ QtObject {
             if (publicOperation.request && publicOperation.request.value) publicOperation.request.value = "[credential]";
             lastRequest = publicOperation; requestCount++;
             if (Quickshell.env("HYPRLUME_QA") === "1") console.log("HYPRLUME_QA " + JSON.stringify({kind:"request",operation:publicOperation}));
-            if (operation.op === "clipboard") {
+            if (operation.op === "settings") {
+                const sequence=requestCount;
+                if(operation.request.action==="save") settings=Object.assign({},settings,{revision:settings.revision+1,values:JSON.parse(JSON.stringify(operation.request.values)),message:"Preview settings saved in memory"});
+                const result=settings;
+                Qt.callLater(()=>sampleBackend.response(sequence,true,result,""));
+                return sequence;
+            }
+            else if (operation.op === "clipboard") {
                 const request=operation.request;
                 if (request.action==="enable") clipboard=Object.assign({},clipboard,{enabled:request.enabled});
                 if (request.action==="clear") clipboard=Object.assign({},clipboard,{items:[]});
@@ -194,7 +203,7 @@ QtObject {
     property QtObject state: QtObject {
         property int mode: 0
         onModeChanged: if (Quickshell.env("HYPRLUME_QA") === "1") console.log("HYPRLUME_QA " + JSON.stringify({kind:"mode",mode:mode}));
-        property bool reducedEffects: Quickshell.env("HYPRLUME_REDUCED_EFFECTS") === "1"
+        property bool reducedEffects: Quickshell.env("HYPRLUME_REDUCED_EFFECTS") === "1" || sampleBackend.settings.values.preferences.appearance.reduced_effects
     }
     Component.onCompleted: {
         const mode = Quickshell.env("HYPRLUME_CONNECTIVITY_STATE");

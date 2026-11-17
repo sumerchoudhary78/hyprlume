@@ -1,0 +1,188 @@
+//! Versioned, validated and atomic configuration editing, outside the AI planner.
+mod shortcuts;
+mod storage;
+use crate::config::{Config, Llm, Preferences, Voice};
+use anyhow::{ensure, Context, Result};
+use serde::{Deserialize, Serialize};
+use std::{
+    path::PathBuf,
+    sync::{Arc, Mutex},
+};
+use tokio::sync::watch;
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Values {
+    pub preferences: Preferences,
+    pub voice: Voice,
+    pub llm: Llm,
+}
+impl From<&Config> for Values {
+    fn from(config: &Config) -> Self {
+        Self {
+            preferences: config.preferences.clone(),
+            voice: config.voice.clone(),
+            llm: config.llm.clone(),
+        }
+    }
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct State {
+    pub values: Values,
+    pub revision: u64,
+    pub restart_required: bool,
+    pub path: String,
+    pub message: String,
+    pub hyprlang: String,
+    pub lua: String,
+}
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(tag = "action", rename_all = "snake_case", deny_unknown_fields)]
+pub enum Request {
+    Save { revision: u64, values: Box<Values> },
+    Reload,
+}
+struct Store {
+    config: Config,
+    source: Option<Vec<u8>>,
+    revision: u64,
+}
+pub struct Controller {
+    store: Mutex<Store>,
+    state: watch::Sender<State>,
+    active: Config,
+    path: PathBuf,
+    demo: bool,
+}
+impl Controller {
+    pub fn new(config: &Config, path: PathBuf, demo: bool) -> Arc<Self> {
+        let source = std::fs::read(&path).ok();
+        let saved = source
+            .as_ref()
+            .and_then(|bytes| std::str::from_utf8(bytes).ok())
+            .and_then(|text| toml::from_str::<Config>(text).ok())
+            .filter(|config| config.validate().is_ok())
+            .unwrap_or_else(|| config.clone());
+        let values = Values::from(&saved);
+        let (state,_)=watch::channel(State {revision:1,restart_required:restart_required(config,&saved),path:path.to_string_lossy().into_owned(),hyprlang:shortcuts::hyprlang(&values.preferences.shortcuts),lua:shortcuts::lua(&values.preferences.shortcuts),values,message:"Appearance applies now. Voice/model and startup defaults apply after daemon restart. Shortcut bindings are exported for your compositor configuration.".into()});
+        Arc::new(Self {
+            store: Mutex::new(Store {
+                config: saved,
+                source,
+                revision: 1,
+            }),
+            state,
+            active: config.clone(),
+            path,
+            demo,
+        })
+    }
+    pub fn state(&self) -> State {
+        self.state.borrow().clone()
+    }
+    pub fn subscribe(&self) -> watch::Receiver<State> {
+        self.state.subscribe()
+    }
+    pub async fn handle(self: &Arc<Self>, request: Request) -> Result<State> {
+        let controller = self.clone();
+        tokio::task::spawn_blocking(move || controller.edit(request))
+            .await
+            .context("Settings worker stopped")?
+    }
+    fn edit(&self, request: Request) -> Result<State> {
+        let mut store = self.store.lock().unwrap();
+        let reload = matches!(&request, Request::Reload);
+        match request {
+            Request::Save { revision, values } => {
+                ensure!(
+                    revision == store.revision,
+                    "Settings changed in another view; reload before saving"
+                );
+                let config = Config {
+                    apps: store.config.apps.clone(),
+                    preferences: values.preferences,
+                    voice: values.voice,
+                    llm: values.llm,
+                };
+                validate_values(&config)?;
+                let contents = toml::to_string_pretty(&config)?;
+                ensure!(contents.len() <= 256 * 1024, "Configuration is too large");
+                if !self.demo {
+                    storage::save(&self.path, store.source.as_deref(), contents.as_bytes())?;
+                }
+                store.config = config;
+                store.source = Some(contents.into_bytes());
+            }
+            Request::Reload => {
+                if !self.demo {
+                    let contents = storage::read(&self.path)?;
+                    let config = match &contents {
+                        Some(bytes) => toml::from_str(std::str::from_utf8(bytes)?)?,
+                        None => Config::default(),
+                    };
+                    config.validate()?;
+                    store.config = config;
+                    store.source = contents;
+                }
+            }
+        }
+        store.revision += 1;
+        let values = Values::from(&store.config);
+        let message = if self.demo {
+            "Demo settings · no file was changed"
+        } else if reload {
+            "Configuration reloaded. Appearance is live; voice/model and startup defaults need a daemon restart."
+        } else {
+            "Settings saved. Appearance is live; voice/model and startup defaults need a daemon restart."
+        };
+        let state = State {
+            values: values.clone(),
+            revision: store.revision,
+            restart_required: restart_required(&self.active, &store.config),
+            path: self.path.to_string_lossy().into_owned(),
+            message: message.into(),
+            hyprlang: shortcuts::hyprlang(&values.preferences.shortcuts),
+            lua: shortcuts::lua(&values.preferences.shortcuts),
+        };
+        self.state.send_replace(state.clone());
+        Ok(state)
+    }
+}
+fn restart_required(active: &Config, saved: &Config) -> bool {
+    active.voice != saved.voice
+        || active.llm != saved.llm
+        || active.preferences.services != saved.preferences.services
+        || active.apps != saved.apps
+}
+fn validate_values(config: &Config) -> Result<()> {
+    config.validate()?;
+    for path in [
+        &config.voice.asr_dir,
+        &config.voice.kws_dir,
+        &config.voice.tts_dir,
+        &config.voice.keywords_file,
+    ] {
+        let text = path.to_str().context("Model paths must be UTF-8")?;
+        ensure!(
+            path.is_absolute() && text.len() <= 512 && !text.chars().any(char::is_control),
+            "Model paths must be absolute and at most 512 bytes without control characters"
+        );
+    }
+    ensure!(
+        !config.llm.model.is_empty()
+            && config.llm.model.len() <= 128
+            && !config.llm.model.chars().any(char::is_control),
+        "Model name must be 1–128 bytes without control characters"
+    );
+    ensure!(
+        config
+            .llm
+            .endpoint
+            .as_ref()
+            .is_none_or(|endpoint| endpoint.len() <= 512),
+        "Local model endpoint is too long"
+    );
+    Ok(())
+}
+#[cfg(test)]
+mod tests;

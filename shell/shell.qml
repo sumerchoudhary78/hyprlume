@@ -4,6 +4,7 @@
 import QtQuick
 import Quickshell
 import qs.services
+import qs.theme
 
 // Entry point. Services live here; visuals are loaded from the desktop module
 // so `--preview` can substitute an ordinary window.
@@ -12,22 +13,25 @@ ShellRoot {
 
     readonly property bool preview: Quickshell.env("HYPRLUME_PREVIEW") === "1"
 
-    Backend { id: backend; audio: audioService; tray: trayService; launcher: launcherService }
-    NativeLauncher { id: launcherService; backend: backend; active: backend.online && ["launcher","switcher"].includes(backend.snapshot.desktop_panel) }
-    NativeTray { id: trayService; active: backend.online && backend.snapshot.desktop_panel === "tray" }
-    NativeAudio { id: audioService; active: backend.online && backend.snapshot.desktop_panel === "audio" }
+    Backend { id: backendService; audio: audioService; tray: trayService; launcher: launcherService }
+    NativeLauncher { id: launcherService; backend: backendService; active: backendService.online && ["launcher","switcher"].includes(backendService.snapshot.desktop_panel) }
+    NativeTray { id: trayService; active: backendService.online && backendService.snapshot.desktop_panel === "tray" }
+    NativeAudio { id: audioService; active: backendService.online && backendService.snapshot.desktop_panel === "audio" }
     Clock { id: clock }
-    Metrics { id: metrics; active: root.preview || workspaces.desktopVisible }
+    Metrics { id: metrics; active: backendService.settings.values.preferences.appearance.metrics && (root.preview || workspaces.desktopVisible) }
     Workspaces { id: workspaces }
-    ShellState { id: shellState }
+    ShellState { id: shellState; backend: backendService }
+    Binding {target:Theme;property:"scale";value:backendService.settings.values.preferences.appearance.scale}
+    Binding {target:Theme;property:"accentName";value:backendService.settings.values.preferences.appearance.accent}
+    Binding {target:Theme;property:"glassRefraction";value:backendService.settings.values.preferences.appearance.refraction}
 
     Loader {
         Component.onCompleted: {
             if (root.preview) {
-                setSource("PreviewWindow.qml", { backend: backend, clock: clock, metrics: metrics, workspaces: workspaces, state: shellState });
+                setSource("PreviewWindow.qml", { backend: backendService, clock: clock, metrics: metrics, workspaces: workspaces, state: shellState });
             } else {
                 setSource("DesktopShell.qml", {
-                    backend: backend,
+                    backend: backendService,
                     clock: clock,
                     metrics: metrics,
                     workspaces: workspaces,

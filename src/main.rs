@@ -73,6 +73,8 @@ enum Commands {
         #[arg(long)]
         stop: bool,
     },
+    /// Open persisted appearance, voice/model and service preferences.
+    Settings,
     Toggle,
     Cancel,
     /// Confirm a specific preview token (expires after 30 seconds).
@@ -123,7 +125,23 @@ async fn main() -> Result<()> {
         .with_writer(std::io::stderr)
         .init();
     let cli = Cli::parse();
-    let config = Config::load(cli.config)?;
+    let config_path = cli
+        .config
+        .clone()
+        .unwrap_or_else(hyprlume::config::config_path);
+    let needs_config = match &cli.command {
+        Commands::Daemon { .. } | Commands::Config | Commands::Doctor => true,
+        #[cfg(feature = "voice")]
+        Commands::Transcribe { .. } | Commands::Speak { .. } | Commands::DetectWake { .. } => true,
+        _ => false,
+    };
+    // Socket clients, especially per-offer clipboard delivery, do not need
+    // inference configuration or unrelated config-file I/O.
+    let config = if needs_config {
+        Config::load(cli.config)?
+    } else {
+        Config::default()
+    };
     match cli.command {
         Commands::Config => {
             println!("{}", toml::to_string_pretty(&config)?);
@@ -204,7 +222,9 @@ async fn main() -> Result<()> {
         command => {
             let path = cli.socket.map(Ok).unwrap_or_else(server::socket_path)?;
             let operation = match command {
-                Commands::Daemon { demo } => return server::serve(path, config, demo).await,
+                Commands::Daemon { demo } => {
+                    return server::serve_with_config(path, config, demo, config_path).await
+                }
                 Commands::Send { text, execute } => Operation::Command {
                     text,
                     dry_run: !execute,
@@ -255,6 +275,10 @@ async fn main() -> Result<()> {
                 },
                 Commands::Capture { stop: false } => Operation::Panel {
                     panel: hyprlume::protocol::DesktopPanel::Capture,
+                    open: true,
+                },
+                Commands::Settings => Operation::Panel {
+                    panel: hyprlume::protocol::DesktopPanel::Settings,
                     open: true,
                 },
                 Commands::Toggle => Operation::Toggle,

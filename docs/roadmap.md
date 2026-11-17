@@ -71,7 +71,9 @@ code is needed. User-selected priority is connectivity:
 7. **Clipboard/capture:** implemented on main (unreleased): opt-in bounded text
    history, screenshots, display/region recording and persistent stop controls.
    See [behavior, dependencies and isolated checks](clipboard-capture.md).
-8. **Settings:** persisted preferences, effects/motion and service configuration.
+8. **Settings:** implemented on main (unreleased): persisted appearance, voice/
+   model preferences, shortcut exports and service startup defaults. See
+   [application semantics and verification](settings.md).
 9. **Screen locking:** a real session-lock integration with authentication and
    recovery qualification; a fullscreen panel alone cannot provide a lock.
 

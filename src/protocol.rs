@@ -16,6 +16,11 @@ pub enum Operation {
     ConnectivityStatus,
     NotificationsSubscribe,
     NotificationsStatus,
+    SettingsSubscribe,
+    SettingsStatus,
+    Settings {
+        request: crate::services::settings::Request,
+    },
     ClipboardSubscribe,
     ClipboardStatus,
     Clipboard {
@@ -73,6 +78,7 @@ pub enum DesktopPanel {
     Audio,
     Power,
     Tray,
+    Settings,
     Clipboard,
     Capture,
     Launcher,

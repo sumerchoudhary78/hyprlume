@@ -21,6 +21,7 @@ pub struct App {
     pub desktop: Desktop,
     pub(crate) connectivity: Arc<crate::services::connectivity::Controller>,
     pub(crate) notifications: Arc<crate::services::notifications::Controller>,
+    pub(crate) settings: Arc<crate::services::settings::Controller>,
     pub(crate) clipboard: Arc<crate::services::clipboard::Controller>,
     pub(crate) capture: Arc<crate::services::capture::Controller>,
     pub(crate) power: Arc<crate::services::power::Controller>,
@@ -45,12 +46,22 @@ impl App {
         )
     }
     pub fn with_socket(config: Config, demo: bool, socket: std::path::PathBuf) -> Arc<Self> {
+        Self::with_paths(config, demo, socket, crate::config::config_path())
+    }
+    pub fn with_paths(
+        config: Config,
+        demo: bool,
+        socket: std::path::PathBuf,
+        config_path: std::path::PathBuf,
+    ) -> Arc<Self> {
         let mut state = State::default();
         if demo {
             state.message = "Demo session · desktop actions are simulated".into();
         }
         let (state, _) = watch::channel(state);
+        let settings = crate::services::settings::Controller::new(&config, config_path, demo);
         Arc::new(Self {
+            settings,
             config,
             desktop: Desktop::new(demo),
             connectivity: crate::services::connectivity::Controller::new(demo),
@@ -92,6 +103,10 @@ impl App {
             Operation::NotificationsStatus | Operation::NotificationsSubscribe => {
                 Ok(json!(self.notifications.state()))
             }
+            Operation::SettingsStatus | Operation::SettingsSubscribe => {
+                Ok(json!(self.settings.state()))
+            }
+            Operation::Settings { request } => Ok(json!(self.settings.handle(request).await?)),
             Operation::ClipboardStatus | Operation::ClipboardSubscribe => {
                 Ok(json!(self.clipboard.state()))
             }

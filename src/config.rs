@@ -1,3 +1,6 @@
+mod preferences;
+pub use preferences::{Accent, Appearance, Preferences, Services, Shortcuts};
+
 use anyhow::{bail, Context, Result};
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, path::PathBuf};
@@ -9,9 +12,10 @@ pub struct Config {
     pub apps: BTreeMap<String, Vec<String>>,
     pub llm: Llm,
     pub voice: Voice,
+    pub preferences: Preferences,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct Llm {
     pub endpoint: Option<String>,
@@ -29,7 +33,7 @@ impl Default for Llm {
     }
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct Voice {
     pub asr_dir: PathBuf,
@@ -97,6 +101,7 @@ impl Config {
     }
 
     pub fn validate(&self) -> Result<()> {
+        self.preferences.validate()?;
         if !(1..=4).contains(&self.voice.threads) {
             bail!("voice.threads must be between 1 and 4");
         }

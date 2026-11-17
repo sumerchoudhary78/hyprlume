@@ -25,6 +25,8 @@ async fn session(stream: UnixStream, app: Arc<App>) -> Result<()> {
     let mut state = app.subscribe();
     let mut connectivity = app.connectivity.subscribe();
     let mut notifications = app.notifications.subscribe();
+    let mut settings = app.settings.subscribe();
+    let mut settings_subscribed = false;
     let mut clipboard = app.clipboard.subscribe();
     let mut capture = app.capture.subscribe();
     let mut clipboard_subscribed = false;
@@ -44,6 +46,7 @@ async fn session(stream: UnixStream, app: Arc<App>) -> Result<()> {
                         if matches!(request.operation, Operation::Subscribe) { subscribed = true; state.borrow_and_update(); }
                         if matches!(request.operation, Operation::ConnectivitySubscribe) { connectivity_subscribed = true; connectivity.borrow_and_update(); }
                         if matches!(request.operation, Operation::NotificationsSubscribe) { notifications_subscribed = true; notifications.borrow_and_update(); }
+                        if matches!(request.operation,Operation::SettingsSubscribe) {settings_subscribed=true; settings.borrow_and_update();}
                         if matches!(request.operation,Operation::ClipboardSubscribe) {clipboard_subscribed=true; clipboard.borrow_and_update();}
                         if matches!(request.operation,Operation::CaptureSubscribe) {capture_subscribed=true; capture.borrow_and_update();}
                         if matches!(request.operation, Operation::PowerSubscribe) {
@@ -73,6 +76,9 @@ async fn session(stream: UnixStream, app: Arc<App>) -> Result<()> {
                 let snapshot = notifications.borrow_and_update().clone();
                 json!({"event":"notifications","state":snapshot})
             }
+            change=settings.changed(), if settings_subscribed => {
+                change?; let snapshot=settings.borrow_and_update().clone(); json!({"event":"settings","state":snapshot})
+            }
             change=clipboard.changed(), if clipboard_subscribed => {
                 change?; let snapshot=clipboard.borrow_and_update().clone(); json!({"event":"clipboard","state":snapshot})
             }
@@ -90,9 +96,31 @@ async fn session(stream: UnixStream, app: Arc<App>) -> Result<()> {
 }
 
 pub async fn serve(path: PathBuf, config: Config, demo: bool) -> Result<()> {
+    serve_with_config(path, config, demo, crate::config::config_path()).await
+}
+pub async fn serve_with_config(
+    path: PathBuf,
+    config: Config,
+    demo: bool,
+    config_path: PathBuf,
+) -> Result<()> {
     config.validate()?;
     let (listener, _guard) = socket::bind(&path)?;
-    let app = App::with_socket(config, demo, path.clone());
+    let app = App::with_paths(config, demo, path.clone(), config_path);
+    app.notifications
+        .handle(crate::services::notifications::Request::Dnd {
+            enabled: app.config.preferences.services.notifications_dnd,
+        })
+        .await?;
+    if app.config.preferences.services.clipboard_history {
+        if let Err(error) = app
+            .clipboard
+            .handle(crate::services::clipboard::Request::Enable { enabled: true })
+            .await
+        {
+            tracing::warn!(%error,"Clipboard startup preference could not be applied");
+        }
+    }
     let mut services = tokio::task::JoinSet::new();
     services.spawn(app.clone().watch_desktop());
     services.spawn(app.connectivity.clone().run());

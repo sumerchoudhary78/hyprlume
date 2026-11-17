@@ -15,6 +15,8 @@ Item {
     property var notifications: ({available:false,error:"Connecting to notifications",panel_open:false,dnd:false,unread:0,items:[]})
     property var clipboard: ({enabled:false,available:false,items:[],error:""})
     property var capture: ({screenshot_available:false,recording_available:false,region_available:false,busy:false,recording:false,output:"",message:"Connecting to capture services",error:""})
+    signal response(int id, bool ok, var result, string error)
+    property var settings: ({revision:0,values:{preferences:{appearance:{reduced_effects:false,accent:"cyan",scale:1,refraction:16,metrics:true},shortcuts:{launcher:"SUPER+SPACE",windows:"SUPER+TAB",tools:"SUPER+V",lock:"SUPER+L"},services:{clipboard_history:false,notifications_dnd:false}},voice:{asr_dir:"",kws_dir:"",tts_dir:"",keywords_file:"",threads:2,execute_commands:false,speak_results:true},llm:{endpoint:null,model:"local",timeout_seconds:20}},path:"",restart_required:false,message:"Connecting to settings",hyprlang:"",lua:""})
     property var power: ({busy:false,message:"Connecting to power services",error:"",prompt:null,battery:{available:false,present:false,percentage:null,state:"unknown",seconds_remaining:null,error:""},backlights:[],profiles:{available:false,active:null,choices:[],degraded:"",error:""},session:{available:false,id:"",suspend:"no",logout:"no",reboot:"no",power_off:"no",error:""}})
     readonly property string socketPath: Quickshell.env("HYPRLUME_SOCKET") || (Quickshell.env("XDG_RUNTIME_DIR") + "/hyprlume/control.sock")
 
@@ -53,6 +55,7 @@ Item {
                 backend.send({op: "power_subscribe"})
                 backend.send({op:"clipboard_subscribe"})
                 backend.send({op:"capture_subscribe"})
+                backend.send({op:"settings_subscribe"})
             } else {
                 if (backend.launcher && backend.launcher.busy) backend.launcher.finish(false, "The desktop service disconnected");
                 reconnect.restart()
@@ -66,13 +69,16 @@ Item {
             onRead: message => {
                 try {
                     const data = JSON.parse(message)
+                    if (data.id !== undefined && data.id !== null) backend.response(data.id, !data.error, data.result || null, data.error || "");
                     if (backend.launcher && backend.launcher.pending && data.id === backend.launcher.pending) backend.launcher.finish(!data.error, data.error || (data.result && data.result.message));
                     if (data.event === "state") backend.snapshot = data.state
                     else if (data.event === "connectivity") backend.connectivity = data.state
                     else if (data.event === "notifications") backend.notifications = data.state
+                    else if (data.event === "settings") backend.settings = data.state
                     else if (data.event === "clipboard") backend.clipboard = data.state
                     else if (data.event === "capture") backend.capture = data.state
                     else if (data.event === "power") backend.updatePower(data.state)
+                    else if (data.result && data.result.values && data.result.revision !== undefined) backend.settings = data.result
                     else if (data.result && data.result.enabled !== undefined && data.result.items) backend.clipboard = data.result
                     else if (data.result && data.result.screenshot_available !== undefined) backend.capture = data.result
                     else if (data.result && data.result.phase) backend.snapshot = data.result

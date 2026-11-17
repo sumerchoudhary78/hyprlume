@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import qs.modules.home
+import qs.modules.settings
 import qs.modules.tools
 import qs.modules.launcher
 import qs.modules.tray
@@ -18,6 +19,8 @@ FloatingWindow {
     required property var metrics
     required property var clock
     required property var state
+    title: "Hyprlume Preview"
+    Component.onCompleted: if (Quickshell.env("HYPRLUME_QA") === "1") console.log("HYPRLUME_LIVE_PREVIEW_READY")
     visible: true
     implicitWidth: 1440
     implicitHeight: 810
@@ -80,5 +83,10 @@ FloatingWindow {
         anchors.fill: parent
         active: window.backend.online && ["clipboard","capture"].includes(window.backend.snapshot.desktop_panel)
         sourceComponent: ToolsOverlay { anchors.fill: parent; backend: window.backend; reducedEffects: window.state.reducedEffects }
+    }
+    Loader {
+        anchors.fill:parent
+        active: window.backend.online && window.backend.snapshot.desktop_panel === "settings"
+        sourceComponent: SettingsOverlay {anchors.fill:parent;backend:window.backend;reducedEffects:window.state.reducedEffects}
     }
 }
