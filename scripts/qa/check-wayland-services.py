@@ -91,8 +91,10 @@ def inside(base):
         assert process.poll() is None,'daemon exited'
         return process
     def type_text(text):
-        run(['wtype','-'],env=env,input=text,stdout=subprocess.DEVNULL)
-        run(['wtype','-k','Return'],env=env,stdout=subprocess.DEVNULL)
+        # Keep text and Enter on one virtual keyboard/Wayland connection.
+        # Separate clients can race focus/keymap delivery in a fresh lock episode.
+        # Escape clears any pre-existing input; it does not unlock swaylock.
+        run(['wtype','-s','150','-k','Escape','-d','12','-','-s','60','-k','Return'],env=env,input=text,stdout=subprocess.DEVNULL)
     def worker_pid():
         value=systemctl('show',UNIT,'--property=MainPID','--value')
         return int(value) if value.isdigit() else 0
