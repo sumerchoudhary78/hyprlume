@@ -50,7 +50,7 @@ async fn challenges_are_bound_to_the_authority_and_cancel_only_the_matching_requ
             .object_server()
             .at(
                 AGENT_PATH,
-                Agent::new(authority.unique_name().unwrap().to_owned().into(), sender),
+                Agent::new(authority.unique_name().unwrap().to_owned(), sender),
             )
             .await
             .unwrap();
