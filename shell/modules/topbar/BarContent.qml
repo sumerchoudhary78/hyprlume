@@ -22,7 +22,7 @@ GlassSurface {
     ]
     RowLayout {
         anchors.fill: parent; anchors.leftMargin: 20; anchors.rightMargin: 15; spacing: 12
-        Brand { presentation: root.presentation }
+        Brand { presentation: root.presentation; compact: root.width < 1100 }
         Item { Layout.preferredWidth: 7 }
         Row {
             spacing: 2
@@ -65,6 +65,13 @@ GlassSurface {
             active: root.backend.snapshot.desktop_panel === "audio"
             Accessible.name: "Open sound and media"
             onClicked: root.backend.send({op:"panel",panel:"audio",open:root.backend.snapshot.desktop_panel !== "audio"})
+        }
+        IconTile {
+            objectName: "openTray"
+            iconName: "grid"; size: 34; iconSize: 19
+            active: root.backend.snapshot.desktop_panel === "tray"
+            Accessible.name: "Open application tray"
+            onClicked: root.backend.send({op:"panel",panel:"tray",open:root.backend.snapshot.desktop_panel !== "tray"})
         }
         IconTile {
             objectName: "openPower"

@@ -17,7 +17,7 @@ ShellWindow {
     WlrLayershell.layer: WlrLayer.Top
     BarContent {
         x: Math.max(0, root.width - width * scale)
-        width: Math.min(1180, root.width / scale); height: 60
+        width: Math.min(1360, root.width / scale); height: 60
         scale: root.sceneScale
         transformOrigin: Item.TopLeft
         backend: root.backend; state: root.state

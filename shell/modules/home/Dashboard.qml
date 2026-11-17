@@ -26,8 +26,8 @@ Item {
         scale: root.sceneScale
         BarContent {
             visible: root.showTopBar
-            x: root.compact ? 0 : 500; y: -1
-            width: root.compact ? 1000 : 1180; height: 61
+            x: root.compact ? 0 : 320; y: -1
+            width: root.compact ? 1000 : 1360; height: 61
             backend: root.backend; state: root.state
             backdrop: wallpaper; presentation: root.presentation
         }

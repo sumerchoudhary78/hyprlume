@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import qs.fixtures
 import qs.modules.home
+import qs.modules.tray
 import qs.modules.power
 import qs.modules.audio
 import qs.modules.command
@@ -72,6 +73,11 @@ ShellRoot {
                 anchors.fill: parent
                 active: previewData.backend.online && previewData.backend.snapshot.desktop_panel === "power"
                 sourceComponent: PowerOverlay { anchors.fill: parent; backend: previewData.backend; reducedEffects: previewData.state.reducedEffects }
+            }
+            Loader {
+                anchors.fill: parent
+                active: previewData.backend.online && previewData.backend.snapshot.desktop_panel === "tray"
+                sourceComponent: TrayOverlay { anchors.fill: parent; backend: previewData.backend; reducedEffects: previewData.state.reducedEffects }
             }
             ControlProbe {
                 targetItem: window.contentItem

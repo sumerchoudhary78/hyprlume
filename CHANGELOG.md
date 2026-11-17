@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add a collapsed application tray with native StatusNotifier icons, themed
+  DBusMenu submenus/check/radio states, activation and keyboard navigation.
+- Exercise real tray/menu protocols on private fixture applications and retain
+  root menu ownership while browsing submenus.
 - Add a glass Power & session panel with a liquid battery vessel, native UPower
   state, verified kernel brightness, power profiles and session controls.
 - Bind logout/power actions to a verified graphical login, use separate expiring

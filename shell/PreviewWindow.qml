@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import qs.modules.home
+import qs.modules.tray
 import qs.modules.power
 import qs.modules.audio
 import qs.modules.command
@@ -61,6 +62,11 @@ FloatingWindow {
         anchors.fill: parent
         active: window.backend.online && window.backend.snapshot.desktop_panel === "power"
         sourceComponent: PowerOverlay { anchors.fill: parent; backend: window.backend; reducedEffects: window.state.reducedEffects }
+    }
+    Loader {
+        anchors.fill: parent
+        active: window.backend.online && window.backend.snapshot.desktop_panel === "tray"
+        sourceComponent: TrayOverlay { anchors.fill: parent; backend: window.backend; reducedEffects: window.state.reducedEffects }
     }
 
 }

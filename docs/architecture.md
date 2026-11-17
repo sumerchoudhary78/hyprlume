@@ -74,7 +74,7 @@ HyprPilot, without a polling loop for desktop status.
 
 ## Shell surfaces
 
-Quickshell renders nine layer-shell surface roles and one ordinary window for
+Quickshell renders ten layer-shell surface roles and one ordinary window for
 preview:
 
 - `hyprlume-wallpaper`, one per monitor, Background layer with no input region.
@@ -96,6 +96,8 @@ preview:
   coordinated with the other panels through Rust's typed `desktop_panel` state.
 - `hyprlume-power`, another exclusive-keyboard Overlay with independent power
   state and a separate session-action review, coordinated by `desktop_panel`.
+- `hyprlume-tray`, an exclusive-keyboard Overlay for native StatusNotifier icons
+  and themed DBusMenu trees; closed menus release native references.
 
 Surfaces contain no protocol logic. `services/Backend.qml` owns the socket and
 the reconnecting subscription; `services/Workspaces.qml` wraps Hyprland state;

@@ -238,6 +238,12 @@ hardware, policy, sleep/resume and logout teardown remain unqualified; see
 
 ## Packaging and remaining qualification
 
+Tray validation uses a private StatusNotifier/DBusMenu app and native Quickshell
+adapters, checking icon loading and the exact activation/secondary/scroll/menu
+events received by that app. Submenu lifetime, check-state updates, disabled
+entries and stale handles are exercised. Pointer/keyboard fixtures use the same
+production controls. See [tray limits](tray.md) for remaining app qualification.
+
 The AUR recipe fetches during `prepare` and builds/tests with `--frozen`. GCC
 LTO is disabled for native dependencies; Rust thin LTO remains enabled. The
 runtime includes the whole QML module/asset tree, excluding QA fixtures.

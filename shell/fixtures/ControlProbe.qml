@@ -10,7 +10,7 @@ Item {
     function collect(item, out) {
         if (item.objectName && item.visible) {
             const p = item.mapToItem(root.targetItem, item.width / 2, item.height / 2);
-            out[item.objectName] = {x:p.x,y:p.y,enabled:item.enabled};
+            out[item.objectName] = {x:p.x,y:p.y,enabled:item.enabled,activeFocus:item.activeFocus};
         }
         for (const child of item.children) collect(child, out);
     }
