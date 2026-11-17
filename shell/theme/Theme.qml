@@ -24,9 +24,12 @@ Singleton {
     // reference: cyan for structure, amber for the active element, violet for
     // the agent, mint for healthy state, rose for failure.
 
-    readonly property color ink: "#edf4ff"
-    readonly property color inkDim: "#bbc9e2"
-    readonly property color inkFaint: "#7f94b5"
+    property bool highContrast: false
+    property string wallpaperPath: ""
+
+    readonly property color ink: highContrast ? "#ffffff" : "#edf4ff"
+    readonly property color inkDim: highContrast ? "#eff5ff" : "#bbc9e2"
+    readonly property color inkFaint: highContrast ? "#cbd9ed" : "#7f94b5"
 
     property string accentName: "cyan"
     readonly property color cyan: accentName === "violet" ? "#b497ff" : accentName === "mint" ? "#68f0b1" : "#5ce1ff"
@@ -40,7 +43,7 @@ Singleton {
     readonly property color glassDeep: Qt.rgba(0.03, 0.045, 0.10, 0.91)
     readonly property color glassInset: Qt.rgba(0.02, 0.05, 0.08, 0.55)
 
-    readonly property color rim: Qt.rgba(0.47, 0.74, 0.86, 0.26)
+    readonly property color rim: Qt.rgba(0.47, 0.74, 0.86, highContrast ? 0.75 : 0.26)
     readonly property color rimStrong: Qt.rgba(0.55, 0.88, 1.0, 0.55)
     readonly property color divider: Qt.rgba(0.60, 0.78, 0.90, 0.13)
 

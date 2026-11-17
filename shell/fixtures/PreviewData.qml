@@ -10,7 +10,7 @@ QtObject {
         property bool online: true
         property string error: ""
         signal response(int id, bool ok, var result, string error)
-        property var settings: ({revision:1,values:{preferences:{appearance:{reduced_effects:false,accent:"cyan",scale:1,refraction:16,metrics:true},shortcuts:{launcher:"SUPER+SPACE",windows:"SUPER+TAB",tools:"SUPER+V",lock:"SUPER+L"},services:{clipboard_history:false,notifications_dnd:false},input:{layouts:"us",variants:"",repeat_rate:25,repeat_delay:600,pointer_speed:0,left_handed:false,mouse_natural_scroll:false,touchpad_natural_scroll:false,tap_to_click:true,disable_while_typing:true,shortcut_bindings:false,system_key_bindings:false},idle:{enabled:false,dim_after_seconds:180,lock_after_seconds:300,screen_off_after_seconds:360,suspend_after_seconds:0,dim_percent:20}},voice:{asr_dir:"/preview/models/asr",kws_dir:"/preview/models/kws",tts_dir:"/preview/models/tts",keywords_file:"/preview/models/kws/keywords.txt",threads:2,execute_commands:false,speak_results:true},llm:{endpoint:null,model:"local",timeout_seconds:20}},path:"/preview/config.toml",restart_required:false,message:"Preview settings are never written to disk",hyprlang:"bind = SUPER, SPACE, exec, hyprlume launcher",lua:"hl.bind(\"SUPER + SPACE\", hl.dsp.exec_cmd(\"hyprlume launcher\"))"})
+        property var settings: ({revision:1,values:{preferences:{appearance:{reduced_effects:false,accent:"cyan",scale:1,refraction:16,metrics:true,high_contrast:false,app_color:"dark"},shortcuts:{launcher:"SUPER+SPACE",windows:"SUPER+TAB",tools:"SUPER+V",lock:"SUPER+L"},services:{clipboard_history:false,notifications_dnd:false},input:{layouts:"us",variants:"",repeat_rate:25,repeat_delay:600,pointer_speed:0,left_handed:false,mouse_natural_scroll:false,touchpad_natural_scroll:false,tap_to_click:true,disable_while_typing:true,shortcut_bindings:false,system_key_bindings:false},idle:{enabled:false,dim_after_seconds:180,lock_after_seconds:300,screen_off_after_seconds:360,suspend_after_seconds:0,dim_percent:20},desktop:{wallpaper:"",gtk_theme:"",qt_style:"system",locale:"",timezone:"",clock_24h:true,qt_scale:1,accessibility_bus:false}},voice:{asr_dir:"/preview/models/asr",kws_dir:"/preview/models/kws",tts_dir:"/preview/models/tts",keywords_file:"/preview/models/kws/keywords.txt",threads:2,execute_commands:false,speak_results:true},llm:{endpoint:null,model:"local",timeout_seconds:20}},path:"/preview/config.toml",restart_required:false,message:"Preview settings are never written to disk",hyprlang:"bind = SUPER, SPACE, exec, hyprlume launcher",lua:"hl.bind(\"SUPER + SPACE\", hl.dsp.exec_cmd(\"hyprlume launcher\"))"})
         property var lastRequest: ({})
         property int requestCount: 0
         property int pairCount: 0
@@ -67,6 +67,20 @@ QtObject {
             if (publicOperation.request && publicOperation.request.value) publicOperation.request.value = "[credential]";
             lastRequest = publicOperation; requestCount++;
             if (Quickshell.env("HYPRLUME_QA") === "1") console.log("HYPRLUME_QA " + JSON.stringify({kind:"request",operation:publicOperation}));
+            if (operation.op === "desktop_preferences") {
+                const sequence = requestCount;
+                const request = operation.request;
+                const result = request.mime ? {
+                    mime: request.mime, desktop_id: request.desktop_id || "preview-browser.desktop",
+                    app_name: "Sample application", choices: [{id: "preview-browser.desktop", name: "Sample browser"}],
+                    message: "Sample app association."
+                } : request.action === "write_environment" ? {
+                    profile: "/preview/environment.d/80-hyprlume-desktop.conf",
+                    message: "Sample app profile."
+                } : {message: "Sample screen reader action."};
+                Qt.callLater(() => sampleBackend.response(sequence, true, result, ""));
+                return sequence;
+            }
             if (operation.op === "storage") {
                 const sequence = requestCount;
                 const request = operation.request;

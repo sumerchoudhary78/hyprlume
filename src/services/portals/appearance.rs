@@ -15,7 +15,7 @@ use zbus::{
 };
 
 const NAMESPACE: &str = "org.freedesktop.appearance";
-const KEYS: [&str; 3] = ["color-scheme", "accent-color", "reduced-motion"];
+const KEYS: [&str; 4] = ["color-scheme", "accent-color", "reduced-motion", "contrast"];
 type Settings = HashMap<String, HashMap<String, OwnedValue>>;
 
 struct Interface(watch::Receiver<Palette>);
@@ -74,7 +74,8 @@ fn matches_namespace(pattern: &str) -> bool {
 
 fn value(palette: Palette, key: &str) -> Option<OwnedValue> {
     match key {
-        "color-scheme" => Some(OwnedValue::from(1u32)),
+        "color-scheme" => Some(OwnedValue::from(palette.app_color.portal_value())),
+        "contrast" => Some(OwnedValue::from(u32::from(palette.high_contrast))),
         "reduced-motion" => Some(OwnedValue::from(u32::from(palette.reduced_effects))),
         "accent-color" => {
             // sRGB values from the shell's accent tokens in Theme.qml.
@@ -94,6 +95,8 @@ pub(super) async fn serve(initial: Appearance, socket: Option<PathBuf>) -> Resul
     let mut palette = Palette {
         accent: initial.accent,
         reduced_effects: initial.reduced_effects,
+        high_contrast: initial.high_contrast,
+        app_color: initial.app_color,
     };
     let stream = if let Some(path) = &socket {
         if let Ok((stream, current)) = feed::connect(path).await {

@@ -54,7 +54,7 @@ impl Desktop {
     }
 }
 
-async fn run(program: &str, args: &[&str]) -> Result<String> {
+pub(crate) async fn run(program: &str, args: &[&str]) -> Result<String> {
     let child = Command::new(program)
         .args(args)
         .stdin(Stdio::null())

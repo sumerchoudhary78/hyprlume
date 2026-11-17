@@ -165,8 +165,8 @@ async def check(binary, base, children):
     settings = PORTAL + "Settings"
     data, = await call(bus, FRONTEND, settings, "ReadAll", "as", [["org.freedesktop.*"]])
     appearance = data[APPEARANCE]
-    assert set(appearance) == {"color-scheme", "accent-color", "reduced-motion"}, appearance
-    assert appearance["color-scheme"].value == 1
+    assert set(appearance) == {"color-scheme", "accent-color", "reduced-motion", "contrast"}, appearance
+    assert appearance["color-scheme"].value == 1 and appearance["contrast"].value == 0
     assert appearance["accent-color"].value == [92 / 255, 225 / 255, 1.0]
     assert await call(bus, FRONTEND, settings, "ReadAll", "as", [["org.unrelated.*"]]) == [{}]
 
@@ -185,15 +185,15 @@ async def check(binary, base, children):
             namespace, key, value = message.body
             if namespace == APPEARANCE:
                 changed[key] = value.value
-            if {"accent-color", "reduced-motion"} <= changed.keys():
+            if {"accent-color", "reduced-motion", "contrast", "color-scheme"} <= changed.keys():
                 complete.set()
 
     bus.add_message_handler(setting_changed)
     saved = await rpc("settings_status")
-    saved["values"]["preferences"]["appearance"].update(accent="mint", reduced_effects=True)
+    saved["values"]["preferences"]["appearance"].update(accent="mint", reduced_effects=True, app_color="light", high_contrast=True)
     await rpc("settings", request=dict(action="save", revision=saved["revision"], values=saved["values"]))
     await asyncio.wait_for(complete.wait(), 8)
-    assert changed == {"accent-color": [104 / 255, 240 / 255, 177 / 255], "reduced-motion": 1}, changed
+    assert changed == {"accent-color": [104 / 255, 240 / 255, 177 / 255], "reduced-motion": 1, "contrast": 1, "color-scheme": 2}, changed
     mint, = await call(bus, FRONTEND, settings, "ReadOne", "ss", [APPEARANCE, "accent-color"])
     assert mint.value == changed["accent-color"]
     bus.remove_message_handler(setting_changed)

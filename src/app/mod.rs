@@ -1,6 +1,7 @@
 //! Application state and operation routing, independent of the Unix transport.
 mod commands;
 mod credentials;
+mod desktop_preferences;
 mod events;
 mod idle;
 mod input;
@@ -35,6 +36,7 @@ pub struct App {
     idle_effects: Mutex<idle::Effects>,
     input_gate: Arc<Mutex<()>>,
     credentials_gate: Arc<Mutex<()>>,
+    desktop_preferences_gate: Mutex<()>,
     #[cfg(target_os = "linux")]
     storage_gate: Arc<Mutex<()>>,
     state: watch::Sender<State>,
@@ -85,6 +87,7 @@ impl App {
             idle_effects: Mutex::new(idle::Effects::default()),
             input_gate: Arc::new(Mutex::new(())),
             credentials_gate: Arc::new(Mutex::new(())),
+            desktop_preferences_gate: Mutex::new(()),
             #[cfg(target_os = "linux")]
             storage_gate: Arc::new(Mutex::new(())),
             clipboard: crate::services::clipboard::Controller::new(socket, demo),
@@ -186,6 +189,7 @@ impl App {
                 Ok(json!(self.notifications.state()))
             }
             Operation::Storage { request } => self.storage(request),
+            Operation::DesktopPreferences { request } => self.desktop_preferences(request).await,
             Operation::Credentials { request } => self.credentials(request),
             Operation::Input { request } => self.input(request).await,
             Operation::SystemKey { key } => self.system_key(key),

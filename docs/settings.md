@@ -4,7 +4,7 @@ The **Idle & sleep** page saves opt-in automatic timers and idle brightness.
 These preferences apply live; they do not require restarting the daemon. See
 [idle/sleep](idle-sleep.md) for presentation mode and external-sleep limits.
 
-The settings button or `hyprlume settings` opens four pages using the same glass
+The settings button or `hyprlume settings` opens settings using the same glass
 components as the desktop. Changes stay in a draft until Save changes; closing
 or Reload / discard forgets the draft.
 
@@ -30,6 +30,11 @@ restart notice. Appearance needs no restart. Runtime command plans keep the
 immutable configuration from daemon startup: saving settings cannot retarget an
 existing AI confirmation or silently change a running model. The microphone
 always starts off, including after loading saved preferences.
+
+Use [Input](input.md) for keyboard, pointer and system keys,
+[Credentials](credentials.md) for the current keyring provider, and
+[Desktop](desktop-preferences.md) for default apps, wallpaper, locale and
+accessibility. [Portals](portals.md) shows the current application portal routes.
 
 ## Persistence and concurrency
 

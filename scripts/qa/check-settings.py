@@ -28,6 +28,13 @@ def main():
             with socket.socket(socket.AF_UNIX) as client:
                 client.settimeout(4);client.connect(str(control));client.sendall(json.dumps(dict(id=1,op=op,**fields)).encode()+b'\n')
                 return json.loads(client.makefile('rb').readline())
+        applications = base / "data" / "applications"
+        applications.mkdir(parents=True)
+        desktop_id = "hyprlume-settings-fixture.desktop"
+        (applications / desktop_id).write_text(
+            "[Desktop Entry]\nType=Application\nName=Hyprlume Settings Fixture\n"
+            "Exec=/bin/true %f\nMimeType=application/x-hyprlume-settings-fixture;\n"
+        )
         daemon=start()
         try:
             state=call('settings_status')['result'];assert state['path']==str(path)
@@ -43,14 +50,38 @@ def main():
             assert path.read_bytes()==before
             values['voice']['threads']=3;path.write_bytes(before+b'\n# external editor\n')
             assert 'error' in call('settings',request=dict(action='save',revision=updated['revision'],values=values))
-            assert call('settings',request={'action':'reload'})['result']['revision']>updated['revision']
+            reloaded = call('settings', request={'action': 'reload'})['result']
+            assert reloaded['revision'] > updated['revision']
+            desktop = reloaded['values']['preferences']['desktop']
+            desktop.update(gtk_theme='Adwaita:dark', qt_style='fusion', qt_scale=1.25,
+                           timezone='UTC', locale='C', accessibility_bus=True, clock_24h=False)
+            saved = call('settings', request=dict(action='save', revision=reloaded['revision'], values=reloaded['values']))['result']
+            profile_request = dict(action='write_environment', revision=saved['revision'])
+            output = call('desktop_preferences', request=profile_request)['result']
+            profile = Path(output['profile'])
+            assert profile == base / 'unused-default-config/environment.d/80-hyprlume-desktop.conf'
+            assert profile.stat().st_mode & 0o777 == 0o600
+            for setting in ('GTK_THEME=Adwaita:dark', 'QT_STYLE_OVERRIDE=Fusion', 'QT_SCALE_FACTOR=1.25',
+                            'TZ=UTC', 'LANG=C', 'QT_LINUX_ACCESSIBILITY_ALWAYS_ON=1'):
+                assert setting in profile.read_text().splitlines(), setting
+            profile.write_text('# Unmanaged file\n')
+            assert 'error' in call('desktop_preferences', request=profile_request)
+            assert profile.read_text() == '# Unmanaged file\n'
+            mime = 'application/x-hyprlume-settings-fixture'
+            assert call('desktop_preferences', request=dict(action='set_association',
+                        mime=mime, desktop_id=desktop_id))['result']['desktop_id'] == desktop_id
+            assert call('desktop_preferences', request=dict(action='association', mime=mime))['result']['desktop_id'] == desktop_id
+            assert 'error' in call('desktop_preferences', request=dict(action='set_association',
+                                   mime=mime, desktop_id='../fixture.desktop'))
             daemon.terminate();daemon.wait(timeout=12);daemon=start()
             restored=call('settings_status')['result'];assert not restored['restart_required']
             assert restored['values']['preferences']['appearance']['accent']=='violet'
             assert call('notifications_status')['result']['dnd']
             assert call('status')['result']['voice']=='off'
             assert not (base/'unused-default-config/hyprlume/config.toml').exists()
-            print('SETTINGS PASS: custom path, atomic/private save, validation, revision/external-edit conflicts, restart loading, DND default and microphone off')
+            assert not restored['values']['preferences']['desktop']['clock_24h']
+            assert call('desktop_preferences', request=dict(action='association', mime=mime))['result']['desktop_id'] == desktop_id
+            print('SETTINGS PASS: custom path, atomic/private save, validation, revision/external-edit conflicts, restart loading, DND default, microphone off, app profile and GIO defaults')
         finally:
             daemon.terminate();daemon.wait(timeout=12)
     return 0

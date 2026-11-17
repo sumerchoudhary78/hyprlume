@@ -36,6 +36,9 @@ pub enum Operation {
     Storage {
         request: crate::services::storage::Request,
     },
+    DesktopPreferences {
+        request: crate::services::desktop_preferences::Request,
+    },
     Credentials {
         request: crate::services::credentials::Request,
     },

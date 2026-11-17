@@ -13,7 +13,8 @@ Item {
     property int revision:backend.settings.revision
     property int pending:0
     property bool dirty:false
-    property int tab:Math.max(0,Math.min(7,Number(Quickshell.env("HYPRLUME_SETTINGS_TAB")) || 0))
+    property int tab:Math.max(0,Math.min(8,Number(Quickshell.env("HYPRLUME_SETTINGS_TAB")) || 0))
+    readonly property bool fileDialogVisible: desktopPage.item?.fileDialogVisible || false
     property bool lua:true
     property string message:""
     function close(){backend.send({op:"panel",panel:"settings",open:false});}
@@ -58,7 +59,7 @@ Item {
                 Layout.fillWidth: true
                 spacing: 5
                 Repeater {
-                    model:["Appearance","Voice & models","Shortcuts","Services","Idle & sleep","Portals","Input","Credentials"]
+                    model:["Appearance","Voice & models","Shortcuts","Services","Idle & sleep","Portals","Input","Credentials","Desktop"]
                     GlassButton {required property string modelData; required property int index; objectName:"settingsTab"+index; text:modelData; compact:true; primary:root.tab===index; onClicked:root.tab=index}
                 }
             }
@@ -133,6 +134,20 @@ Item {
                         visible: active
                         Layout.fillWidth: true
                         sourceComponent: CredentialSettings { backend: root.backend }
+                    }
+                    Loader {
+                        id: desktopPage
+                        active: root.tab === 8
+                        visible: active
+                        Layout.fillWidth: true
+                        sourceComponent: DesktopSettings {
+                            backend: root.backend
+                            desktop: root.draft.preferences.desktop
+                            appearance: root.draft.preferences.appearance
+                            saved: !root.dirty && !root.pending
+                            revision: root.revision
+                            onEdited: (section, key, value) => root.edit(section, key, value)
+                        }
                     }
                 }
             }

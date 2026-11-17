@@ -9,6 +9,7 @@ pub struct Preferences {
     pub services: Services,
     pub idle: Idle,
     pub input: super::Input,
+    pub desktop: super::DesktopPreferences,
 }
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
@@ -69,6 +70,8 @@ pub struct Appearance {
     pub scale: f32,
     pub refraction: f32,
     pub metrics: bool,
+    pub high_contrast: bool,
+    pub app_color: super::AppColor,
 }
 impl Default for Appearance {
     fn default() -> Self {
@@ -78,6 +81,8 @@ impl Default for Appearance {
             scale: 1.0,
             refraction: 16.0,
             metrics: true,
+            high_contrast: false,
+            app_color: super::AppColor::Dark,
         }
     }
 }
@@ -117,6 +122,7 @@ impl Preferences {
     pub fn validate(&self) -> Result<()> {
         self.idle.validate()?;
         self.input.validate()?;
+        self.desktop.validate()?;
         ensure!(
             self.appearance.scale.is_finite() && (0.85..=1.2).contains(&self.appearance.scale),
             "UI scale must be between 0.85 and 1.2"

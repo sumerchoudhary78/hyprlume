@@ -14,9 +14,9 @@ next release.
 | Other GTK-supported desktop services | GTK |
 
 Hyprland's backend uses the session's compositor and PipeWire for sharing.
-GTK provides its standard file dialogs. Hyprlume publishes a dark preference,
-the selected accent, and the reduced-motion preference from **Reduced effects**
-under `org.freedesktop.appearance`. The backend starts on demand. It follows
+GTK provides its standard file dialogs. Hyprlume publishes color-scheme,
+accent, contrast and reduced-motion preferences under
+`org.freedesktop.appearance`. The backend starts on demand. It follows
 appearance changes on the existing daemon socket, with the saved configuration
 as its initial fallback. Settings uses one backend in this profile so apps
 receive a single set of appearance hints.

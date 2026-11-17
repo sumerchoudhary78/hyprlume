@@ -100,8 +100,10 @@ code is needed. User-selected priority is connectivity:
 15. **Removable storage:** event-driven UDisks2 controls for mounting,
     encryption and safe removal. See [removable drives](storage.md).
 
-Next environment services include login/session bootstrap, monitor settings
-and the remaining system preferences.
+16. **Desktop preferences:** GIO app defaults, file associations, wallpaper,
+    app appearance, locale, clock and accessibility. See [desktop preferences](desktop-preferences.md).
+
+Next environment services include login/session bootstrap and monitor settings.
 
 ## Agent work
 

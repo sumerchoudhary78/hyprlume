@@ -1,6 +1,6 @@
 //! Follow saved appearance settings over the daemon's existing read-only topic.
 use crate::{
-    config::Accent,
+    config::{Accent, AppColor},
     protocol::{Operation, Request},
 };
 use anyhow::{ensure, Context, Result};
@@ -20,6 +20,10 @@ type Stream = Framed<UnixStream, LinesCodec>;
 pub(super) struct Palette {
     pub accent: Accent,
     pub reduced_effects: bool,
+    #[serde(default)]
+    pub high_contrast: bool,
+    #[serde(default)]
+    pub app_color: AppColor,
 }
 
 #[derive(Deserialize)]
