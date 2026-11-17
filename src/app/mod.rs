@@ -136,6 +136,7 @@ impl App {
                     | Operation::CaptureStatus
                     | Operation::CaptureSubscribe
                     | Operation::SettingsStatus
+                    | Operation::PortalsStatus
                     | Operation::SettingsSubscribe
                     | Operation::Voice {
                         mode: crate::protocol::VoiceMode::Off
@@ -170,6 +171,9 @@ impl App {
             Operation::SettingsStatus | Operation::SettingsSubscribe => {
                 Ok(json!(self.settings.state()))
             }
+            Operation::PortalsStatus => Ok(json!(
+                crate::services::portals::inspect(self.desktop.demo).await
+            )),
             Operation::Settings { request } => Ok(json!(self.settings.handle(request).await?)),
             Operation::ClipboardStatus | Operation::ClipboardSubscribe => {
                 Ok(json!(self.clipboard.state()))

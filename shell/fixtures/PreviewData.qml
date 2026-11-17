@@ -67,6 +67,22 @@ QtObject {
             if (publicOperation.request && publicOperation.request.value) publicOperation.request.value = "[credential]";
             lastRequest = publicOperation; requestCount++;
             if (Quickshell.env("HYPRLUME_QA") === "1") console.log("HYPRLUME_QA " + JSON.stringify({kind:"request",operation:publicOperation}));
+            if (operation.op === "portals_status") {
+                const sequence = requestCount;
+                const status = {
+                    desktop: "Hyprlume:Hyprland",
+                    profile_requested: true,
+                    frontend: "running", hyprland: "running", gtk: "on_demand", appearance: "running",
+                    interfaces: [
+                        {label:"File dialogs", version:4}, {label:"Screen sharing", version:6},
+                        {label:"Screenshots", version:2}, {label:"App shortcuts", version:1},
+                        {label:"Appearance", version:2}
+                    ],
+                    message: "Sample portal state in the design preview."
+                };
+                Qt.callLater(() => sampleBackend.response(sequence, true, status, ""));
+                return sequence;
+            }
             if (operation.op === "settings") {
                 const sequence=requestCount;
                 if(operation.request.action==="save") settings=Object.assign({},settings,{revision:settings.revision+1,values:JSON.parse(JSON.stringify(operation.request.values)),message:"Preview settings saved in memory"});

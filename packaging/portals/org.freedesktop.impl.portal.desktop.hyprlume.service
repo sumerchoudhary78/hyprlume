@@ -1,0 +1,4 @@
+[D-BUS Service]
+Name=org.freedesktop.impl.portal.desktop.hyprlume
+Exec=/usr/bin/hyprlume portal-settings
+SystemdService=hyprlume-portal-settings.service

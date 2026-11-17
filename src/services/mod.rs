@@ -8,5 +8,6 @@ pub mod clipboard;
 pub mod idle;
 pub mod locking;
 pub mod polkit;
+pub mod portals;
 pub mod settings;
 mod tools;

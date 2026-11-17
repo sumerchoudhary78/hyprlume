@@ -86,8 +86,12 @@ code is needed. User-selected priority is connectivity:
 11. **Polkit:** implemented on main (unreleased). The optional Wayland dialog
     uses the system authentication helper. See [setup and verification](polkit.md).
 
-Next environment services include XDG portal integration, login/session
-bootstrap, monitor/input settings, Secret Service integration and removable storage.
+12. **Desktop portals:** implemented on main (unreleased). The opt-in
+    profile routes to Hyprland and GTK and publishes Hyprlume appearance hints.
+    See [setup, live diagnostics and verification](portals.md).
+
+Next environment services include login/session bootstrap, monitor/input
+settings, Secret Service integration and removable storage.
 
 ## Agent work
 

@@ -37,6 +37,13 @@ enum Commands {
         #[arg(long)]
         path: Option<PathBuf>,
     },
+    /// Inspect this session's desktop portals or print the Hyprlume profile.
+    Portals {
+        #[arg(long)]
+        profile: bool,
+    },
+    #[command(hide = true)]
+    PortalSettings,
     #[command(hide = true)]
     PolkitWorker,
     /// Preview a command; --execute runs a direct command immediately.
@@ -172,6 +179,16 @@ async fn main() -> Result<()> {
         Config::default()
     };
     match cli.command {
+        Commands::Portals { profile: true } => {
+            print!("{}", hyprlume::services::portals::PROFILE);
+        }
+        Commands::Portals { profile: false } => {
+            let status = hyprlume::services::portals::inspect(false).await;
+            println!("{}", serde_json::to_string_pretty(&status)?);
+        }
+        Commands::PortalSettings => {
+            return hyprlume::services::portals::serve_appearance(config_path, cli.socket).await;
+        }
         Commands::IdleEvent { event } => return hyprlume::services::idle::callback(event).await,
         Commands::Idle { presentation } => {
             let operation = match presentation {

@@ -95,6 +95,10 @@ read-only home on child applications.
 The optional [Polkit agent](polkit.md) can supply system authorization prompts
 in a matching development build. Its separate user service is enabled explicitly.
 
+The [Hyprlume desktop portal profile](portals.md) connects app file dialogs,
+screen sharing, and appearance settings to their respective backends. A
+Hyprlume session selects it through its desktop identity at login.
+
 ## Fonts
 
 The shell asks for **Inter** and **JetBrains Mono**. On Arch:
