@@ -48,6 +48,20 @@ class UiDriver:
             and ((name in event['controls']) == present)
         )
 
+    def wait_stable_controls(self, *names):
+        previous = None
+
+        def stable(event):
+            nonlocal previous
+            if event['kind'] != 'controls':
+                return False
+            current = tuple(event['controls'].get(name) for name in names)
+            ready = current == previous and all(control and control['enabled'] for control in current)
+            previous = current
+            return ready
+
+        self.wait_event(stable)
+
     def click(self, name):
         if name not in self.controls:
             raise AssertionError(f'control missing: {name}; found {list(self.controls)}')

@@ -71,6 +71,7 @@ Item {
 
         Text {
             text: root.text
+            textFormat: Text.PlainText
             color: root.primary ? "#1b1206" : (mouse.containsMouse ? Theme.ink : Theme.inkDim)
             font.family: Theme.fontSans
             font.pixelSize: root.compact ? Theme.fontCaption : Theme.fontBody

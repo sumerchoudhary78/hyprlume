@@ -93,6 +93,9 @@ jobs:
           python3 scripts/qa/render-desktop.py --settings --settings-tab 2 --output output/design/settings-shortcuts.png
           python3 scripts/qa/render-desktop.py --settings --settings-tab 4 --output output/design/settings-idle.png
           python3 scripts/qa/render-desktop.py --settings --settings-tab 5 --output output/design/settings-portals.png
+          python3 scripts/qa/render-desktop.py --settings --settings-tab 6 --output output/design/settings-input.png
+          python3 scripts/qa/render-desktop.py --settings --settings-tab 7 --output output/design/settings-credentials.png
+          python3 scripts/qa/render-desktop.py --settings --settings-tab 8 --output output/design/settings-desktop.png
           python3 scripts/qa/render-desktop.py --settings --width 960 --height 640 --reduced-effects --output output/design/settings-compact.png
           python3 scripts/qa/render-desktop.py --tools --tools-capture --output output/design/capture.png
       - name: Exercise tray icons, menus and keyboard navigation

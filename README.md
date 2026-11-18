@@ -39,6 +39,7 @@ implemented with shared glass controls and isolated checks:
 | [Input and system keys](docs/input.md) | XKB, mouse and touchpad preferences, persistent shortcuts and glass key feedback |
 | [Credential storage](docs/credentials.md) | Secret Service provider, login keyring status and native unlock prompts |
 | [Removable drives](docs/storage.md) | Mount, unlock, open and safely remove USB and other removable drives |
+| [Desktop preferences](docs/desktop-preferences.md) | Default apps, wallpaper, GTK/Qt, locale, clock and accessibility |
 
 Each linked page documents dependencies, limits and qualification. The published
 v0.4.1/AUR package does not include these development features. No compositor

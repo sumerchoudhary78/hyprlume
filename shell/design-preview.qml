@@ -18,7 +18,9 @@ ShellRoot {
     PreviewData { id: previewData }
     Binding {target:Theme;property:"scale";value:previewData.backend.settings.values.preferences.appearance.scale}
     Binding {target:Theme;property:"accentName";value:previewData.backend.settings.values.preferences.appearance.accent}
-    Binding {target:Theme;property:"glassRefraction";value:previewData.backend.settings.values.preferences.appearance.refraction}
+    Binding { target: Theme; property: "highContrast"; value: previewData.backend.settings.values.preferences.appearance.high_contrast }
+    Binding { target: Theme; property: "wallpaperPath"; value: previewData.backend.settings.values.preferences.desktop.wallpaper }
+    Binding { target: Theme; property: "glassRefraction"; value: Theme.highContrast ? 0 : previewData.backend.settings.values.preferences.appearance.refraction }
     FloatingWindow {
         id: window
         title: "Hyprlume Design Preview"

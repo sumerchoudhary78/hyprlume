@@ -1,11 +1,7 @@
 use super::authority::{Agent, AgentError, AGENT_PATH};
-use std::{collections::HashMap, process::Stdio, time::Duration};
-use tokio::{
-    io::{AsyncBufReadExt, BufReader},
-    process::Command,
-    sync::mpsc,
-    time::timeout,
-};
+use crate::services::test_bus::Bus;
+use std::{collections::HashMap, time::Duration};
+use tokio::{sync::mpsc, time::timeout};
 use zbus::{connection::Builder, zvariant::Value, Proxy};
 
 const INTERFACE: &str = "org.freedesktop.PolicyKit1.AuthenticationAgent";
@@ -30,41 +26,19 @@ async fn begin(proxy: &Proxy<'_>, cookie: &str) -> zbus::Result<()> {
 async fn challenges_are_bound_to_the_authority_and_cancel_only_the_matching_request() {
     let mut stage = "private bus startup";
     let result = timeout(Duration::from_secs(12), async {
-        let directory = tempfile::tempdir().unwrap();
-        let config = directory.path().join("bus.conf");
-        std::fs::write(
-            &config,
-            format!(
-                "<busconfig><type>session</type><listen>unix:tmpdir={}</listen><auth>EXTERNAL</auth><policy context=\"default\"><allow send_destination=\"*\"/><allow receive_sender=\"*\"/><allow own=\"*\"/></policy></busconfig>",
-                directory.path().display()
-            ),
-        )
-        .unwrap();
-        let mut daemon = Command::new("dbus-daemon")
-            .arg(format!("--config-file={}", config.display()))
-            .args(["--nofork", "--print-address=1"])
-            .stdout(Stdio::piped())
-            .stderr(Stdio::null())
-            .kill_on_drop(true)
-            .spawn()
-            .unwrap();
-        let mut address = String::new();
-        BufReader::new(daemon.stdout.take().unwrap())
-            .read_line(&mut address)
-            .await
-            .unwrap();
-        let address = address.trim();
+        let bus = Bus::new().await;
         stage = "D-Bus connections";
-        let authority = Builder::address(address).unwrap().build().await.unwrap();
-        let other = Builder::address(address).unwrap().build().await.unwrap();
-        let worker = Builder::address(address).unwrap().build().await.unwrap();
+        let authority = bus.connect().await;
+        let other = bus.connect().await;
         let (sender, mut requests) = mpsc::channel(1);
-        worker
-            .object_server()
-            .at(
+        let worker = Builder::address(bus.address.as_str())
+            .unwrap()
+            .serve_at(
                 AGENT_PATH,
                 Agent::new(authority.unique_name().unwrap().to_owned(), sender),
             )
+            .unwrap()
+            .build()
             .await
             .unwrap();
         let destination = worker.unique_name().unwrap().as_str().to_owned();

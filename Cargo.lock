@@ -1109,6 +1109,7 @@ dependencies = [
  "clap",
  "fs2",
  "futures-util",
+ "gio",
  "glib",
  "hyprpilot-core",
  "nmrs",

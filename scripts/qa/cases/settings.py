@@ -41,6 +41,34 @@ def run(driver):
     driver.wait_controls('credential_login')
     driver.click('credential_login')
     assert driver.request('credentials')['request'] == {'action': 'unlock', 'collection': 'login'}
+    driver.click('settingsTab8')
+    assert driver.request('desktop_preferences')['request'] == {'action': 'association', 'mime': 'x-scheme-handler/https'}
+    driver.wait_controls('desktopMime_PDF')
+    driver.click('desktopMime_PDF')
+    assert driver.request('desktop_preferences')['request']['mime'] == 'application/pdf'
+    driver.wait_controls('desktopAssociationApp')
+    driver.click('desktopAssociationApp')
+    driver.xdo('key', 'ctrl+a')
+    driver.xdo('type', '--clearmodifiers', 'preview-reader.desktop')
+    driver.click('desktopSetDefault')
+    assert driver.request('desktop_preferences')['request'] == {
+        'action': 'set_association', 'mime': 'application/pdf', 'desktop_id': 'preview-reader.desktop'
+    }
+    driver.click('desktopSettingsSection1')
+    driver.wait_stable_controls('desktopContrast', 'desktopColor_light')
+    driver.click('desktopContrast')
+    driver.click('desktopColor_light')
+    driver.click('desktopSettingsSection2')
+    driver.wait_controls('desktop24Hour')
+    driver.click('desktop24Hour')
+    driver.wait_event(lambda event: event['kind'] == 'controls' and event['controls'].get('settingsSave', {}).get('enabled', False))
+    driver.click('settingsSave')
+    prefs = driver.request('settings')['request']['values']['preferences']
+    assert prefs['appearance']['high_contrast'] and prefs['appearance']['app_color'] == 'light', prefs['appearance']
+    assert not prefs['desktop']['clock_24h']
+    driver.wait_event(lambda event: event['kind'] == 'controls' and event['controls'].get('desktopWriteEnvironment', {}).get('enabled', False))
+    driver.click('desktopWriteEnvironment')
+    assert driver.request('desktop_preferences')['request'] == {'action': 'write_environment', 'revision': 6}
     driver.click('settingsReload');assert driver.request('settings')['request']['action']=='reload'
     driver.click('closeSettings');assert driver.request('panel')['open'] is False
     print('SETTINGS INTERACTION PASS: reduced glass, accent, decimal scale, startup defaults, shortcuts, save acknowledgments and reload')

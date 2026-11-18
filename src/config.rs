@@ -1,3 +1,5 @@
+mod desktop;
+pub use desktop::{AppColor, DesktopPreferences, QtStyle};
 mod input;
 mod preferences;
 pub use input::Input;
@@ -71,11 +73,14 @@ pub fn data_dir() -> PathBuf {
         .join("hyprlume")
 }
 
-pub fn config_path() -> PathBuf {
+pub(crate) fn config_dir() -> PathBuf {
     std::env::var_os("XDG_CONFIG_HOME")
         .map(PathBuf::from)
         .unwrap_or_else(|| home().join(".config"))
-        .join("hyprlume/config.toml")
+}
+
+pub fn config_path() -> PathBuf {
+    config_dir().join("hyprlume/config.toml")
 }
 
 pub fn socket_path() -> Result<PathBuf> {

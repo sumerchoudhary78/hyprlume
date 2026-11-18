@@ -17,13 +17,19 @@ ShellRoot {
     NativeLauncher { id: launcherService; backend: backendService; active: backendService.online && ["launcher","switcher"].includes(backendService.snapshot.desktop_panel) }
     NativeTray { id: trayService; active: backendService.online && backendService.snapshot.desktop_panel === "tray" }
     NativeAudio { id: audioService; active: backendService.online && backendService.snapshot.desktop_panel === "audio" }
-    Clock { id: clock }
+    Clock {
+        id: clock
+        use24Hour: backendService.settings.values.preferences.desktop.clock_24h
+        localeName: backendService.settings.values.preferences.desktop.locale.split(/[.@]/)[0]
+    }
     Metrics { id: metrics; active: !backendService.locking.active && backendService.settings.values.preferences.appearance.metrics && (root.preview || workspaces.desktopVisible) }
     Workspaces { id: workspaces }
     ShellState { id: shellState; backend: backendService }
     Binding {target:Theme;property:"scale";value:backendService.settings.values.preferences.appearance.scale}
     Binding {target:Theme;property:"accentName";value:backendService.settings.values.preferences.appearance.accent}
-    Binding {target:Theme;property:"glassRefraction";value:backendService.settings.values.preferences.appearance.refraction}
+    Binding { target: Theme; property: "highContrast"; value: backendService.settings.values.preferences.appearance.high_contrast }
+    Binding { target: Theme; property: "wallpaperPath"; value: backendService.settings.values.preferences.desktop.wallpaper }
+    Binding { target: Theme; property: "glassRefraction"; value: Theme.highContrast ? 0 : backendService.settings.values.preferences.appearance.refraction }
 
     Loader {
         Component.onCompleted: {

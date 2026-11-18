@@ -190,7 +190,8 @@ fn lua_options(profile: &Input) -> String {
         .map(|(key, value)| {
             format!(
                 "[\"input.{}\"]={}",
-                key.replace(':', "."),
+                // Lua spells the legacy tap-to-click option with underscores.
+                key.replace(':', ".").replace('-', "_"),
                 value.render(true)
             )
         })
@@ -462,7 +463,7 @@ mod tests {
                 let (name, profile) = result.unwrap();
                 assert_eq!(name, "hyprlume-input.lua");
                 assert!(profile.contains("hl.bind(\"XF86AudioRaiseVolume\", hl.dsp.exec_cmd(\"hyprlume system-key volume-up\")"));
-                assert!(profile.contains("[\"input.touchpad.tap-to-click\"]=true"));
+                assert!(profile.contains("[\"input.touchpad.tap_to_click\"]=true"));
                 assert!(!profile.contains("hyprlume launcher"));
             }
             server.await.unwrap();

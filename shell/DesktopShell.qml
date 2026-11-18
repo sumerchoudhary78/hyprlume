@@ -263,8 +263,8 @@ Item {
             exclusiveZone:0;color:"transparent"
             WlrLayershell.namespace:"hyprlume-settings"
             WlrLayershell.layer:WlrLayer.Overlay
-            WlrLayershell.keyboardFocus:WlrKeyboardFocus.Exclusive
-            SettingsOverlay {anchors.fill:parent;backend:desktop.backend;reducedEffects:desktop.state.reducedEffects}
+            WlrLayershell.keyboardFocus:settingsSheet.fileDialogVisible ? WlrKeyboardFocus.None : WlrKeyboardFocus.Exclusive
+            SettingsOverlay {id:settingsSheet;anchors.fill:parent;backend:desktop.backend;reducedEffects:desktop.state.reducedEffects}
         }
     }
 }
