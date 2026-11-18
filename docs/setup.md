@@ -184,8 +184,7 @@ explains native previews, geometry, layouts and runtime data sources.
 
 Current `main` adds the [launcher](launcher.md), [clipboard/capture](clipboard-capture.md),
 [settings](settings.md) and [secure lock service](locking.md), alongside tray,
-notifications, sound/media and power. These require a source build until a new
-release is published; the v0.4.1 package remains unchanged. Optional Arch tools
+notifications, sound/media and power in the v0.5.0 preview. Optional Arch tools
 are `wl-clipboard`, `grim`, `slurp`, `wf-recorder`, `swaylock` and `librsvg`.
 
 Development visual checks use `shell/design-preview.qml` with synthetic data

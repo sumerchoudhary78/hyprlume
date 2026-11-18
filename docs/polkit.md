@@ -3,7 +3,7 @@
 Hyprlume can present Polkit authorization prompts for the active Wayland login.
 The dialog shows the system action and the accounts that Polkit permits. It
 follows PAM prompts, including additional factors and hidden input, and supports
-retry and cancellation with Escape. This is a source feature for the next release.
+retry and cancellation with Escape. The selectable Hyprlume session starts the agent at login.
 
 ## Start the agent
 

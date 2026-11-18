@@ -1,4 +1,4 @@
-# Notifications (development branch / unreleased)
+# Notifications
 
 The Rust daemon implements the freedesktop.org notification interface on the
 session bus. The shell shows glass popups without taking keyboard focus and a

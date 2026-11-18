@@ -1,6 +1,6 @@
 # Idle, locking and sleep
 
-Implemented on main, unreleased. These controls are not in the v0.4.1 package.
+Available in the v0.5.0 desktop preview.
 Development and CI use isolated sessions; installing or enabling this policy is
 an explicit user choice. No compositor, logind or running-session configuration
 is rewritten.

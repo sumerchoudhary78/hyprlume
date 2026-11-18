@@ -1,6 +1,6 @@
 # Sound and media
 
-Implemented on main, unreleased. The v0.4.1 package does not contain this panel.
+Available in the v0.5.0 desktop preview.
 Open **Sound & media** from the speaker in the bar, or run `hyprlume audio`
 from a matching development build. Opening the panel does not alter audio.
 

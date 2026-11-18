@@ -1,6 +1,6 @@
 # Application tray
 
-Implemented on main, unreleased. Open the collapsed application tray from the
+Open the collapsed application tray from the
 grid button in the bar or `hyprlume tray` in a matching development build.
 The glass panel shows active StatusNotifier application icons and their menus.
 Passive items are hidden; attention items get a static badge.
@@ -36,5 +36,4 @@ python3 scripts/qa/render-desktop.py --tray --width 960 --height 640 --reduced-e
 Legacy XEmbed icons and app-owned context menus without DBusMenu are outside
 this milestone. Native action APIs do not supply completion receipts; errors
 from applications remain in Quickshell's log. A broader physical Wayland/app
-matrix remains to be qualified. The v0.4.1 package and current installation are
-unchanged.
+matrix remains to be qualified.

@@ -1,6 +1,6 @@
 # Maintainer: sumerjakhar78 (AUR), sumerchoudhary78 (GitHub)
 pkgname=hyprlume
-pkgver=0.4.1
+pkgver=0.5.0
 pkgrel=1
 pkgdesc='Glass command shell and local English voice companion for Hyprland, powered by HyprPilot'
 arch=('x86_64' 'aarch64')
@@ -81,24 +81,16 @@ package() {
   install -Dm644 packaging/io.github.sumerchoudhary78.hyprlume.desktop "$pkgdir/usr/share/applications/io.github.sumerchoudhary78.hyprlume.desktop"
   install -Dm644 packaging/systemd/hyprlume-daemon.service "$pkgdir/usr/lib/systemd/user/hyprlume-daemon.service"
   install -Dm644 packaging/systemd/hyprlume-shell.service "$pkgdir/usr/lib/systemd/user/hyprlume-shell.service"
-  # Session selection is available once the source tag contains these files.
-  if [[ -f packaging/session/hyprlume.desktop ]]; then
-    install -Dm755 packaging/session/hyprlume-session "$pkgdir/usr/bin/hyprlume-session"
-    install -Dm644 packaging/session/hyprlume.desktop "$pkgdir/usr/share/wayland-sessions/hyprlume.desktop"
-    install -Dm644 packaging/session/hyprlume-services.desktop "$pkgdir/etc/xdg/autostart/hyprlume-services.desktop"
-    install -Dm644 packaging/session/hyprland.lua "$pkgdir/usr/share/hyprlume/session/hyprland.lua"
-    install -Dm644 packaging/systemd/hyprlume-session.target "$pkgdir/usr/lib/systemd/user/hyprlume-session.target"
-  fi
-  # Older release tags predate the optional agent service.
-  if [[ -f packaging/systemd/hyprlume-polkit.service ]]; then
-    install -Dm644 packaging/systemd/hyprlume-polkit.service "$pkgdir/usr/lib/systemd/user/hyprlume-polkit.service"
-  fi
-  if [[ -f packaging/portals/hyprlume.portal ]]; then
-    install -Dm644 packaging/portals/hyprlume-portals.conf "$pkgdir/usr/share/xdg-desktop-portal/hyprlume-portals.conf"
-    install -Dm644 packaging/portals/hyprlume.portal "$pkgdir/usr/share/xdg-desktop-portal/portals/hyprlume.portal"
-    install -Dm644 packaging/portals/org.freedesktop.impl.portal.desktop.hyprlume.service "$pkgdir/usr/share/dbus-1/services/org.freedesktop.impl.portal.desktop.hyprlume.service"
-    install -Dm644 packaging/systemd/hyprlume-portal-settings.service "$pkgdir/usr/lib/systemd/user/hyprlume-portal-settings.service"
-  fi
+  install -Dm755 packaging/session/hyprlume-session "$pkgdir/usr/bin/hyprlume-session"
+  install -Dm644 packaging/session/hyprlume.desktop "$pkgdir/usr/share/wayland-sessions/hyprlume.desktop"
+  install -Dm644 packaging/session/hyprlume-services.desktop "$pkgdir/etc/xdg/autostart/hyprlume-services.desktop"
+  install -Dm644 packaging/session/hyprland.lua "$pkgdir/usr/share/hyprlume/session/hyprland.lua"
+  install -Dm644 packaging/systemd/hyprlume-session.target "$pkgdir/usr/lib/systemd/user/hyprlume-session.target"
+  install -Dm644 packaging/systemd/hyprlume-polkit.service "$pkgdir/usr/lib/systemd/user/hyprlume-polkit.service"
+  install -Dm644 packaging/portals/hyprlume-portals.conf "$pkgdir/usr/share/xdg-desktop-portal/hyprlume-portals.conf"
+  install -Dm644 packaging/portals/hyprlume.portal "$pkgdir/usr/share/xdg-desktop-portal/portals/hyprlume.portal"
+  install -Dm644 packaging/portals/org.freedesktop.impl.portal.desktop.hyprlume.service "$pkgdir/usr/share/dbus-1/services/org.freedesktop.impl.portal.desktop.hyprlume.service"
+  install -Dm644 packaging/systemd/hyprlume-portal-settings.service "$pkgdir/usr/lib/systemd/user/hyprlume-portal-settings.service"
   install -Dm644 LICENSE-MIT "$pkgdir/usr/share/licenses/$pkgname/LICENSE-MIT"
   install -Dm644 LICENSE-APACHE "$pkgdir/usr/share/licenses/$pkgname/LICENSE-APACHE"
   install -Dm644 NOTICE "$pkgdir/usr/share/licenses/$pkgname/NOTICE"

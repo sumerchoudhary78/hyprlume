@@ -3,8 +3,7 @@
 Hyprlume supplies a portal profile for Wayland apps and sandboxed apps. The
 `xdg-desktop-portal` service talks to the backend responsible for the request.
 Its normal file access and screen sharing prompts still control what an app
-can see. This profile and the appearance backend are source features for the
-next release.
+can see. The v0.5.0 package provides the portal profile and appearance backend.
 
 | App request | Backend in the Hyprlume profile |
 | --- | --- |
@@ -29,10 +28,10 @@ WirePlumber services. The Hyprlume package installs its own appearance backend
 manifest and D-Bus activation files. The portal service starts the backend when
 it needs it.
 
-For a future Hyprlume session, have the session launcher export
-`XDG_CURRENT_DESKTOP=Hyprlume:Hyprland` before the portal service or portal
-clients start. From the intended graphical session, its startup can import
-those variables into the activation environment:
+The [selectable session](session.md) sets `XDG_CURRENT_DESKTOP=Hyprlume:Hyprland`
+and imports its Wayland environment. An existing Hyprland session can select the
+same profile by setting that desktop identity at login and importing the graphical
+variables through its session manager:
 
 ```sh
 dbus-update-activation-environment --systemd XDG_CURRENT_DESKTOP WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE
