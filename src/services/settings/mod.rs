@@ -1,6 +1,6 @@
 //! Versioned, validated and atomic configuration editing, outside the AI planner.
 mod shortcuts;
-mod storage;
+pub(crate) mod storage;
 use crate::config::{Config, Llm, Preferences, Voice};
 use anyhow::{ensure, Context, Result};
 use serde::{Deserialize, Serialize};

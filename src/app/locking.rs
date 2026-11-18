@@ -63,10 +63,15 @@ impl App {
     }
     pub(crate) async fn watch_lock(self: Arc<Self>) {
         let mut state = self.locking.subscribe();
+        let mut was_locked = false;
         loop {
-            if state.borrow().active {
+            let locked = state.borrow_and_update().active;
+            if locked {
                 self.pause_for_lock().await;
+            } else if was_locked {
+                self.outputs_changed();
             }
+            was_locked = locked;
             if state.changed().await.is_err() {
                 break;
             }

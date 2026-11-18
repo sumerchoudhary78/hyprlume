@@ -10,6 +10,7 @@ impl App {
         loop {
             let result = async {
                 let mut stream = hyprpilot_core::EventStream::connect(&conn).await?;
+                self.outputs_changed();
                 if let Ok(ws) = conn.active_workspace().await {
                     self.update(|s| s.workspace = Some(ws.id));
                 }
@@ -19,6 +20,7 @@ impl App {
                 while let Some(event) = stream.next().await? {
                     let event = hyprpilot_core::Event::from_raw(event);
                     match event.kind.as_str() {
+                        "monitoraddedv2" | "monitorremoved" => self.outputs_changed(),
                         "workspacev2" => {
                             if let Some(id) = event.field("id").and_then(|v| v.parse().ok()) {
                                 self.update(|s| s.workspace = Some(id));

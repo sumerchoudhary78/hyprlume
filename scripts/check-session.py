@@ -17,7 +17,7 @@ def entry(name):
 
 def check():
     assert entry("hyprlume.desktop")["Exec"] == "/usr/bin/hyprlume-session"
-    assert entry("hyprlume-services.desktop")["OnlyShowIn"] == "Hyprlume;"
+    assert entry("hyprlume-services.desktop")["Exec"] == "/usr/bin/hyprlume-session --services"
     with tempfile.TemporaryDirectory(prefix="hyprlume-session-") as temporary:
         root = Path(temporary)
         trace = root / "calls"

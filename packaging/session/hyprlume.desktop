@@ -3,5 +3,4 @@ Name=Hyprlume
 Comment=Hyprlume with a managed Hyprland session
 Exec=/usr/bin/hyprlume-session
 TryExec=/usr/bin/uwsm
-DesktopNames=Hyprlume;Hyprland;
 Type=Application

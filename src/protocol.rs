@@ -30,6 +30,9 @@ pub enum Operation {
     },
     SettingsSubscribe,
     SettingsStatus,
+    Display {
+        request: crate::services::displays::Request,
+    },
     Input {
         request: crate::desktop::input::Request,
     },
@@ -147,6 +150,8 @@ pub struct State {
     pub credentials: crate::services::credentials::State,
     #[serde(default)]
     pub storage: crate::services::storage::State,
+    #[serde(default)]
+    pub displays: crate::services::displays::State,
 }
 
 impl Default for State {
@@ -167,6 +172,7 @@ impl Default for State {
             feedback: None,
             credentials: crate::services::credentials::State::default(),
             storage: crate::services::storage::State::default(),
+            displays: crate::services::displays::State::default(),
         }
     }
 }

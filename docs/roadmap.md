@@ -106,7 +106,11 @@ code is needed. User-selected priority is connectivity:
 17. **Selectable session:** UWSM startup and shutdown, session environment, XDG
     autostart and gated Hyprlume services. See [session setup](session.md).
 
-Next environment service: display settings.
+18. **Display settings:** resolution, refresh, scale and arrangement with a
+    verified preview and timed rollback. Managed logins restore remembered
+    connected-output layouts. See [display settings](displays.md).
+
+The next release gate is physical device and session qualification.
 
 ## Agent work
 

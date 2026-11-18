@@ -69,6 +69,20 @@ def run(driver):
     driver.wait_event(lambda event: event['kind'] == 'controls' and event['controls'].get('desktopWriteEnvironment', {}).get('enabled', False))
     driver.click('desktopWriteEnvironment')
     assert driver.request('desktop_preferences')['request'] == {'action': 'write_environment', 'revision': 6}
+    driver.wait_stable_controls('settingsTab9')
+    driver.click('settingsTab9')
+    assert driver.request('display')['request']['action'] == 'refresh'
+    driver.wait_stable_controls('displayX')
+    driver.click('displayX')
+    driver.xdo('key', 'ctrl+a')
+    driver.xdo('type', '--clearmodifiers', '32')
+    driver.wait_stable_controls('displayApply')
+    driver.click('displayApply')
+    request = driver.request('display')['request']
+    assert request['action'] == 'preview' and request['changes'][0]['x'] == 32, request
+    driver.wait_stable_controls('displayRevert')
+    driver.click('displayRevert')
+    assert driver.request('display')['request'] == {'action': 'revert', 'token': 33}
     driver.click('settingsReload');assert driver.request('settings')['request']['action']=='reload'
     driver.click('closeSettings');assert driver.request('panel')['open'] is False
     print('SETTINGS INTERACTION PASS: reduced glass, accent, decimal scale, startup defaults, shortcuts, save acknowledgments and reload')
