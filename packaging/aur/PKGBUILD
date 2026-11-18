@@ -6,7 +6,7 @@ pkgdesc='Glass command shell and local English voice companion for Hyprland, pow
 arch=('x86_64' 'aarch64')
 url='https://github.com/sumerchoudhary78/hyprlume'
 license=('MIT' 'Apache-2.0')
-depends=('glibc' 'coreutils' 'gtk3' 'gcc-libs' 'dbus' 'polkit' 'glib2' 'systemd>=257' 'quickshell' 'qt6-declarative' 'qt6-wayland' 'qt6-quick3d>=6.9' 'hyprland' 'xkeyboard-config' 'pipewire-audio' 'wireplumber' 'python')
+depends=('glibc' 'coreutils' 'gtk3' 'gcc-libs' 'dbus' 'polkit' 'glib2' 'systemd>=257' 'quickshell' 'qt6-declarative' 'qt6-wayland' 'qt6-quick3d>=6.9' 'hyprland>=0.57' 'uwsm>=0.27' 'xkeyboard-config' 'pipewire-audio' 'wireplumber' 'python')
 makedepends=('cargo' 'git' 'qt6-shadertools' 'pkgconf' 'glib2-devel')
 optdepends=('swaylock>=1.6: secure Wayland locking with PAM'
             'swayidle: opt-in Wayland idle policy and logind sleep hooks'
@@ -81,6 +81,14 @@ package() {
   install -Dm644 packaging/io.github.sumerchoudhary78.hyprlume.desktop "$pkgdir/usr/share/applications/io.github.sumerchoudhary78.hyprlume.desktop"
   install -Dm644 packaging/systemd/hyprlume-daemon.service "$pkgdir/usr/lib/systemd/user/hyprlume-daemon.service"
   install -Dm644 packaging/systemd/hyprlume-shell.service "$pkgdir/usr/lib/systemd/user/hyprlume-shell.service"
+  # Session selection is available once the source tag contains these files.
+  if [[ -f packaging/session/hyprlume.desktop ]]; then
+    install -Dm755 packaging/session/hyprlume-session "$pkgdir/usr/bin/hyprlume-session"
+    install -Dm644 packaging/session/hyprlume.desktop "$pkgdir/usr/share/wayland-sessions/hyprlume.desktop"
+    install -Dm644 packaging/session/hyprlume-services.desktop "$pkgdir/etc/xdg/autostart/hyprlume-services.desktop"
+    install -Dm644 packaging/session/hyprland.lua "$pkgdir/usr/share/hyprlume/session/hyprland.lua"
+    install -Dm644 packaging/systemd/hyprlume-session.target "$pkgdir/usr/lib/systemd/user/hyprlume-session.target"
+  fi
   # Older release tags predate the optional agent service.
   if [[ -f packaging/systemd/hyprlume-polkit.service ]]; then
     install -Dm644 packaging/systemd/hyprlume-polkit.service "$pkgdir/usr/lib/systemd/user/hyprlume-polkit.service"

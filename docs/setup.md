@@ -65,6 +65,8 @@ is protocol-tested; model-specific planning quality must be evaluated separately
 
 ## User services
 
+For a managed login, select the [Hyprlume session](session.md) at your login screen.
+
 Run these from a terminal **inside your graphical session**:
 
 ```sh

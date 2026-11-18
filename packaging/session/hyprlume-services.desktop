@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Hyprlume session services
+Exec=/usr/bin/hyprlume-session --services
+OnlyShowIn=Hyprlume;
+NoDisplay=true
+Type=Application

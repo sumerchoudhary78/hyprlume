@@ -1,0 +1,49 @@
+#!/bin/sh
+set -eu
+
+if [ "$#" -eq 1 ] && [ "$1" = --services ]; then
+    # UWSM exports this marker only after the packaged compositor is ready.
+    case ":${XDG_CURRENT_DESKTOP:-}:" in
+        *:Hyprlume:*) ;;
+        *) exit 0 ;;
+    esac
+    if [ "${HYPRLUME_SESSION_READY:-}" = 1 ] &&
+        [ -n "${WAYLAND_DISPLAY:-}" ] &&
+        [ -n "${HYPRLAND_INSTANCE_SIGNATURE:-}" ]; then
+        exec systemctl --user --no-block start hyprlume-session.target
+    fi
+    exit 0
+fi
+
+profile=/usr/share/hyprlume/session/hyprland.lua
+case "${1:-}:$#" in
+    --dry-run:1)
+        exec uwsm start -n -e -D Hyprlume:Hyprland -N Hyprlume -- Hyprland -c "$profile"
+        ;;
+    :0) ;;
+    *)
+        printf '%s\n' 'Usage: hyprlume-session [--dry-run]' >&2
+        exit 2
+        ;;
+esac
+
+if [ -n "${WAYLAND_DISPLAY:-}${HYPRLAND_INSTANCE_SIGNATURE:-}" ] ||
+    systemctl --user --quiet is-active graphical-session.target; then
+    printf '%s\n' 'Start Hyprlume from the login screen or a fresh local TTY.' >&2
+    exit 1
+fi
+
+# An unmanaged login can already own this user's Wayland and D-Bus environment.
+for session in $(loginctl show-user "$(id -u)" --property=Sessions --value); do
+    [ "$session" != "${XDG_SESSION_ID:-}" ] || continue
+    type=$(loginctl show-session "$session" --property=Type --value)
+    case "$type" in
+        wayland|x11)
+            printf '%s\n' 'This user already has a graphical login.' >&2
+            exit 1
+            ;;
+    esac
+done
+
+export UWSM_WAIT_VARNAMES="${UWSM_WAIT_VARNAMES:+$UWSM_WAIT_VARNAMES }HYPRLUME_SESSION_READY HYPRLAND_INSTANCE_SIGNATURE"
+exec uwsm start -e -D Hyprlume:Hyprland -N Hyprlume -- Hyprland -c "$profile"

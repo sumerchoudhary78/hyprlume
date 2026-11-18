@@ -40,6 +40,7 @@ implemented with shared glass controls and isolated checks:
 | [Credential storage](docs/credentials.md) | Secret Service provider, login keyring status and native unlock prompts |
 | [Removable drives](docs/storage.md) | Mount, unlock, open and safely remove USB and other removable drives |
 | [Desktop preferences](docs/desktop-preferences.md) | Default apps, wallpaper, GTK/Qt, locale, clock and accessibility |
+| [Selectable session](docs/session.md) | UWSM-managed login, environment, autostart and service lifecycle |
 
 Each linked page documents dependencies, limits and qualification. The published
 v0.4.1/AUR package does not include these development features. No compositor
