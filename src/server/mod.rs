@@ -135,6 +135,7 @@ pub async fn serve_with_config(
     }
     let mut services = tokio::task::JoinSet::new();
     services.spawn(app.clone().watch_desktop());
+    services.spawn(app.clone().watch_displays());
     services.spawn(app.connectivity.clone().run());
     services.spawn(app.notifications.clone().run());
     services.spawn(app.power.clone().run());

@@ -7,6 +7,7 @@ pub mod capture;
 pub mod clipboard;
 pub mod credentials;
 pub mod desktop_preferences;
+pub mod displays;
 pub mod idle;
 pub mod locking;
 pub mod polkit;

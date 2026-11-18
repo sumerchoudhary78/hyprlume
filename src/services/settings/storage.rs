@@ -6,7 +6,7 @@ use std::{
     path::Path,
     time::{SystemTime, UNIX_EPOCH},
 };
-pub(super) fn read(path: &Path) -> Result<Option<Vec<u8>>> {
+pub(crate) fn read(path: &Path) -> Result<Option<Vec<u8>>> {
     match std::fs::symlink_metadata(path) {
         Ok(metadata) => {
             ensure!(
@@ -25,7 +25,7 @@ pub(super) fn read(path: &Path) -> Result<Option<Vec<u8>>> {
         Err(error) => Err(error.into()),
     }
 }
-pub(super) fn save(path: &Path, expected: Option<&[u8]>, contents: &[u8]) -> Result<()> {
+pub(crate) fn save(path: &Path, expected: Option<&[u8]>, contents: &[u8]) -> Result<()> {
     ensure!(
         read(path)?.as_deref() == expected,
         "Configuration was edited outside this view; reload before saving"

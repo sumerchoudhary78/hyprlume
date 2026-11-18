@@ -6,6 +6,7 @@ After=graphical-session-pre.target
 
 [Service]
 Type=simple
+Environment=HYPRLUME_SYSTEMD_DAEMON=1
 ExecStart=/usr/bin/hyprlume daemon
 Restart=on-failure
 RestartSec=2

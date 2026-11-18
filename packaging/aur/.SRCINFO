@@ -26,6 +26,7 @@ pkgbase = hyprlume
 	depends = qt6-quick3d>=6.9
 	depends = hyprland>=0.57
 	depends = uwsm>=0.27
+	depends = wlr-randr>=0.5
 	depends = xkeyboard-config
 	depends = pipewire-audio
 	depends = wireplumber

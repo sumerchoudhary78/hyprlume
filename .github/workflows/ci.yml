@@ -29,6 +29,7 @@ jobs:
       - run: cargo build --locked
       - run: python3 scripts/qa/check-desktop-tools.py --binary target/debug/hyprlume
       - run: python3 scripts/qa/check-settings.py --binary target/debug/hyprlume
+      - run: python3 scripts/qa/check-display.py --binary target/debug/hyprlume
       - run: python3 scripts/check-units.py --binary target/debug/hyprlume
       - run: python3 scripts/check-session.py
       - run: cargo test --locked --no-default-features --all-targets
@@ -97,6 +98,7 @@ jobs:
           python3 scripts/qa/render-desktop.py --settings --settings-tab 6 --output output/design/settings-input.png
           python3 scripts/qa/render-desktop.py --settings --settings-tab 7 --output output/design/settings-credentials.png
           python3 scripts/qa/render-desktop.py --settings --settings-tab 8 --output output/design/settings-desktop.png
+          python3 scripts/qa/render-desktop.py --settings --settings-tab 9 --output output/design/settings-displays.png
           python3 scripts/qa/render-desktop.py --settings --width 960 --height 640 --reduced-effects --output output/design/settings-compact.png
           python3 scripts/qa/render-desktop.py --tools --tools-capture --output output/design/capture.png
       - name: Exercise tray icons, menus and keyboard navigation

@@ -13,7 +13,7 @@ Item {
     property int revision:backend.settings.revision
     property int pending:0
     property bool dirty:false
-    property int tab:Math.max(0,Math.min(8,Number(Quickshell.env("HYPRLUME_SETTINGS_TAB")) || 0))
+    property int tab:Math.max(0,Math.min(9,Number(Quickshell.env("HYPRLUME_SETTINGS_TAB")) || 0))
     readonly property bool fileDialogVisible: desktopPage.item?.fileDialogVisible || false
     property bool lua:true
     property string message:""
@@ -59,7 +59,7 @@ Item {
                 Layout.fillWidth: true
                 spacing: 5
                 Repeater {
-                    model:["Appearance","Voice & models","Shortcuts","Services","Idle & sleep","Portals","Input","Credentials","Desktop"]
+                    model:["Appearance","Voice & models","Shortcuts","Services","Idle & sleep","Portals","Input","Credentials","Desktop","Displays"]
                     GlassButton {required property string modelData; required property int index; objectName:"settingsTab"+index; text:modelData; compact:true; primary:root.tab===index; onClicked:root.tab=index}
                 }
             }
@@ -148,6 +148,12 @@ Item {
                             revision: root.revision
                             onEdited: (section, key, value) => root.edit(section, key, value)
                         }
+                    }
+                    Loader {
+                        active: root.tab === 9
+                        visible: active
+                        Layout.fillWidth: true
+                        sourceComponent: DisplaySettings { backend: root.backend }
                     }
                 }
             }

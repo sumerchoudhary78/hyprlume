@@ -67,6 +67,30 @@ QtObject {
             if (publicOperation.request && publicOperation.request.value) publicOperation.request.value = "[credential]";
             lastRequest = publicOperation; requestCount++;
             if (Quickshell.env("HYPRLUME_QA") === "1") console.log("HYPRLUME_QA " + JSON.stringify({kind:"request",operation:publicOperation}));
+            if (operation.op === "display") {
+                const sequence = requestCount;
+                const request = operation.request;
+                const displays = Object.assign({revision:1, outputs:[
+                    {name:"eDP-1", label:"Notebook display", modes:["1920x1080@144.000Hz", "1920x1080@60.000Hz"],
+                     active:{name:"eDP-1", mode:"1920x1080@144.000Hz", x:0, y:0, scale:1}},
+                    {name:"DP-1", label:"Dock display", modes:["2560x1440@60.000Hz"],
+                     active:{name:"DP-1", mode:"2560x1440@60.000Hz", x:1920, y:0, scale:1}}
+                ], busy:false, preview:null, message:"Sample display layout."}, snapshot.displays);
+                if (request.action === "preview") {
+                    displays.busy = true;
+                    displays.preview = {token: 33, expires_at: Date.now() + 15000};
+                    displays.changes = request.changes;
+                } else if (request.action === "keep" || request.action === "revert") {
+                    if (request.action === "keep") displays.outputs = displays.outputs.map(
+                        output => Object.assign({}, output, {active:displays.changes.find(setting => setting.name === output.name)}));
+                    displays.preview = null;
+                    displays.busy = false;
+                    displays.revision++;
+                }
+                snapshot = Object.assign({}, snapshot, {displays:displays});
+                Qt.callLater(() => sampleBackend.response(sequence, true, {accepted:true}, ""));
+                return sequence;
+            }
             if (operation.op === "desktop_preferences") {
                 const sequence = requestCount;
                 const request = operation.request;

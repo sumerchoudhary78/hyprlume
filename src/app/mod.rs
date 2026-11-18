@@ -2,6 +2,7 @@
 mod commands;
 mod credentials;
 mod desktop_preferences;
+mod displays;
 mod events;
 mod idle;
 mod input;
@@ -25,6 +26,7 @@ use tokio::sync::{watch, Mutex, Semaphore};
 pub struct App {
     pub config: Config,
     pub desktop: Desktop,
+    pub(crate) displays: crate::services::displays::Controller,
     pub(crate) connectivity: Arc<crate::services::connectivity::Controller>,
     pub(crate) notifications: Arc<crate::services::notifications::Controller>,
     pub(crate) locking: Arc<crate::services::locking::Controller>,
@@ -74,9 +76,11 @@ impl App {
             state.message = "Demo session · desktop actions are simulated".into();
         }
         let (state, _) = watch::channel(state);
+        let displays = crate::services::displays::Controller::new(config_path.clone());
         let settings = crate::services::settings::Controller::new(&config, config_path, demo);
         let app = Arc::new(Self {
             settings,
+            displays,
             locking: crate::services::locking::Controller::new(demo),
             config,
             desktop: Desktop::new(demo),
@@ -191,6 +195,7 @@ impl App {
             Operation::Storage { request } => self.storage(request),
             Operation::DesktopPreferences { request } => self.desktop_preferences(request).await,
             Operation::Credentials { request } => self.credentials(request),
+            Operation::Display { request } => self.display(request),
             Operation::Input { request } => self.input(request).await,
             Operation::SystemKey { key } => self.system_key(key),
             Operation::SettingsStatus | Operation::SettingsSubscribe => {

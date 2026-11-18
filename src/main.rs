@@ -97,6 +97,8 @@ enum Commands {
     #[command(hide = true)]
     LockWorker,
     #[command(hide = true)]
+    DisplayWorker,
+    #[command(hide = true)]
     IdleEvent {
         #[arg(value_enum)]
         event: hyprlume::services::idle::Event,
@@ -245,6 +247,7 @@ async fn main() -> Result<()> {
         }
         Commands::Polkit { path } => return hyprlume::services::polkit::launch(path, cli.socket),
         Commands::PolkitWorker => return hyprlume::services::polkit::worker().await,
+        Commands::DisplayWorker => return hyprlume::services::displays::run_worker().await,
         Commands::LockWorker => return hyprlume::services::locking::run_worker().await,
         Commands::Doctor => {
             println!(
