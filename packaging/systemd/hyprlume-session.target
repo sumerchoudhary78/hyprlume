@@ -1,0 +1,7 @@
+[Unit]
+Description=Hyprlume session services
+Documentation=https://github.com/sumerchoudhary78/hyprlume/blob/main/docs/session.md
+Requisite=graphical-session.target
+After=graphical-session.target
+PartOf=graphical-session.target
+Wants=hyprlume-daemon.service hyprlume-shell.service hyprlume-polkit.service

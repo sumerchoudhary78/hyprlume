@@ -30,6 +30,7 @@ jobs:
       - run: python3 scripts/qa/check-desktop-tools.py --binary target/debug/hyprlume
       - run: python3 scripts/qa/check-settings.py --binary target/debug/hyprlume
       - run: python3 scripts/check-units.py --binary target/debug/hyprlume
+      - run: python3 scripts/check-session.py
       - run: cargo test --locked --no-default-features --all-targets
       - run: python3 -m py_compile scripts/hyprlume-models
       - name: Build the isolated native service test binary

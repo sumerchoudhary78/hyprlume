@@ -103,7 +103,10 @@ code is needed. User-selected priority is connectivity:
 16. **Desktop preferences:** GIO app defaults, file associations, wallpaper,
     app appearance, locale, clock and accessibility. See [desktop preferences](desktop-preferences.md).
 
-Next environment services include login/session bootstrap and monitor settings.
+17. **Selectable session:** UWSM startup and shutdown, session environment, XDG
+    autostart and gated Hyprlume services. See [session setup](session.md).
+
+Next environment service: display settings.
 
 ## Agent work
 
