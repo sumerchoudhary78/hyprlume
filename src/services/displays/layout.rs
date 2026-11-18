@@ -208,23 +208,30 @@ impl Plan {
             .collect()
     }
     pub(super) fn restoration(&self, observed: &[Output]) -> Vec<Setting> {
-        let mut settings = Vec::new();
-        for (next, before) in self.after.settings.iter().zip(&self.before.settings) {
-            if next.matches(before) {
+        let current = snapshot(observed);
+        let mut settings = current.settings.clone();
+        for output in observed {
+            if !self.before.topology.contains(&output.identity) {
                 continue;
             }
-            let Some(output) = observed.iter().find(|output| output.name == before.name) else {
+            let Some(before) = self.before.settings.iter().find(|s| s.name == output.name) else {
                 continue;
             };
-            if self.before.topology.contains(&output.identity)
-                && output
-                    .active
-                    .as_ref()
-                    .is_some_and(|actual| !actual.matches(before))
-                && output.modes.contains(&before.mode)
-            {
-                settings.push(before.clone());
+            let Some(target) = settings.iter_mut().find(|s| s.name == output.name) else {
+                continue;
+            };
+            if output.modes.contains(&before.mode) || target.mode == before.mode {
+                *target = before.clone();
             }
+        }
+        // Hyprland can recalculate auto-positioned neighbors when an output
+        // changes. Send all active outputs so untouched neighbors stay put.
+        if settings
+            .iter()
+            .zip(&current.settings)
+            .all(|(target, actual)| target.matches(actual))
+        {
+            return Vec::new();
         }
         settings
     }

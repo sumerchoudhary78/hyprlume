@@ -18,6 +18,7 @@ args = sys.argv[1:]
 if args == ["--json"]:
     print(json.dumps(outputs))
 else:
+    assert {args[i] for i in range(1, len(args), 8)} == {output["name"] for output in outputs if output["enabled"]}, args
     while args:
         name, fmt, xy, scale = args[1], args[3], args[5], float(args[7])
         assert args[:8:2] == ["--output", "--mode", "--pos", "--scale"], args
@@ -51,12 +52,14 @@ def run(binary, root):
     hyprland.parent.mkdir(parents=True)
     hyprland.touch()
     outputs = root / "outputs.json"
-    outputs.write_text(json.dumps([{
+    connected = [{
         "name": "eDP-1", "enabled": True, "make": "Fixture", "serial": "sample-1",
         "position": {"x": 0, "y": 0}, "scale": 1,
         "modes": [{"width": 1920, "height": 1080, "refresh": refresh, "current": refresh == 60}
                   for refresh in (60, 144)],
-    }]))
+    }]
+    connected.append(dict(connected[0], name="DP-1", serial="sample-2", position={"x": 1920, "y": 0}))
+    outputs.write_text(json.dumps(connected))
     command = root / "wlr-randr"
     command.write_text(f"#!{sys.executable}\n" + WLR_RANDR)
     command.chmod(0o700)
@@ -97,7 +100,7 @@ def run(binary, root):
 
         def preview(x, scale):
             info = status()
-            change = dict(info["outputs"][0]["active"], x=x, scale=scale)
+            change = dict(next(output for output in info["outputs"] if output["name"] == "eDP-1")["active"], x=x, scale=scale)
             reply = call("display", request={"action": "preview", "revision": info["revision"], "changes": [change]})
             assert reply["result"]["accepted"], reply
             result = wait_for(lambda: status()["preview"])

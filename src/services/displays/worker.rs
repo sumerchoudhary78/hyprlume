@@ -114,10 +114,9 @@ pub async fn run() -> Result<()> {
     );
     // Revalidate the job in the child before passing fixed arguments to wlr-randr.
     let plan = Plan::new(&observed, job.plan.after.settings.clone())?;
-    let changes = plan.changes();
-    ensure!(!changes.is_empty(), "The layout is already active");
+    ensure!(!plan.changes().is_empty(), "The layout is already active");
     let result = async {
-        apply(&changes).await?;
+        apply(&plan.after.settings).await?;
         confirm(&plan).await?;
         let expires_at = super::now_ms() + PREVIEW_MS;
         let (choice, receive) = tokio::sync::oneshot::channel();
