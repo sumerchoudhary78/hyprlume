@@ -8,10 +8,10 @@ A glass command shell and local English voice companion for **Hyprland**.
 Rust handles desktop services, the agent and speech; Quickshell / Qt Quick renders the interface;
 [HyprPilot](https://github.com/sumerchoudhary78/HyprPilot) supplies typed desktop control.
 
-**v0.4.1 is a desktop-shell preview:** a cinematic liquid-glass dashboard, persistent
-room wallpaper, real 3D holograms, Wi-Fi/Bluetooth controls, command console and local speech pipeline.
-It does not yet replace every desktop service. See [roadmap](docs/roadmap.md)
-and [validation](docs/validation.md) for implemented behavior and remaining work.
+**v0.5.0 desktop preview** adds a selectable Hyprlume session, display profiles
+with timed rollback, and integrated desktop services. The liquid-glass dashboard,
+3D scenes and local English voice companion render through Quickshell.
+See [release validation](docs/validation.md) for the tested environments.
 
 ![Native Quickshell desktop render](assets/desktop-preview.png)
 
@@ -20,8 +20,7 @@ The panels, text and controls are QML; the room is a cached wallpaper asset.*
 
 ## What works
 
-On `main` **(unreleased; build from source)**, the desktop-service sequence is
-implemented with shared glass controls and isolated checks:
+Version 0.5.0 includes the following desktop services.
 
 | Service | Current behavior |
 | --- | --- |
@@ -43,9 +42,8 @@ implemented with shared glass controls and isolated checks:
 | [Selectable session](docs/session.md) | UWSM-managed login, environment, autostart and service lifecycle |
 | [Displays](docs/displays.md) | Modes, scale, arrangement, remembered dock layouts and timed rollback |
 
-Each linked page documents dependencies, limits and qualification. The published
-v0.4.1/AUR package does not include these development features. No compositor
-configuration or existing desktop session is automatically replaced.
+Each service page covers setup and verification. The [Hyprlume session](docs/session.md)
+appears as its own login option.
 
 - A top bar on every monitor, a glass home dashboard on empty workspaces, and an
   on-demand command panel. The dashboard carries quick actions, live workspace

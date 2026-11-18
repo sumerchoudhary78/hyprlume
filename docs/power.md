@@ -1,6 +1,6 @@
 # Power and session
 
-Implemented on main, unreleased. The v0.4.1 package does not contain this panel.
+Available in the v0.5.0 desktop preview.
 Use the power button in the bar, or a matching development build:
 
 ```sh

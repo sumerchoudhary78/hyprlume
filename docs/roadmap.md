@@ -48,45 +48,45 @@ code is needed. User-selected priority is connectivity:
 
 1. **Wi-Fi/Bluetooth:** implemented; physical connection/pairing qualification,
    hidden/enterprise profile editing and Bluetooth battery indicators remain.
-2. **Notifications:** implemented on main (unreleased): D-Bus ownership, actions,
+2. **Notifications:** available in v0.5.0: D-Bus ownership, actions,
    dismissal, bounded session history and Do Not Disturb. Markup, images, sounds,
    durable settings/history and activation tokens remain outside this milestone.
    See [notification behavior and isolation](notifications.md).
-3. **Audio/media:** implemented on main (unreleased): PipeWire devices, preferred
+3. **Audio/media:** available in v0.5.0: PipeWire devices, preferred
    input/output, node volume/mute and capability-aware MPRIS playback. Per-stream
    routing, profiles/ports and physical hot-plug qualification remain. See
    [supported controls and isolated checks](audio.md).
-4. **Power/session:** implemented on main (unreleased): battery/UPS, kernel
+4. **Power/session:** available in v0.5.0: battery/UPS, kernel
    brightness, power profiles and separately confirmed suspend/logout/restart/
    shutdown. Physical driver, policy, sleep/resume and login teardown
    qualification remain. Suspend now waits for secure locking. See
    [power behavior and isolation](power.md).
-5. **System tray:** implemented on main (unreleased): StatusNotifier icons,
+5. **System tray:** available in v0.5.0: StatusNotifier icons,
    activation/secondary/scroll actions and themed DBusMenu navigation with
    check/radio states. Legacy XEmbed and the physical app matrix remain outside
    this milestone. See [tray behavior and isolated checks](tray.md).
-6. **App launcher:** implemented on main (unreleased): native desktop-entry indexing,
+6. **App launcher:** available in v0.5.0: native desktop-entry indexing,
    ranked application search and exact-address window switching. See
    [behavior and isolated checks](launcher.md).
-7. **Clipboard/capture:** implemented on main (unreleased): opt-in bounded text
+7. **Clipboard/capture:** available in v0.5.0: opt-in bounded text
    history, screenshots, display/region recording and persistent stop controls.
    See [behavior, dependencies and isolated checks](clipboard-capture.md).
-8. **Settings:** implemented on main (unreleased): persisted appearance, voice/
+8. **Settings:** available in v0.5.0: persisted appearance, voice/
    model preferences, shortcut exports and service startup defaults. See
    [application semantics and verification](settings.md).
-9. **Screen locking:** implemented on main (unreleased): dedicated ext-session-lock/
+9. **Screen locking:** available in v0.5.0: dedicated ext-session-lock/
    PAM supervision, themed authentication, action/voice/capture pausing and
    fail-closed recovery. See [security behavior and qualification](locking.md).
-10. **Idle/sleep:** implemented on main (unreleased): opt-in dim/lock/screen-off/
+10. **Idle/sleep:** available in v0.5.0: opt-in dim/lock/screen-off/
     suspend timers, live settings, presentation and recording inhibition,
     conditional restoration and confirmed lock-before-suspend. External sleep
     locking has a bounded logind delay; physical lid/sleep/driver qualification
     remains. See [idle policy and guarantees](idle-sleep.md).
 
-11. **Polkit:** implemented on main (unreleased). The optional Wayland dialog
+11. **Polkit:** available in v0.5.0. The optional Wayland dialog
     uses the system authentication helper. See [setup and verification](polkit.md).
 
-12. **Desktop portals:** implemented on main (unreleased). The opt-in
+12. **Desktop portals:** available in v0.5.0. The opt-in
     profile routes to Hyprland and GTK and publishes Hyprlume appearance hints.
     See [setup, live diagnostics and verification](portals.md).
 
@@ -110,7 +110,7 @@ code is needed. User-selected priority is connectivity:
     verified preview and timed rollback. Managed logins restore remembered
     connected-output layouts. See [display settings](displays.md).
 
-The next release gate is physical device and session qualification.
+Stable-release qualification covers physical devices, docking, suspend and graphics performance. See [validation](validation.md).
 
 ## Agent work
 
