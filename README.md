@@ -15,7 +15,14 @@ See [release validation](docs/validation.md) for the tested environments.
 
 ## Demo
 
-[![Animated preview of Hyprlume’s glass dashboard, command review and display settings](assets/hyprlume-demo.gif)](https://github.com/sumerchoudhary78/hyprlume/releases/download/v0.5.0/hyprlume-v0.5.0-demo.mp4)
+[![Animated preview of Hyprlume’s glass dashboard, command review and display settings](assets/hyprlume-demo.gif)](https://github.com/user-attachments/assets/d1c99a01-4f9b-4a9e-ad00-c62c9d1bb058)
+
+<details>
+<summary>Play the 39-second demo</summary>
+
+https://github.com/user-attachments/assets/d1c99a01-4f9b-4a9e-ad00-c62c9d1bb058
+
+</details>
 
 [Download the 39-second demo in 1080p](https://github.com/sumerchoudhary78/hyprlume/releases/download/v0.5.0/hyprlume-v0.5.0-demo.mp4)
 
