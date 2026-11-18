@@ -55,7 +55,7 @@ def run(driver):
         'action': 'set_association', 'mime': 'application/pdf', 'desktop_id': 'preview-reader.desktop'
     }
     driver.click('desktopSettingsSection1')
-    driver.wait_controls('desktopContrast')
+    driver.wait_stable_controls('desktopContrast', 'desktopColor_light')
     driver.click('desktopContrast')
     driver.click('desktopColor_light')
     driver.click('desktopSettingsSection2')
@@ -64,7 +64,7 @@ def run(driver):
     driver.wait_event(lambda event: event['kind'] == 'controls' and event['controls'].get('settingsSave', {}).get('enabled', False))
     driver.click('settingsSave')
     prefs = driver.request('settings')['request']['values']['preferences']
-    assert prefs['appearance']['high_contrast'] and prefs['appearance']['app_color'] == 'light'
+    assert prefs['appearance']['high_contrast'] and prefs['appearance']['app_color'] == 'light', prefs['appearance']
     assert not prefs['desktop']['clock_24h']
     driver.wait_event(lambda event: event['kind'] == 'controls' and event['controls'].get('desktopWriteEnvironment', {}).get('enabled', False))
     driver.click('desktopWriteEnvironment')
