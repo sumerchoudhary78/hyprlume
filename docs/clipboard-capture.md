@@ -57,6 +57,14 @@ Install `grim`, `slurp`, and `wf-recorder`. Compositor screencopy/layer-shell an
 a usable encoder are required. The UI disables unavailable tools. Newly
 installed tools are discovered on daemon restart.
 
+The packaged session disables Hyprland's layer animation for the tools sheet
+so its closing frame stays out of captures. If you run the shell in your own
+Hyprland Lua profile, add the same rule to that profile.
+
+```lua
+hl.layer_rule({ match = { namespace = "^hyprlume-tools$" }, no_anim = true })
+```
+
 ## Checks and qualification
 
 `scripts/qa/check-desktop-tools.py --binary target/debug/hyprlume` starts the

@@ -248,7 +248,14 @@ async fn main() -> Result<()> {
         Commands::Polkit { path } => return hyprlume::services::polkit::launch(path, cli.socket),
         Commands::PolkitWorker => return hyprlume::services::polkit::worker().await,
         Commands::DisplayWorker => return hyprlume::services::displays::run_worker().await,
-        Commands::LockWorker => return hyprlume::services::locking::run_worker().await,
+        Commands::LockWorker => {
+            use hyprlume::services::locking::{prepare_worker, run_worker, STARTUP_FAILURE};
+            if let Err(error) = prepare_worker().await {
+                eprintln!("Prepare secure lock worker: {error:#}");
+                std::process::exit(STARTUP_FAILURE);
+            }
+            return run_worker().await;
+        }
         Commands::Doctor => {
             println!(
                 "Hyprlume {} · microphone remains off",

@@ -3,6 +3,7 @@
 
 def run(driver):
     driver.wait_controls('openConnectivity')
+    assert driver.controls['openConnectivity']['inside'], "Wi-Fi and Bluetooth button is clipped"
     driver.focus_window()
     driver.click('openConnectivity')
     assert driver.request('connectivity')['request']['action'] == 'toggle'

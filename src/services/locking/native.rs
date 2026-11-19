@@ -7,6 +7,7 @@ use zbus::{message::Type, zvariant::OwnedObjectPath, Connection, MatchRule, Mess
 const SERVICE: &str = "org.freedesktop.systemd1";
 const UNIT: &str = "hyprlume-lock.service";
 pub(super) async fn start() -> Result<()> {
+    super::worker::check_client().await?;
     let mut command = Command::new("/usr/bin/systemd-run");
     command.args([
         "--user",
@@ -24,6 +25,10 @@ pub(super) async fn start() -> Result<()> {
         "--property=TimeoutStartSec=20",
         "--property=UMask=0077",
     ]);
+    command.arg(format!(
+        "--property=RestartPreventExitStatus={}",
+        super::worker::STARTUP_FAILURE
+    ));
     for name in [
         "WAYLAND_DISPLAY",
         "XDG_RUNTIME_DIR",

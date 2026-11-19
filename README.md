@@ -8,8 +8,8 @@ A glass command shell and local English voice companion for **Hyprland**.
 Rust handles desktop services, the agent and speech; Quickshell / Qt Quick renders the interface;
 [HyprPilot](https://github.com/sumerchoudhary78/HyprPilot) supplies typed desktop control.
 
-**v0.5.0 desktop preview** adds a selectable Hyprlume session, display profiles
-with timed rollback, and integrated desktop services. The liquid-glass dashboard,
+**v0.5.1 desktop preview** fixes Polkit startup, Swaylock compatibility, the
+scaled top bar, starter shortcuts and screenshot dismissal. The liquid-glass dashboard,
 3D scenes and local English voice companion render through Quickshell.
 See [release validation](docs/validation.md) for the tested environments.
 
