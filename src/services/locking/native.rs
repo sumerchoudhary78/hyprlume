@@ -7,7 +7,7 @@ use zbus::{message::Type, zvariant::OwnedObjectPath, Connection, MatchRule, Mess
 const SERVICE: &str = "org.freedesktop.systemd1";
 const UNIT: &str = "hyprlume-lock.service";
 pub(super) async fn start() -> Result<()> {
-    super::worker::check_version().await?;
+    super::worker::check_client().await?;
     let mut command = Command::new("/usr/bin/systemd-run");
     command.args([
         "--user",

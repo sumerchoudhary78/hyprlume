@@ -4,7 +4,7 @@ use anyhow::{ensure, Context, Result};
 use std::{
     os::unix::fs::{MetadataExt, PermissionsExt},
     path::PathBuf,
-    process::Stdio,
+    process::{Output, Stdio},
     time::Duration,
 };
 use tokio::{io::AsyncReadExt, process::Command, time::timeout};
@@ -94,19 +94,33 @@ pub(super) fn client_args() -> Vec<String> {
     }
     args
 }
-pub(super) async fn check_version() -> Result<()> {
-    let version = timeout(
+async fn probe(option: &str) -> Result<Output> {
+    timeout(
         Duration::from_secs(2),
         Command::new("/usr/bin/swaylock")
-            .arg("--version")
+            .arg(option)
             .kill_on_drop(true)
             .output(),
     )
     .await
-    .context("Swaylock version check timed out")??;
+    .with_context(|| format!("Swaylock {option} check timed out"))?
+    .with_context(|| format!("Run Swaylock {option}"))
+}
+
+pub(super) async fn check_client() -> Result<()> {
+    let version = probe("--version").await?;
     ensure!(
         version.status.success() && supported_version(&String::from_utf8_lossy(&version.stdout)),
         "Swaylock 1.6 or newer with ext-session-lock is required"
+    );
+    let help = probe("--help").await?;
+    ensure!(
+        [&help.stdout, &help.stderr].into_iter().any(|stream| {
+            String::from_utf8_lossy(stream)
+                .split_ascii_whitespace()
+                .any(|option| option == "--ready-fd")
+        }),
+        "Swaylock must support --ready-fd. Install your distribution's swaylock package."
     );
     Ok(())
 }
@@ -117,7 +131,7 @@ pub async fn prepare() -> Result<()> {
         std::env::var_os("NOTIFY_SOCKET").is_some(),
         "The lock worker must run in its dedicated systemd notify unit"
     );
-    check_version().await?;
+    check_client().await?;
     super::marker::begin()
 }
 

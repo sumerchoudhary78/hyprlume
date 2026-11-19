@@ -3,7 +3,8 @@
 ## 0.5.1 — 2026-11-19
 
 - Register Polkit from the managed UWSM service against the verified local Wayland login.
-- Accept versioned Swaylock Effects builds and stop retrying permanent lock startup failures.
+- Check Swaylock's protocol version and readiness option before launching, and
+  stop retrying permanent lock startup failures.
 - Keep the Wi-Fi and Bluetooth button visible on scaled displays.
 - Provide starter application, window and workspace shortcuts for the selectable session.
 - Dismiss the Capture sheet without a compositor fade before taking a screenshot.

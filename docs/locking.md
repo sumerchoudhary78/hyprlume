@@ -11,7 +11,8 @@ indicator, failed-attempt state and authentication belong to the lock client.
 There is no QML imitation of a password prompt, daemon password field, AI unlock
 command, unlock RPC or password in command-line/environment arguments.
 Swaylock's SIGUSR1 unlock shortcut is blocked with GNU `env --block-signal`.
-The worker refuses clients older than 1.6, which predate the required protocol.
+The worker requires Swaylock 1.6 or newer with `--ready-fd`. Some Effects
+builds omit that readiness option even when their version meets the minimum.
 
 Install Arch's `swaylock` and `librsvg` packages. The system package manager must
 own `/usr/bin/swaylock` and `/etc/pam.d/swaylock`, without group/other write
