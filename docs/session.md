@@ -31,6 +31,15 @@ to use the [individual user services](setup.md#user-services).
 - **Super+Shift+Q** closes the active window.
 - **Super+Shift+E** ends the managed session. The power panel also offers logout.
 
+The starter profile also binds **Super+T** for a terminal, **Super+B** for the
+default browser, **Super+E** for the home folder, **Super+Tab** for the window
+switcher and **Super+Q** to close the focused window. **Super+1–9, 0** switches
+to workspaces 1–10. Add **Shift** to move the focused window there.
+
+Creating `session.lua` gives you control of the starter shortcuts. The three
+session controls above are loaded before it. Chords in a generated input profile
+take precedence over starter shortcuts on installs without a custom session file.
+
 Run `hyprlume-session --dry-run` from the intended login context to inspect
 UWSM's launch plan. The test suite checks launcher guards and the user unit
 graph. Login manager and hardware validation use a separate login.

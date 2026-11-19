@@ -12,7 +12,7 @@ use std::sync::{
     Arc,
 };
 use tokio::sync::watch;
-pub use worker::run as run_worker;
+pub use worker::{prepare as prepare_worker, run as run_worker, STARTUP_FAILURE};
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct State {
     pub available: bool,

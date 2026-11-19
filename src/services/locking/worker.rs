@@ -8,6 +8,9 @@ use std::{
     time::Duration,
 };
 use tokio::{io::AsyncReadExt, process::Command, time::timeout};
+
+pub const STARTUP_FAILURE: i32 = 78;
+
 pub(super) fn preflight() -> Result<()> {
     ensure!(cfg!(target_os = "linux"), "Session locking requires Linux");
     ensure!(
@@ -91,17 +94,13 @@ pub(super) fn client_args() -> Vec<String> {
     }
     args
 }
-/// Internal systemd worker. Readiness is forwarded only after Swaylock's
-/// compositor acknowledgment. A shell/daemon restart cannot kill this unit.
-pub async fn run() -> Result<()> {
-    preflight()?;
-    ensure!(
-        std::env::var_os("NOTIFY_SOCKET").is_some(),
-        "The lock worker must run in its dedicated systemd notify unit"
-    );
+pub(super) async fn check_version() -> Result<()> {
     let version = timeout(
         Duration::from_secs(2),
-        Command::new("/usr/bin/swaylock").arg("--version").output(),
+        Command::new("/usr/bin/swaylock")
+            .arg("--version")
+            .kill_on_drop(true)
+            .output(),
     )
     .await
     .context("Swaylock version check timed out")??;
@@ -109,7 +108,22 @@ pub async fn run() -> Result<()> {
         version.status.success() && supported_version(&String::from_utf8_lossy(&version.stdout)),
         "Swaylock 1.6 or newer with ext-session-lock is required"
     );
-    super::marker::begin()?;
+    Ok(())
+}
+
+pub async fn prepare() -> Result<()> {
+    preflight()?;
+    ensure!(
+        std::env::var_os("NOTIFY_SOCKET").is_some(),
+        "The lock worker must run in its dedicated systemd notify unit"
+    );
+    check_version().await?;
+    super::marker::begin()
+}
+
+/// Internal systemd worker, after prepare has established the episode.
+/// Readiness is forwarded only after Swaylock's compositor acknowledgment.
+pub async fn run() -> Result<()> {
     let mut child = Command::new("/usr/bin/env")
         .args(["--block-signal=USR1", "--", "/usr/bin/swaylock"])
         .args(client_args())
@@ -159,24 +173,32 @@ pub async fn run() -> Result<()> {
 }
 
 fn supported_version(value: &str) -> bool {
-    value.split_whitespace().any(|part| {
-        let mut numbers = part.split('.');
-        let major = numbers.next().and_then(|part| part.parse::<u32>().ok());
-        let minor = numbers.next().and_then(|part| part.parse::<u32>().ok());
-        matches!((major,minor),(Some(major),Some(minor)) if major>1 || (major==1 && minor>=6))
-    })
+    let Some(version) = value
+        .trim()
+        .strip_prefix("swaylock version ")
+        .and_then(|value| value.split_whitespace().next())
+    else {
+        return false;
+    };
+    let mut numbers = version.trim_start_matches('v').split('.');
+    let major = numbers.next().and_then(|part| part.parse::<u32>().ok());
+    let minor = numbers.next().and_then(|part| part.parse::<u32>().ok());
+    matches!((major, minor), (Some(major), Some(minor)) if major > 1 || (major == 1 && minor >= 6))
 }
 #[cfg(test)]
 mod tests {
     use super::*;
     #[test]
     fn older_input_inhibitor_clients_are_refused() {
+        assert!(supported_version("swaylock version 1.8.6\n"));
         assert!(supported_version(
-            "swaylock version 1.8.6
-"
+            "swaylock version v1.7.0.0-1-g496059a (\" __DATE__ \", branch 'master')"
         ));
         assert!(supported_version("swaylock version 1.6.0"));
         assert!(!supported_version("swaylock version 1.5.1"));
+        assert!(!supported_version(
+            "swaylock version v1.5.1 (dependency 2.0.0)"
+        ));
         assert!(!supported_version("unknown"));
     }
 }

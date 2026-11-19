@@ -15,7 +15,9 @@ def run(driver):
     driver.click('openDesktopTools');driver.request('panel');driver.wait_controls('toolsCapture');driver.click('toolsCapture');driver.request('panel')
     driver.wait_controls('recordScreen');driver.click('recordScreen')
     assert driver.request('capture')['request']=={'action':'record','region':False,'output':'PREVIEW-1'}
-    driver.wait_controls('stopRecording');driver.click('stopRecording')
+    driver.wait_controls('stopRecording')
+    assert driver.controls['openConnectivity']['inside'], "Recording control clips Wi-Fi and Bluetooth"
+    driver.click('stopRecording')
     assert driver.request('capture')['request']=={'action':'stop'}
     driver.click('openDesktopTools')
     driver.request('panel')
