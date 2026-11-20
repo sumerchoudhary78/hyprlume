@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.6.0 — 2026-11-20
+
+- Redesign Home around inline command previews, workspace switching and
+  expandable system details. Introduce the Tidal Eclipse wallpaper.
+- Reflow the status bar at narrow widths and reserve the rendered height.
+  Keep the recording stop control visible while recording.
+- Give command review its own view and keep the explicit Run plan action.
+- Use antialiased vector icons and charts, publish a lossless 4K preview and
+  verify native rendering at integer and fractional scale.
+- Add short panel transitions, respect reduced effects and high contrast,
+  and load wallpaper and hidden system details with bounded rendering work.
+- Drop Qt Quick 3D from the desktop runtime requirements.
+
 ## 0.5.1 — 2026-11-19
 
 - Register Polkit from the managed UWSM service against the verified local Wayland login.
@@ -9,7 +22,7 @@
 - Provide starter application, window and workspace shortcuts for the selectable session.
 - Dismiss the Capture sheet without a compositor fade before taking a screenshot.
 
-## Unreleased
+## 0.5.0 — 2026-11-18
 
 - Add a collapsed application tray with native StatusNotifier icons, themed
   DBusMenu submenus/check/radio states, activation and keyboard navigation.

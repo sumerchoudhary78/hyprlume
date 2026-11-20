@@ -269,7 +269,7 @@ QtObject {
         property int focusedWindowCount: 0
         property int nextCount: 0
         function label(w) { return w.name; }
-        function countFor(w) { return w.id === 2 ? 3 : w.id === 3 ? 2 : 1; }
+        function countFor(w) { return w.id === 2 ? 0 : w.id === 3 ? 2 : 1; }
         function isFocused(w) { return focused && w.id === focused.id; }
         function focus(w) { focused = w; if (Quickshell.env("HYPRLUME_QA") === "1") console.log("HYPRLUME_QA " + JSON.stringify({kind:"workspace",name:w.name})); }
         function focusNext() { nextCount++; focused = all[(all.indexOf(focused)+1)%all.length]; }
@@ -303,11 +303,16 @@ QtObject {
         readonly property string date: "Mon, 16 Nov"
     }
     property QtObject state: QtObject {
-        property int mode: 0
-        onModeChanged: if (Quickshell.env("HYPRLUME_QA") === "1") console.log("HYPRLUME_QA " + JSON.stringify({kind:"mode",mode:mode}));
         property bool reducedEffects: Quickshell.env("HYPRLUME_REDUCED_EFFECTS") === "1" || sampleBackend.settings.values.preferences.appearance.reduced_effects
     }
     Component.onCompleted: {
+        if (Quickshell.env("HYPRLUME_COMMAND_REVIEW") === "1") {
+            backend.snapshot = Object.assign({}, backend.snapshot, {
+                phase: "review", message: "Review the action before running it",
+                transcript: "volume 35", actions: ["Set output volume to 35%"], receipts: [],
+                confirmation: 42, panel_open: true
+            });
+        }
         const mode = Quickshell.env("HYPRLUME_CONNECTIVITY_STATE");
         if (mode === "unavailable") {
             const next = JSON.parse(JSON.stringify(backend.connectivity));

@@ -19,6 +19,8 @@ def run(driver):
     assert driver.controls['openConnectivity']['inside'], "Recording control clips Wi-Fi and Bluetooth"
     driver.click('stopRecording')
     assert driver.request('capture')['request']=={'action':'stop'}
+    driver.wait_controls('stopRecording', False)
+    driver.wait_stable_controls('openDesktopTools')
     driver.click('openDesktopTools')
     driver.request('panel')
     driver.wait_controls('toolsDrives')

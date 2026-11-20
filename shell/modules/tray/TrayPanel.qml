@@ -8,8 +8,7 @@ GlassSurface {
     id: root
     required property var backend
     readonly property var tray: backend.tray
-    radius: Theme.radiusPanel; tintTop: "#f01a2b45"; tint: "#f0081225"
-    glowColor: Theme.cyan; secondaryColor: Theme.violet
+    radius: Theme.radiusPanel
     focus: true
     function close() { backend.send({op:"panel",panel:"tray",open:false}); }
     Keys.onEscapePressed: { if (tray.menuStack.length > 1) { tray.back(); Qt.callLater(() => root.forceActiveFocus()); } else close(); }

@@ -3,7 +3,7 @@ import Quickshell
 import Quickshell.Wayland
 import qs.components
 
-// The room persists behind ordinary application windows. This surface never
+// The wallpaper persists behind ordinary application windows. This surface never
 // receives pointer or keyboard input and reserves no desktop space.
 ShellWindow {
     surfaceName: "wallpaper"

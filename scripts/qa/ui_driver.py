@@ -8,8 +8,9 @@ import time
 
 
 class UiDriver:
-    def __init__(self, proc):
+    def __init__(self, proc, dpr=1):
         self.proc = proc
+        self.dpr = dpr
         self.events = queue.Queue()
         self.logs = []
         self.controls = {}
@@ -68,7 +69,12 @@ class UiDriver:
         position = self.controls[name]
         if not position['enabled']:
             raise AssertionError(f'control is disabled: {name}')
-        self.xdo('mousemove', '--sync', round(position['x']), round(position['y']), 'click', '1')
+        self.click_at(position)
+
+    def click_at(self, position, button=1, repeat=1):
+        x = round(position['x'] * self.dpr)
+        y = round(position['y'] * self.dpr)
+        self.xdo('mousemove', '--sync', x, y, 'click', '--repeat', repeat, button)
 
     def request(self, op):
         event = self.wait_event(

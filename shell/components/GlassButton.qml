@@ -1,90 +1,61 @@
 import QtQuick
 import QtQuick.Layouts
-import qs.components
+import QtQuick.Templates as T
 import qs.theme
 
-// Themed button for shell surfaces. Primary uses the same warm fill as the
-// active bar mode; everything else stays on the glass palette.
-Item {
+T.Button {
     id: root
 
-    property string text: ""
     property string iconName: ""
     property bool primary: false
     property bool compact: false
+    property bool quiet: false
+    property color accent: Theme.cyan
 
-    signal clicked()
-    activeFocusOnTab: true
-    Accessible.role: Accessible.Button
-    Accessible.name: text
-    Accessible.onPressAction: { if (root.enabled) root.clicked(); }
-    Keys.onReturnPressed: { if (root.enabled) root.clicked(); }
-    Keys.onSpacePressed: { if (root.enabled) root.clicked(); }
+    implicitHeight: Theme.px(compact ? 32 : 40)
+    implicitWidth: Math.max(implicitHeight, implicitContentWidth + Theme.px(compact ? 20 : 28))
+    padding: 0
+    hoverEnabled: true
+    focusPolicy: Qt.TabFocus
+    Keys.onReturnPressed: click()
 
-    implicitHeight: compact ? Theme.px(30) : Theme.px(36)
-    implicitWidth: Math.max(implicitHeight, content.implicitWidth + Theme.px(compact ? 20 : 28))
-    opacity: enabled ? 1 : 0.42
+    background: Rectangle {
+        radius: Theme.px(root.compact ? 8 : 10)
+        color: !root.enabled ? Theme.control : root.primary
+            ? (root.down ? Qt.darker(root.accent, 1.18) : root.hovered ? Qt.lighter(root.accent, 1.08) : root.accent)
+            : root.down ? Theme.pressed : root.hovered ? Theme.hover : root.quiet ? "transparent" : Theme.control
+        border.width: root.visualFocus ? 2 : 1
+        border.color: root.visualFocus ? (root.primary ? Theme.onAccent : Theme.focusRing)
+            : root.primary || root.quiet ? "transparent" : Theme.rim
+    }
 
-    Rectangle {
-        anchors.fill: parent
-        radius: Theme.px(13)
-        gradient: Gradient {
-            GradientStop {
-                position: 0.0
-                color: root.primary
-                    ? (mouse.pressed ? Qt.rgba(0.87, 0.50, 0.22, 0.95) : Qt.rgba(0.99, 0.73, 0.43, 0.95))
-                    : (mouse.containsMouse ? "#60364661" : "#50273750")
+    contentItem: Item {
+        implicitWidth: content.implicitWidth
+        implicitHeight: content.implicitHeight
+
+        RowLayout {
+            id: content
+            anchors.centerIn: parent
+            spacing: Theme.px(7)
+
+            Icon {
+                visible: !!root.iconName
+                name: root.iconName
+                size: Theme.px(root.compact ? 15 : 17)
+                color: root.primary && root.enabled ? Theme.onAccent : Theme.inkDim
             }
-            GradientStop {
-                position: 1.0
-                color: root.primary
-                    ? Qt.rgba(0.93, 0.56, 0.26, 0.88)
-                    : (mouse.containsMouse ? "#7023324a" : "#700b1426")
+
+            Text {
+                visible: !!root.text
+                text: root.text
+                textFormat: Text.PlainText
+                color: !root.enabled ? Theme.inkFaint : root.primary ? Theme.onAccent : Theme.ink
+                font.family: Theme.fontSans
+                font.pixelSize: root.compact ? Theme.fontCaption : Theme.fontBody
+                font.weight: Font.DemiBold
             }
         }
-        border.width: 1
-        border.color: root.primary
-            ? Qt.rgba(1.0, 0.88, 0.70, 0.55)
-            : (mouse.containsMouse || root.activeFocus ? Theme.rimStrong : Theme.rim)
     }
 
-    Rectangle {
-        anchors.fill: parent
-        anchors.margins: 2
-        radius: Theme.px(11)
-        color: "transparent"
-        border.width: 1
-        border.color: root.primary ? "#35ffffff" : "#1594cced"
-    }
-
-    RowLayout {
-        id: content
-        anchors.centerIn: parent
-        spacing: Theme.px(7)
-
-        Icon {
-            visible: root.iconName.length > 0
-            name: root.iconName
-            size: Theme.px(root.compact ? 13 : 15)
-            color: root.primary ? "#1b1206" : (mouse.containsMouse ? Theme.ink : Theme.inkDim)
-        }
-
-        Text {
-            text: root.text
-            textFormat: Text.PlainText
-            color: root.primary ? "#1b1206" : (mouse.containsMouse ? Theme.ink : Theme.inkDim)
-            font.family: Theme.fontSans
-            font.pixelSize: root.compact ? Theme.fontCaption : Theme.fontBody
-            font.weight: Font.DemiBold
-        }
-    }
-
-    MouseArea {
-        id: mouse
-        anchors.fill: parent
-        hoverEnabled: true
-        enabled: root.enabled
-        cursorShape: Qt.PointingHandCursor
-        onClicked: root.clicked()
-    }
+    HoverHandler { cursorShape: Qt.PointingHandCursor }
 }

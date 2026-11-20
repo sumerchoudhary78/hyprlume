@@ -2,18 +2,24 @@ import QtQuick
 import qs.components
 import qs.theme
 
-Item {
-    id: root
+Row {
     property bool compact: false
-    property bool presentation: false
-    implicitWidth: row.implicitWidth
-    implicitHeight: 40
-    Row {
-        id: row
+    spacing: Theme.px(8)
+
+    Icon {
+        name: "bolt"
+        size: Theme.px(22)
+        color: Theme.cyan
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 9
-        Icon { name: "bolt"; size: 29; color: Theme.violet; anchors.verticalCenter: parent.verticalCenter }
-        Text { visible: !root.compact; text: "Hyprlume"; color: Theme.ink; font.family: Theme.fontSans; font.pixelSize: 21; font.weight: Font.DemiBold; anchors.verticalCenter: parent.verticalCenter }
-        Chip { visible: !root.compact; anchors.verticalCenter: parent.verticalCenter; text: root.presentation ? "demo" : "preview"; textColor: Theme.violet; fillColor: "#401e193b"; strokeColor: "transparent" }
+    }
+
+    Text {
+        visible: !parent.compact
+        text: "Hyprlume"
+        color: Theme.ink
+        font.family: Theme.fontSans
+        font.pixelSize: Theme.px(16)
+        font.weight: Font.DemiBold
+        anchors.verticalCenter: parent.verticalCenter
     }
 }

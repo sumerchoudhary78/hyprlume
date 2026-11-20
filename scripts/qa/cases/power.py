@@ -14,7 +14,7 @@ def run(driver, mode, height):
             if 155 < y < height - 65:
                 return
             area = driver.controls['powerScroll']
-            driver.xdo('mousemove', '--sync', round(area['x']), round(area['y']), 'click', '--repeat', '3', '5' if y >= height - 65 else '4')
+            driver.click_at(area, button=5 if y >= height - 65 else 4, repeat=3)
             previous, stable = None, 0
 
             def settled(event):

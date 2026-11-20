@@ -22,8 +22,7 @@ def run(driver, mode):
     driver.click('openTray')
     assert driver.request('panel')['open'] is True
     driver.wait_controls('trayMenuEntry4')
-    position = driver.controls['trayIcon0']
-    driver.xdo('mousemove', '--sync', round(position['x']), round(position['y']), 'click', '2')
+    driver.click_at(driver.controls['trayIcon0'], button=2)
     driver.wait_event(lambda e: e['kind'] == 'tray' and e['action'] == 'secondary')
     driver.click('trayMenuEntry2')
     driver.wait_event(lambda e: e['kind'] == 'tray' and e['action'] == 'menu' and e['text'] == 'Show alerts' and e['checked'] is False)

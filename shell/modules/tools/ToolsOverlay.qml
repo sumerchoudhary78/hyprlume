@@ -20,9 +20,9 @@ Item {
     Keys.onEscapePressed: close()
     Rectangle {anchors.fill: parent; color:"#98050b18"; MouseArea {anchors.fill:parent; onClicked:root.close()}}
     GlassSurface {
+        transform: PanelEntrance { reducedEffects: root.reducedEffects }
         anchors.centerIn: parent; width:Math.min(680,parent.width-32); height:Math.min(650,parent.height-32)
-        radius:Theme.radiusPanel; glowColor:Theme.cyan; secondaryColor:Theme.violet; reducedEffects:root.reducedEffects
-        tintTop:"#f01a2b45"; tint:"#f0081225"
+        radius:Theme.radiusPanel; reducedEffects:root.reducedEffects
         MouseArea {anchors.fill:parent; acceptedButtons:Qt.AllButtons}
         ColumnLayout {
             anchors.fill:parent; anchors.margins:22; spacing:15

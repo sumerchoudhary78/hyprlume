@@ -6,8 +6,6 @@ GlassSurface {
     id: root
     required property var feedback
     radius: 20
-    glowColor: Theme.cyan
-    secondaryColor: Theme.violet
     tintTop: "#f0213350"
     tint: "#ed0a1529"
 

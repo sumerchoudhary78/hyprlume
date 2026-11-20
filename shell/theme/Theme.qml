@@ -20,32 +20,37 @@ Singleton {
     }
 
     // -- Colour --------------------------------------------------------------
-    // Deep navy glass over a dark wallpaper. Accents are pulled from the
-    // reference: cyan for structure, amber for the active element, violet for
-    // the agent, mint for healthy state, rose for failure.
+    // Cool neutral surfaces and one configurable action accent. Status colors
+    // are paired with labels or shapes.
 
     property bool highContrast: false
     property string wallpaperPath: ""
 
-    readonly property color ink: highContrast ? "#ffffff" : "#edf4ff"
-    readonly property color inkDim: highContrast ? "#eff5ff" : "#bbc9e2"
-    readonly property color inkFaint: highContrast ? "#cbd9ed" : "#7f94b5"
+    readonly property color ink: highContrast ? "#ffffff" : "#eef6f7"
+    readonly property color inkDim: highContrast ? "#f0f6f7" : "#b5c7cf"
+    readonly property color inkFaint: highContrast ? "#e1f0f4" : "#9db2bd"
 
     property string accentName: "cyan"
-    readonly property color cyan: accentName === "violet" ? "#b497ff" : accentName === "mint" ? "#68f0b1" : "#5ce1ff"
-    readonly property color amber: "#ffb66e"
+    readonly property color cyan: accentName === "violet" ? "#bba6ff" : accentName === "mint" ? "#94eab9" : "#8ce3ea"
+    readonly property color amber: "#f3c286"
     readonly property color violet: "#b497ff"
     readonly property color mint: "#68f0b1"
     readonly property color rose: "#ff8f9e"
 
-    readonly property color glassTop: Qt.rgba(0.08, 0.12, 0.22, 0.86)
-    readonly property color glass: Qt.rgba(0.025, 0.045, 0.095, 0.84)
-    readonly property color glassDeep: Qt.rgba(0.03, 0.045, 0.10, 0.91)
-    readonly property color glassInset: Qt.rgba(0.02, 0.05, 0.08, 0.55)
+    readonly property color glassTop: highContrast ? "#0b1115" : "#1a2932"
+    readonly property color glass: highContrast ? "#080d11" : "#111e27"
+    readonly property color glassDeep: highContrast ? "#080d11" : "#111e27"
+    readonly property color glassInset: highContrast ? "#080d11" : "#800a141c"
+    readonly property color bar: highContrast ? "#090f13" : "#f20d1922"
+    readonly property color field: highContrast ? "#05090c" : "#0a151d"
+    readonly property color control: highContrast ? "#18252b" : "#14212b"
+    readonly property color selection: Qt.rgba(cyan.r, cyan.g, cyan.b, highContrast ? 0.22 : 0.12)
+    readonly property color onAccent: "#0b191f"
+    readonly property color focusRing: highContrast ? "#ffffff" : cyan
 
-    readonly property color rim: Qt.rgba(0.47, 0.74, 0.86, highContrast ? 0.75 : 0.26)
-    readonly property color rimStrong: Qt.rgba(0.55, 0.88, 1.0, 0.55)
-    readonly property color divider: Qt.rgba(0.60, 0.78, 0.90, 0.13)
+    readonly property color rim: Qt.rgba(0.70, 0.84, 0.88, highContrast ? 0.85 : 0.22)
+    readonly property color rimStrong: Qt.rgba(0.72, 0.90, 0.94, highContrast ? 0.96 : 0.49)
+    readonly property color divider: Qt.rgba(0.72, 0.84, 0.89, highContrast ? 0.54 : 0.15)
 
     readonly property color hover: Qt.rgba(1, 1, 1, 0.06)
     readonly property color pressed: Qt.rgba(1, 1, 1, 0.10)
@@ -69,9 +74,9 @@ Singleton {
 
     // -- Metrics -------------------------------------------------------------
 
-    readonly property int radiusPanel: px(28)
-    readonly property int radiusCard: px(24)
-    readonly property int radiusTile: px(14)
+    readonly property int radiusPanel: px(20)
+    readonly property int radiusCard: px(16)
+    readonly property int radiusTile: px(10)
     readonly property int radiusPill: px(999)
 
     readonly property int gap: px(16)
@@ -79,9 +84,8 @@ Singleton {
     readonly property int gapTight: px(6)
     readonly property int margin: px(20)
 
-    readonly property int barHeight: px(60)
-    readonly property int barZone: px(74)
-    readonly property int railWidth: px(66)
+    readonly property int barHeight: px(54)
+    readonly property int barZone: barHeight
 
     readonly property int borderWidth: 1
 
@@ -93,24 +97,4 @@ Singleton {
     readonly property int motionBase: 180
     readonly property int motionSlow: 260
     readonly property int easing: Easing.OutCubic
-
-    // -- Workspace dock ------------------------------------------------------
-    // The reference shows a fixed icon rail. Those icons are bound to
-    // workspaces here, so the rail stays useful instead of decorative.
-
-    readonly property var workspaceIcons: [
-        "user-home",
-        "view-grid-symbolic",
-        "utilities-terminal",
-        "package-x-generic",
-        "weather-overcast-symbolic",
-        "view-list-details",
-        "preferences-system"
-    ]
-
-    function workspaceIcon(index) {
-        if (index < 0)
-            return "user-home";
-        return workspaceIcons[index % workspaceIcons.length];
-    }
 }

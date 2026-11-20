@@ -3,157 +3,154 @@ import QtQuick.Layouts
 import qs.components
 import qs.theme
 
-// CPU, memory, GPU, network, and a short CPU trend.
 GlassSurface {
     id: root
-
     required property var metrics
-    property bool animationsActive: true
-    readonly property bool liquidMotionRunning: waterMotion.running
-    readonly property int liquidTicks: waterMotion.tickCount
-    objectName: "systemMetrics"
+    readonly property bool expanded: detailsButton.active
 
-    LiquidMotion {
-        id: waterMotion
-        active: root.animationsActive && root.visible
-        reducedMotion: root.reducedEffects
-        hovered: waterHover.hovered
-    }
-    HoverHandler { id: waterHover }
-    Connections {
-        target: root.metrics
-        function onCpuChanged() { waterMotion.pulse(); }
-        function onMemChanged() { waterMotion.pulse(); }
-        function onGpuChanged() { waterMotion.pulse(); }
-    }
-
-    radius: Theme.radiusCard
+    implicitHeight: content.implicitHeight + Theme.px(36)
 
     ColumnLayout {
+        id: content
         anchors.fill: parent
-        anchors.margins: Theme.px(14)
-        spacing: Theme.px(8)
+        anchors.margins: Theme.px(18)
+        spacing: Theme.px(12)
 
         PanelHeader {
             Layout.fillWidth: true
             title: "System"
-            iconName: "utilities-system-monitor"
-            accent: Theme.amber
-
-            Text {
-                text: "load " + root.metrics.load
-                color: Theme.inkFaint
-                font.family: Theme.fontMono
-                font.pixelSize: Theme.fontMicro
+            IconTile {
+                id: detailsButton
+                objectName: "systemDetails"
+                size: Theme.px(32)
+                iconName: root.expanded ? "minus" : "plus"
+                tooltip: root.expanded ? "Hide system details" : "Show system details"
+                quiet: true
+                onClicked: active = !active
             }
         }
 
         RowLayout {
             Layout.fillWidth: true
-            Layout.fillHeight: true
-            spacing: Theme.px(6)
+            spacing: Theme.px(13)
 
-            Gauge {
-                Layout.fillWidth: true
-                Layout.preferredHeight: Theme.px(86)
-                diameter: Theme.px(86)
-                motionClock: waterMotion
-                reducedEffects: root.reducedEffects
-                value: root.metrics.cpu / 100
-                accent: Theme.mint
-                label: "CPU"
-                phaseOffset: 0.0
-                objectName: "cpuGauge"
-            }
+            Repeater {
+                model: ["CPU", "Memory", "GPU"]
+                delegate: ColumnLayout {
+                    id: metric
+                    required property string modelData
+                    required property int index
+                    readonly property int value: index === 0 ? root.metrics.cpu : index === 1 ? root.metrics.mem
+                        : root.metrics.gpuAvailable ? root.metrics.gpu : -1
+                    Layout.fillWidth: true
+                    Layout.preferredWidth: 1
+                    spacing: Theme.px(4)
 
-            Gauge {
-                Layout.fillWidth: true
-                Layout.preferredHeight: Theme.px(86)
-                diameter: Theme.px(86)
-                motionClock: waterMotion
-                reducedEffects: root.reducedEffects
-                value: root.metrics.mem / 100
-                accent: Theme.cyan
-                label: "RAM"
-                phaseOffset: 1.8
-                objectName: "memoryGauge"
-                valueText: root.metrics.mem + "%"
-            }
+                    Text {
+                        text: metric.modelData
+                        color: Theme.inkDim
+                        font.family: Theme.fontSans
+                        font.pixelSize: Theme.fontCaption
+                    }
 
-            Gauge {
-                Layout.fillWidth: true
-                Layout.preferredHeight: Theme.px(86)
-                diameter: Theme.px(86)
-                motionClock: waterMotion
-                reducedEffects: root.reducedEffects
-                value: root.metrics.gpuAvailable ? root.metrics.gpu / 100 : 0
-                accent: Theme.violet
-                label: "GPU"
-                available: root.metrics.gpuAvailable
-                phaseOffset: 3.5
-                objectName: "gpuGauge"
-                valueText: root.metrics.gpuAvailable
-                    ? root.metrics.gpu + "%"
-                    : "—"
+                    Text {
+                        text: metric.value >= 0 ? metric.value + "%" : "—"
+                        color: Theme.ink
+                        font.family: Theme.fontSans
+                        font.pixelSize: Theme.px(22)
+                        font.weight: Font.DemiBold
+                        Accessible.name: metric.modelData + (metric.value >= 0 ? ", " + text : " unavailable")
+                    }
+
+                    Rectangle {
+                        Layout.fillWidth: true
+                        implicitHeight: Theme.px(3)
+                        radius: height / 2
+                        color: Theme.divider
+                        Rectangle {
+                            height: parent.height
+                            width: parent.width * Math.max(0, Math.min(metric.value, 100)) / 100
+                            radius: height / 2
+                            color: Theme.cyan
+                        }
+                    }
+                }
             }
         }
 
-        Sparkline {
+        Loader {
+            objectName: "systemDetailsContent"
+            visible: root.expanded
+            active: root.expanded
             Layout.fillWidth: true
-            Layout.preferredHeight: Theme.px(34)
-            values: root.metrics.cpuHistory
-            accent: Theme.cyan
-        }
 
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: Theme.px(12)
+            sourceComponent: ColumnLayout {
+                id: details
+                readonly property var readings: [
+                    "↑ " + root.metrics.formatRate(root.metrics.netUp) + "   ↓ " + root.metrics.formatRate(root.metrics.netDown),
+                    root.metrics.formatBytes(root.metrics.diskUsed),
+                    root.metrics.load,
+                    root.metrics.formatUptime(root.metrics.uptimeMinutes),
+                    root.metrics.containerRuntime
+                        ? root.metrics.containerCount + " running · " + root.metrics.containerRuntime
+                        : "Runtime unavailable"
+                ]
+                spacing: Theme.px(10)
 
-            Row {
-                spacing: Theme.px(4)
+                Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.divider }
 
-                Icon {
-                    anchors.verticalCenter: parent.verticalCenter
-                    name: "go-up-symbolic"
-                    size: Theme.px(11)
-                    color: Theme.mint
+                Repeater {
+                    model: ["Network", "Disk used", "Load average", "Uptime", "Containers"]
+                    delegate: RowLayout {
+                        required property string modelData
+                        required property int index
+                        Layout.fillWidth: true
+                        spacing: Theme.px(10)
+
+                        Text {
+                            text: modelData
+                            color: Theme.inkDim
+                            font.family: Theme.fontSans
+                            font.pixelSize: Theme.fontCaption
+                        }
+                        Text {
+                            Layout.fillWidth: true
+                            text: details.readings[index]
+                            textFormat: Text.PlainText
+                            horizontalAlignment: Text.AlignRight
+                            color: Theme.ink
+                            font.family: Theme.fontSans
+                            font.pixelSize: Theme.fontCaption
+                            wrapMode: Text.Wrap
+                        }
+                    }
                 }
 
                 Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: root.metrics.formatRate(root.metrics.netUp)
+                    visible: !!root.metrics.containerName
+                    Layout.fillWidth: true
+                    text: root.metrics.containerName + " · " + root.metrics.containerCpu.toFixed(1) + "% CPU · " + root.metrics.containerMem
+                    textFormat: Text.PlainText
                     color: Theme.inkDim
-                    font.family: Theme.fontMono
-                    font.pixelSize: Theme.fontMicro
-                }
-            }
-
-            Row {
-                spacing: Theme.px(4)
-
-                Icon {
-                    anchors.verticalCenter: parent.verticalCenter
-                    name: "go-down-symbolic"
-                    size: Theme.px(11)
-                    color: Theme.cyan
+                    font.family: Theme.fontSans
+                    font.pixelSize: Theme.fontCaption
+                    wrapMode: Text.Wrap
                 }
 
+                Sparkline {
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: Theme.px(26)
+                    visible: root.metrics.cpuHistory.length > 1
+                    values: root.metrics.cpuHistory
+                    accent: Theme.cyan
+                }
                 Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: root.metrics.formatRate(root.metrics.netDown)
+                    visible: root.metrics.cpuHistory.length > 1
+                    text: "CPU history"
                     color: Theme.inkDim
-                    font.family: Theme.fontMono
-                    font.pixelSize: Theme.fontMicro
+                    font.family: Theme.fontSans
+                    font.pixelSize: Theme.fontCaption
                 }
-            }
-
-            Item { Layout.fillWidth: true }
-
-            Text {
-                text: root.metrics.formatBytes(root.metrics.diskUsed)
-                color: Theme.inkFaint
-                font.family: Theme.fontMono
-                font.pixelSize: Theme.fontMicro
             }
         }
     }

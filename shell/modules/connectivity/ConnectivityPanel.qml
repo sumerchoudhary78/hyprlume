@@ -10,8 +10,6 @@ GlassSurface {
     readonly property bool compact: width < 730
     property int tab: 0
     radius: Theme.radiusPanel
-    tintTop: "#f01b2844"; tint: "#ee071124"
-    secondaryColor: Theme.violet; glowColor: Theme.cyan
     focus: true
     function send(action) { root.backend.send({op:"connectivity",request:action}); }
     Keys.onEscapePressed: root.send({action:"close"})
@@ -22,14 +20,10 @@ GlassSurface {
         RowLayout {
             Layout.fillWidth: true; spacing: 12
             Icon { name: "wifi"; size: 27; color: Theme.cyan }
-            Column {
-                spacing: 5
-                Text { text: "Connections"; color: Theme.ink; font.family: Theme.fontSans; font.pixelSize: 27; font.weight: Font.DemiBold }
-                Text { text: "YOUR WIRELESS WORKSPACE"; color: Theme.inkFaint; font.family: Theme.fontMono; font.pixelSize: 9; font.letterSpacing: 1.8 }
-            }
+            Text { text: "Connections"; color: Theme.ink; font.family: Theme.fontSans; font.pixelSize: Theme.fontHeadline; font.weight: Font.DemiBold }
             Item { Layout.fillWidth: true }
-            Chip { text: root.snapshot.busy ? "WORKING" : "LOCAL"; textColor: root.snapshot.busy ? Theme.amber : Theme.mint; mono: true }
-            IconTile { objectName: "closeConnectivity"; size: 32; iconName: "close"; onClicked: root.send({action:"close"}) }
+            Chip { visible: root.snapshot.busy; text: "Working…"; textColor: Theme.amber }
+            IconTile { objectName: "closeConnectivity"; size: 36; iconName: "close"; quiet: true; tooltip: "Close connections"; onClicked: root.send({action:"close"}) }
         }
         Row {
             visible: root.compact; spacing: 8

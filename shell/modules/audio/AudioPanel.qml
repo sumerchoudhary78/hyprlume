@@ -9,8 +9,6 @@ GlassSurface {
     required property var backend
     readonly property var audio: backend.audio
     radius: Theme.radiusPanel
-    tintTop: "#ef1a2c47"; tint: "#f0081225"
-    glowColor: Theme.cyan; secondaryColor: Theme.violet
     focus: true
     function close() { backend.send({op:"panel",panel:"audio",open:false}); }
     Keys.onEscapePressed: root.close()

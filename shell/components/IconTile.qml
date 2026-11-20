@@ -1,57 +1,50 @@
 import QtQuick
+import QtQuick.Controls
+import QtQuick.Templates as T
 import qs.theme
 
-// Square icon button used by the workspace rail and the action ring.
-Item {
+T.Button {
     id: root
 
     property string iconName: ""
     property string glyph: ""
     property bool active: false
-    property color accent: Theme.amber
-    property int size: Theme.px(46)
-    property int iconSize: Theme.px(20)
+    property bool quiet: false
+    property color accent: Theme.cyan
+    property int size: Theme.px(42)
+    property int iconSize: Theme.px(19)
     property string tooltip: ""
-
-    signal clicked()
 
     implicitWidth: size
     implicitHeight: size
+    padding: 0
+    hoverEnabled: true
+    focusPolicy: Qt.TabFocus
+    opacity: enabled ? 1 : 0.45
+    Accessible.name: tooltip || text
+    Keys.onReturnPressed: click()
+    ToolTip.visible: hovered && tooltip.length > 0
+    ToolTip.delay: 550
+    ToolTip.text: tooltip
 
-    Rectangle {
-        anchors.centerIn: parent
-        visible: root.active
-        width: parent.width + Theme.px(8)
-        height: width
-        radius: width / 2
-        color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.12)
+    background: Rectangle {
+        radius: Theme.px(9)
+        color: root.down ? Theme.pressed : root.hovered ? Theme.hover : root.active ? Theme.selection
+            : root.quiet ? "transparent" : Theme.control
+        border.width: root.visualFocus ? 2 : 1
+        border.color: root.visualFocus ? Theme.focusRing : root.active ? Theme.rimStrong
+            : root.quiet ? "transparent" : Theme.rim
     }
 
-    Rectangle {
-        anchors.fill: parent
-        radius: Theme.radiusTile
-        color: root.active
-            ? Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.9)
-            : (mouse.containsMouse ? Theme.hover : Qt.rgba(1, 1, 1, 0.035))
-        border.width: 1
-        border.color: root.active
-            ? Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.9)
-            : Theme.divider
-
+    contentItem: Item {
         Icon {
             anchors.centerIn: parent
             name: root.iconName
             glyph: root.glyph
             size: root.iconSize
-            color: root.active ? "#101820" : (mouse.containsMouse ? Theme.ink : Theme.inkDim)
+            color: root.active ? root.accent : root.hovered ? Theme.ink : Theme.inkDim
         }
     }
 
-    MouseArea {
-        id: mouse
-        anchors.fill: parent
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
-        onClicked: root.clicked()
-    }
+    HoverHandler { cursorShape: Qt.PointingHandCursor }
 }

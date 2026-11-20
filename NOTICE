@@ -24,8 +24,8 @@ independent of Hyprlume's source license.
 
 Desktop visual assets
 ---------------------
-The observatory backdrop and transparent assistant are generated project assets.
+Tidal Eclipse, the observatory backdrop and the transparent assistant are
+generated project assets.
 Prompts and origins are documented in shell/assets/README.md and docs/design/.
-The globe uses public-domain Natural Earth land geometry. No third-party 3D
-model pack is bundled. Qt Quick 3D and other runtime packages retain their own
-licenses and are installed separately.
+The original globe asset uses public-domain Natural Earth land geometry.
+Installed runtime packages retain their own licenses.

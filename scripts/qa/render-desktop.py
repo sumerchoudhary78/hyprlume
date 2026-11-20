@@ -3,8 +3,8 @@
 
 Runs on Linux in a private Xvfb display and D-Bus session. The only backend is
 PreviewData.qml: no desktop dispatch, microphone, speaker, model, or network.
-Requires quickshell, Qt Quick 3D, xvfb-run, xauth, dbus-run-session; xdotool for
---interact. This verifies the QML/RHI path, not a physical Wayland compositor.
+Requires Quickshell, Xvfb, Xauth, D-Bus, Pillow for captures and xdotool for
+--interact. Width and height are logical pixels. DPR controls physical pixels.
 """
 from __future__ import annotations
 
@@ -17,6 +17,8 @@ import subprocess
 import sys
 import tempfile
 
+from PIL import Image
+
 from ui_driver import UiDriver
 from cases import commands as command_case, connectivity as connectivity_case, notifications as notification_case, audio as audio_case, power as power_case, tray as tray_case, launcher as launcher_case, tools as tools_case, settings as settings_case, locking as locking_case
 
@@ -28,8 +30,13 @@ def main():
     parser.add_argument('--output', type=Path, default=ROOT / 'output/design/desktop.png')
     parser.add_argument('--width', type=int, default=1680)
     parser.add_argument('--height', type=int, default=945)
+    parser.add_argument('--dpr', type=float, choices=(1, 1.25, 1.5, 1.75, 2), default=1,
+                        help='Qt device pixel ratio, independent of the shell scale preference')
     parser.add_argument('--reduced-effects', action='store_true')
+    parser.add_argument('--high-contrast', action='store_true')
+    parser.add_argument('--scale', type=float, default=1.0, help='shell UI scale between 0.85 and 1.20')
     parser.add_argument('--interact', action='store_true')
+    parser.add_argument('--command-review', action='store_true', help='render a synthetic command awaiting review')
     parser.add_argument('--connectivity', action='store_true', help='render or exercise the Wi-Fi/Bluetooth panel')
     parser.add_argument('--connectivity-state', choices=['normal', 'unavailable', 'pairing', 'pin'], default='normal')
     parser.add_argument('--notifications', action='store_true', help='render or exercise the notification centre')
@@ -49,22 +56,29 @@ def main():
     parser.add_argument('--effects', action='store_true', help='render isolated liquid materials and test their motion clock')
     parser.add_argument('--inside-display', action='store_true', help=argparse.SUPPRESS)
     args = parser.parse_args()
-    if sum([args.effects, args.connectivity, args.notifications, args.notification_popups, args.audio, args.power, args.tray, args.launcher, args.tools, args.settings, args.locking]) > 1:
+    if sum([args.effects, args.command_review, args.connectivity, args.notifications, args.notification_popups, args.audio, args.power, args.tray, args.launcher, args.tools, args.settings, args.locking]) > 1:
         parser.error('choose one preview surface per check')
-    if args.effects and args.interact:
-        parser.error('--effects and --interact are separate checks')
+    if (args.effects or args.command_review) and args.interact:
+        parser.error('--effects and --command-review are render-only checks')
+    if not 0.85 <= args.scale <= 1.2:
+        parser.error('--scale must be between 0.85 and 1.20')
     if min(args.width, args.height) < 400:
         parser.error('preview dimensions must be at least 400 pixels')
+    pixel_width = int(args.width * args.dpr + 0.5)
+    pixel_height = int(args.height * args.dpr + 0.5)
     if not args.inside_display:
         for command in ['xvfb-run', 'dbus-run-session', 'quickshell']:
             if not shutil.which(command):
                 parser.error(f'missing tool: {command}')
         with tempfile.TemporaryDirectory(prefix='hyprlume-ui-qa-') as runtime:
             env = os.environ.copy()
-            for key in ['WAYLAND_DISPLAY', 'HYPRLAND_INSTANCE_SIGNATURE', 'DISPLAY', 'DBUS_SESSION_BUS_ADDRESS']:
+            for key in ('WAYLAND_DISPLAY', 'HYPRLAND_INSTANCE_SIGNATURE', 'DISPLAY', 'DBUS_SESSION_BUS_ADDRESS',
+                        'QT_SCREEN_SCALE_FACTORS', 'QT_FONT_DPI', 'QT_USE_PHYSICAL_DPI', 'QT_ENABLE_HIGHDPI_SCALING'):
                 env.pop(key, None)
-            env.update(XDG_RUNTIME_DIR=runtime, QT_QPA_PLATFORM='xcb', QSG_RHI_BACKEND='opengl', LIBGL_ALWAYS_SOFTWARE='1')
-            command = ['xvfb-run', '-n', str(100 + os.getpid() % 30000), '-a', '-s', f'-screen 0 {max(args.width,1920)}x{max(args.height,1080)}x24',
+            env.update(XDG_RUNTIME_DIR=runtime, QT_QPA_PLATFORM='xcb', QSG_RHI_BACKEND='opengl', LIBGL_ALWAYS_SOFTWARE='1',
+                       QT_SCALE_FACTOR=str(args.dpr), QT_SCALE_FACTOR_ROUNDING_POLICY='PassThrough')
+            screen = f'-screen 0 {max(pixel_width, 1920)}x{max(pixel_height, 1080)}x24 -dpi 96'
+            command = ['xvfb-run', '-n', str(100 + os.getpid() % 30000), '-a', '-s', screen,
                        'dbus-run-session', '--', sys.executable, str(Path(__file__).resolve()), *sys.argv[1:], '--inside-display']
             return subprocess.call(command, env=env, cwd=ROOT)
     subprocess.run([sys.executable, str(ROOT/'scripts/build-shaders.py'), '--check'], check=True)
@@ -72,6 +86,8 @@ def main():
     args.output.parent.mkdir(parents=True, exist_ok=True)
     env = os.environ.copy()
     env.update(HYPRLUME_PREVIEW_WIDTH=str(args.width), HYPRLUME_PREVIEW_HEIGHT=str(args.height),
+               HYPRLUME_PREVIEW_SCALE=str(args.scale), HYPRLUME_HIGH_CONTRAST='1' if args.high_contrast else '0',
+               HYPRLUME_COMMAND_REVIEW='1' if args.command_review else '0',
                HYPRLUME_REDUCED_EFFECTS='1' if args.reduced_effects else '0',
                HYPRLUME_SCREENSHOT='' if args.interact else str(args.output),
                HYPRLUME_QA='1' if args.interact else '0',
@@ -88,14 +104,16 @@ def main():
     env.update(HYPRLUME_TRAY_PREVIEW='1' if args.tray and not args.interact else '0', HYPRLUME_TRAY_STATE=args.tray_state)
     proc = subprocess.Popen(['quickshell', '-p', str(ROOT/'shell/design-preview.qml')], cwd=ROOT, env=env,
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
-    driver = UiDriver(proc)
+    driver = UiDriver(proc, dpr=args.dpr)
     try:
         if not args.interact:
             code = proc.wait(timeout=40)
             driver.thread.join(timeout=2)
             if code != 0 or not args.output.exists() or 'HYPRLUME_RENDER_PASS' not in ''.join(driver.logs):
                 raise AssertionError('desktop screenshot failed')
-            print(f'RENDER PASS {args.width}x{args.height}: {args.output}')
+            with Image.open(args.output) as capture:
+                assert capture.size == (pixel_width, pixel_height), f'unexpected capture size {capture.size}'
+            print(f'RENDER PASS {pixel_width}x{pixel_height} at {args.dpr:g}x: {args.output}')
             if args.effects:
                 result = next((line.split('HYPRLUME_EFFECTS_RESULT ', 1)[1].strip() for line in driver.logs if 'HYPRLUME_EFFECTS_RESULT ' in line), None)
                 if result is None:
@@ -123,9 +141,9 @@ def main():
             elif args.connectivity:
                 connectivity_case.run(driver)
             else:
-                command_case.run(driver, args.reduced_effects)
+                command_case.run(driver)
         text = ''.join(driver.logs)
-        if re.search(r'(ReferenceError:|TypeError:|Unable to assign|Cannot assign|Failed to load|Failed to deserialize|HYPRLUME_EFFECTS_FAIL|ERROR:)', text):
+        if re.search(r'(ReferenceError:|TypeError:|Unable to assign|Cannot assign|Binding loop|Failed to load|Failed to deserialize|HYPRLUME_EFFECTS_FAIL|ERROR:)', text):
             raise AssertionError('runtime QML errors in log')
         return 0
     except (AssertionError, subprocess.SubprocessError, KeyError, IndexError) as error:

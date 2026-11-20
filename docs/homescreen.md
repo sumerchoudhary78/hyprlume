@@ -1,121 +1,86 @@
-# Cinematic desktop shell
+# Desktop shell
 
-Hyprlume's desktop follows the observatory reference: a planetary backdrop,
-asymmetric floating glass cards, a central console, a right-side assistant,
-and a holographic action deck. The screenshot in the README is rendered by
-Quickshell, not a painted UI mockup.
+Hyprlume uses a status bar on every output and a command dashboard on the
+focused empty workspace. The dashboard opens with the workspace name, a
+command field, shortcuts, workspace switching and system readings. See the
+[UI design record](design/shell-ui.md) for the research and framework decision.
 
-## Rendering and depth
+## Everyday controls
 
-The room is a generated, cached wallpaper plate. Text, controls, gauges, charts,
-workspaces, the command graph and the launcher are QML items. The robot is a
-transparent, shaded image. The globe and city are real **Qt Quick 3D** geometry:
-coastlines, land points, latitude/longitude lines and shaded building meshes.
-Moving over the globe changes its orientation; clicking the globe or city
-selects the network or container view.
+- Select **Apps** to search installed applications and open windows. Select
+  **Command** for the full palette, or enter a request directly on Home.
+- Enter previews an action. The command panel displays the plan and requires
+  **Run plan** before it applies. **Run direct** is an explicit action in the
+  full palette. Model-generated plans always require review.
+- **Open terminal** previews the configured terminal alias. Configure
+  `[apps].terminal` in `~/.config/hyprlume/config.toml`, for example
+  `terminal = ["foot"]`.
+- **Dictate** starts local dictation. The status bar distinguishes microphone
+  off from active capture. The command panel provides the wake-word,
+  dictation and microphone-off controls.
+- Select a workspace to focus it. Its window count comes from Hyprland.
+  **System** shows CPU, memory and GPU. Its disclosure button opens network,
+  disk, load, uptime and local container information. Turn off system metrics
+  in Settings to hide the card and stop sampling.
+- The bar also opens Connections, sound and media, notifications, the tray,
+  clipboard and capture, Settings, and power controls. The recording stop
+  control remains available in the bar after the capture panel closes.
 
-`GlassSurface.qml` captures only the scene's wallpaper behind each card at half
-resolution, freezes that capture between geometry/image changes, and applies a
-precompiled optical shader. The rounded bevel displaces the image near its edge;
-soft blur, slight colour dispersion, Fresnel highlights and a pointer light give
-the surface thickness. A separate cached layer keeps foreground text and moving
-water from re-blurring the glass. It never samples application windows or screenshots. Compositor
-blur is optional for the small top-bar and command surfaces; no full-screen
-Hyprland blur is needed for the dashboard.
+## Layout and rendering
 
-The terrain is a perspective-projected mesh painted once per resize. The 3D
-viewport has no continuous rotation or frame timer. Wave bars illustrate voice
-state; they are not a measured microphone level. Motion is limited to hover,
-voice-active feedback and actual state changes.
+The wide layout pairs the command card with one sidebar. Narrow displays stack
+the same controls, and short displays scroll. Keyboard focus brings clipped
+controls into view. The bar reserves the actual space occupied by its rows.
+Typography and interactive targets follow the shell’s scale preference in
+logical pixels.
 
-The system gauges use another small fragment shader: two wave layers, a bright
-meniscus, depth shading, curved vessel reflections and a restrained caustic.
-The **water area** tracks the metric percentage: a circular-segment calculation
-converts each reading into height once, outside the shader. Empty and full
-readings have no waves; unavailable/non-finite readings leave a dry vessel.
-Labels are separate native text with a dark outline.
+For a 3840×2160 display, start at 200% monitor scale for a 1920×1080 logical
+workspace. Use the separate shell scale control to adjust the density of
+Hyprlume’s controls. Qt renders the text, vector icons and system chart at
+the window’s device pixel ratio. [Qt high DPI](https://doc.qt.io/qt-6/highdpi.html) ·
+[Hyprland display scaling](https://wiki.hypr.land/configuring/core/monitors/positioning/)
 
-`LiquidMotion.qml` supplies one shared 62 ms timer for all three gauges.
-Reading changes or hover wake it; unchanged readings settle after 3.2 seconds.
-The timer stops when the dashboard is hidden, compact, covered by the command
-overlay, or using reduced effects. Value easing uses this same clock. Glass
-lighting changes only with pointer/style/geometry changes, with no time loop.
+Home uses the Tidal Eclipse wallpaper and may sample it at half resolution
+behind the command card. Live Wayland draws the wallpaper on its background
+layer and loads a smaller, hidden copy only when the glass needs it. A custom
+4K wallpaper retains its source detail on a 4K output. The bundled image is
+1672×941. [Asset origins](../shell/assets/README.md)
 
-## Window ownership
+Panels open with a short position transition while their controls remain
+available. High contrast and reduced effects skip the transition and glass
+refraction. Set `HYPRLUME_REDUCED_EFFECTS=1` to start in reduced-effects mode.
+The power panel also uses this preference for the battery gauge.
 
 | Namespace | Layer | Lifetime |
 | --- | --- | --- |
-| `hyprlume-wallpaper` | Background | One per output; empty input region |
-| `hyprlume-bar` | Top | One per output; reserves its visible height |
-| `hyprlume-home` | Bottom | Focused output, only on an empty workspace |
-| `hyprlume-command` | Overlay | Only while a command panel is open |
+| `hyprlume-wallpaper` | Background | One per output with an empty input region |
+| `hyprlume-bar` | Top | One per output, reserving its rendered height |
+| `hyprlume-home` | Bottom | Focused output on an empty workspace |
+| `hyprlume-command` | Overlay | While the command panel is open |
 
-Wallpaper remains behind ordinary app windows. The dashboard unmaps when an
-app opens and returns when the workspace becomes empty. Metrics sampling stops
-while the live dashboard is hidden. The clock wakes on minute boundaries.
-`PreviewWindow.qml` uses the same dashboard and command components in an ordinary
-window; `design-preview.qml` explicitly supplies synthetic data and labels it.
+The dashboard unmaps and metrics sampling pauses when a window opens. The
+wallpaper and bar persist. The ordinary-window preview and native design
+fixture render the same controls as the Wayland shell. The fixture labels
+its data and uses synthetic state.
 
-## Functional controls
+## Reproduce
 
-- Quick actions open the command palette or terminal preview, change workspace,
-  enable the wake word, and start dictation.
-- The console and assistant accept real requests through the Rust daemon.
-  Enter previews. The separate Run direct button explicitly requests execution.
-- Review locks the request field. Confirm sends the current token; Dismiss
-  cancels the pending preview. A busy planner disables replacement commands.
-- The three graph nodes represent intent, review and execution. Execute is
-  enabled only for an existing reviewed plan.
-- Workspace rows use real Hyprland workspaces. System and runtime cards show
-  host/PipeWire/container data; absent GPU/runtime information remains absent.
-- The spatial deck opens terminal previews, command search, voice and workspace
-  actions. The centre is a launcher, not an always-running animation.
-
-Configure `[apps].terminal` in `~/.config/hyprlume/config.toml` before using the
-terminal shortcuts, for example `terminal = ["foot"]`. The centre console is
-Hyprlume's desktop-command interface; a full PTY runs in the configured terminal.
-Code execution, deployments, cloud inventories and a general-purpose coding
-agent are not implied by the reference's decorative labels.
-
-## Layout and effects
-
-Spatial landmarks are grouped in `modules/home/Dashboard.qml`, on a 1680×945
-design canvas. It fits the available screen without cropping cards. At widths
-below 1100 or heights below 620, a compact 1000×680 composition keeps the console,
-rail and navigation, removing the side cards and holograms. Command overlays keep
-readable independent dimensions.
-
-Use `HYPRLUME_REDUCED_EFFECTS=1 hyprlume shell` for static water fills and to skip
-the 3D viewport, glass refraction/blur and rim bloom. The backdrop and functional controls remain. This is also the
-profile used by the CPU-software benchmark; it does not characterize GPU mode.
-
-## Reproduce the design checks
-
-On Arch, install `quickshell`, `qt6-quick3d`, `xorg-server-xvfb`, `xorg-xauth`,
-`dbus`, `xdotool`, `python-pillow`, `inter-font` and `ttf-jetbrains-mono`. Then:
+On Arch, install `quickshell`, `xorg-server-xvfb`, `xorg-xauth`,
+`dbus`, `xdotool`, `python-pillow`, `inter-font` and
+`ttf-jetbrains-mono`.
 
 ```sh
 python3 scripts/check-qml.py shell
 python3 scripts/build-shaders.py --check
 python3 scripts/qa/check-effects.py
 python3 scripts/qa/render-desktop.py --width 1920 --height 1080
+python3 scripts/qa/render-desktop.py --width 1920 --height 1080 --dpr 2 --output output/design/desktop-4k.png
+python3 scripts/qa/render-desktop.py --command-review --output output/design/command-review.png
 python3 scripts/qa/render-desktop.py --interact
-python3 scripts/qa/render-desktop.py --width 960 --height 640 --output output/design/compact.png
-python3 scripts/qa/render-desktop.py --reduced-effects --output output/design/reduced.png
+python3 scripts/qa/render-desktop.py --interact --width 700 --height 620 --dpr 1.5 --reduced-effects
+python3 scripts/qa/render-desktop.py --width 520 --height 640 --scale 1.20 --high-contrast --output output/design/high-contrast.png
 ```
 
-These use a private Xvfb display, private runtime directory and private D-Bus
-session. Input tests exercise the actual widgets with pointer and keyboard
-input. Fixtures never open a microphone, dispatch to a compositor, or call an
-LLM. GitHub CI runs the same checks on Arch and uploads the rendered images.
-Physical Wayland checks and remaining limits are recorded in [validation](validation.md).
-
-`shell/assets/shaders/` holds GLSL sources, portable `.qsb` binaries and a hash
-manifest. `scripts/build-shaders.py` bakes them offline using `qt6-shadertools`;
-no compilation tool or source translation runs in the shell at startup. The
-effects check reads actual mint pixels for empty, 18%, 50%, full and unknown
-vessels, with a 3.5 percentage-point tolerance for the visible wave/meniscus.
-It also tests hidden/reduced/restore/settled clock transitions.
-
-[Asset origins and licensing](../shell/assets/README.md) ·
-[Generation prompts](design/asset-prompts.md)
+The commands use a private Xvfb display, runtime directory and D-Bus session.
+GitHub CI exercises the same QML and uploads renders. Physical compositor and
+performance qualification is tracked in [validation](validation.md).

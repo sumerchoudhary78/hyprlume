@@ -12,8 +12,7 @@ GlassSurface {
         {kind:"suspend",title:"Suspend",icon:"moon"}, {kind:"logout",title:"Log out",icon:"logout"},
         {kind:"reboot",title:"Restart",icon:"refresh"}, {kind:"power_off",title:"Shut down",icon:"power"}
     ]
-    radius: Theme.radiusPanel; tintTop: "#f01d2b46"; tint: "#f0081225"
-    glowColor: Theme.cyan; secondaryColor: Theme.violet
+    radius: Theme.radiusPanel
     focus: true
     Component.onCompleted: forceActiveFocus()
     function close() { backend.send({op:"panel",panel:"power",open:false}); }

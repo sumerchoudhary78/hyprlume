@@ -18,7 +18,7 @@ Item {
     GlassSurface {
         anchors.centerIn: parent; width: parent.width - 32
         height: Math.min(parent.height - 32, content.implicitHeight + 40)
-        radius: 22; tintTop: "#fa24324c"; tint: "#fa0d182c"; glowColor: Theme.amber; secondaryColor: Theme.violet
+        radius: 22
         ColumnLayout {
             id: content
             anchors.fill: parent; anchors.margins: 20; spacing: 15

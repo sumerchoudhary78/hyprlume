@@ -14,6 +14,11 @@ Item {
     implicitHeight: size
     readonly property string path: {
         const n = name;
+        if (n === "workspace" || n === "workspace-active") return n === "workspace"
+            ? "M4 6H20V18H4Z" : "M4 6H20V18H4ZM8 12L11 15L16 9";
+        if (n === "microphone-off") return "M9 6C9 2 15 2 15 6V10M5 11V12C5 21 19 21 19 12M12 19V22M8 22H16M3 3L21 21";
+        if (n === "minus") return "M5 12H19";
+        if (n === "stop") return "M6 6H18V18H6Z";
         if (n === "chevron-right") return "M8 4L16 12L8 20";
         if (n === "power") return "M12 2V12M6 5C-2 11 3 23 12 23C21 23 26 11 18 5";
         if (n === "brightness") return "M16 12A4 4 0 1 1 8 12A4 4 0 1 1 16 12M12 1V4M12 20V23M1 12H4M20 12H23M4 4L6 6M18 18L20 20M4 20L6 18M18 6L20 4";
@@ -60,11 +65,12 @@ Item {
         scale: root.size / 24
         transformOrigin: Item.TopLeft
         opacity: root.iconOpacity
+        preferredRendererType: Shape.CurveRenderer
         antialiasing: true
         visible: root.glyph.length === 0
         ShapePath {
             strokeColor: root.color
-            strokeWidth: 1.65
+            strokeWidth: 2
             fillColor: "transparent"
             capStyle: ShapePath.RoundCap
             joinStyle: ShapePath.RoundJoin

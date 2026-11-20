@@ -1,8 +1,8 @@
 const viewData = {
   desktop: {
     image: "desktop",
-    alt: "The Hyprlume desktop with glass panels, live metrics and a holographic action deck",
-    caption: "Desktop · Quickshell + Qt Quick 3D",
+    alt: "The Hyprlume desktop showing commands, workspaces and system readings",
+    caption: "Desktop · Quickshell and Qt Quick",
     guide: "docs/homescreen.md",
   },
   connections: {

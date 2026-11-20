@@ -1,8 +1,7 @@
 # Asset generation record
 
-Both assets were created with the built-in imagegen tool and copied into the
-project. Their consuming QML uses local paths. The final UI is rendered and
-input-tested with Quickshell, rather than generated as a composite screenshot.
+The wallpaper and original assistant assets were created with ImageGen. The
+production UI and preview render in Quickshell using local assets.
 
 ## Room plate — `shell/assets/backgrounds/observatory.png`
 
@@ -16,3 +15,10 @@ extract a clean environment without its interface.
 Input: text-only generation. `transparent_background=true`.
 
 > Use case: stylized-concept. Asset type: transparent-background UI mascot cutout for a futuristic glass Linux desktop assistant. A single small premium 3D spherical robot head, glossy pearlescent silver and deep midnight-blue helmet, large curved black glass face visor with two simple glowing electric-blue oval eyes. Three-quarter view facing slightly to the left and down, friendly and calm, no mouth, no limbs, no body. A thin luminous cyan and violet orbital Saturn ring circles the lower hemisphere at an attractive diagonal, casting a soft colored reflection on the helmet. Realistic polished 3D product render, cinematic studio rim lighting, crisp silhouette, tasteful specular highlights. Similar scale and finish to a beautiful sci-fi desktop assistant floating above the top-right corner of a glass panel. Entire robot and orbital ring inside frame, centered with modest clear padding. Genuine transparent alpha background, no floor, no scene, no drop shadow plane, no text, no letters, no watermark.
+
+## Tidal Eclipse wallpaper
+
+`shell/assets/backgrounds/tidal-eclipse.jpg` was generated with ImageGen at
+1672×941 and encoded to JPEG. The composition places a cold crescent near the
+upper right of an Icelandic black-sand coast at blue hour. A dark, open left
+half keeps the workspace title readable. The image contains scenery only.

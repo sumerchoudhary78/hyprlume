@@ -8,12 +8,18 @@ A glass command shell and local English voice companion for **Hyprland**.
 Rust handles desktop services, the agent and speech; Quickshell / Qt Quick renders the interface;
 [HyprPilot](https://github.com/sumerchoudhary78/HyprPilot) supplies typed desktop control.
 
-**v0.5.1 desktop preview** fixes Polkit startup, Swaylock compatibility, the
-scaled top bar, starter shortcuts and screenshot dismissal. The liquid-glass dashboard,
-3D scenes and local English voice companion render through Quickshell.
-See [release validation](docs/validation.md) for the tested environments.
+**v0.6.0 desktop preview** introduces a reflowing dashboard, clearer command
+review and sharper rendering on scaled displays. See
+[release validation](docs/validation.md) for the tested environments.
 
-## Demo
+## Desktop preview
+
+The 4K preview shows the new wallpaper, dashboard and compact status bar.
+[Shell UI design](docs/design/shell-ui.md)
+
+![Hyprlume desktop rendered at 3840×2160, showing the command field, workspaces and system readings](docs/design/shell-preview.webp)
+
+### v0.5.0 demo
 
 ![Animated preview of Hyprlume’s glass dashboard, command review and display settings](assets/hyprlume-demo.gif)
 
@@ -30,7 +36,7 @@ The demo was recorded in the Quickshell design preview using sample session data
 
 ## What works
 
-Version 0.5.0 includes the following desktop services.
+Hyprlume provides the following desktop services.
 
 | Service | Current behavior |
 | --- | --- |
@@ -55,13 +61,9 @@ Version 0.5.0 includes the following desktop services.
 Each service page covers setup and verification. The [Hyprlume session](docs/session.md)
 appears as its own login option.
 
-- A top bar on every monitor, a glass home dashboard on empty workspaces, and an
-  on-demand command panel. The dashboard carries quick actions, live workspace
-  flow, a command stage, the shell agent panel, and CPU/memory/GPU/network/disk
-  and container readouts.
-- Real 3D globe/city geometry, refracted glass edges, pointer lighting, liquid
-  CPU/RAM/GPU vessels, a perspective action deck, compact layout and
-  reduced-effects mode.
+- A status bar on each output, a reflowing empty-workspace dashboard and a
+  command panel. The dashboard includes workspace switching, command and
+  dictation shortcuts, system meters and on-demand telemetry details.
 - A glass Connections overlay backed by NetworkManager and BlueZ over D-Bus:
   Wi-Fi scans, saved/open/WPA2/WPA3 connections, radio controls, Bluetooth
   discovery, pairing-code prompts, reconnect/disconnect and forgetting devices.
@@ -81,23 +83,19 @@ There is no cloud endpoint, transcript database, or screen recording by default.
 
 ## Desktop shell
 
-The shell is Hyprland-native rather than a standalone bar:
-
-- **Top bar**, one per monitor, reserves its strip so windows tile below it.
-  Brand, mode strip, search, microphone state, and a command trigger.
-- **Home dashboard**, a bottom-layer surface shown only while the focused
-  workspace has no windows. Quick actions, workspace flow, a command stage fed by
-  daemon snapshots, the agent panel, workspace list, system gauges, container
-  state, a workspace rail, and a voice/command ring.
+- **Status bar** reserves space on each monitor and provides application
+  search, Command, microphone state and desktop controls.
+- **Home dashboard** appears on the focused empty workspace. The command card
+  uses live daemon state and previews actions. The sidebar shows workspaces,
+  window counts, and CPU, memory and GPU usage.
 - **Command panel**, an overlay with exclusive keyboard focus, loaded only while
   the daemon reports it open.
-- **Connections**, a separate overlay opened from Network/the globe button in the
-  bar or `hyprlume connectivity`. Wireless requests stay separate from AI plans.
+- **Connections** opens from the bar’s Wi-Fi button or
+  `hyprlume connectivity`. Wireless requests use the connectivity service.
 
-Dashboard glass uses a cached wallpaper capture and precompiled Qt Quick
-shaders for blur, curved edges and reflections. Hyprland layer blur is optional
-behind the bar and command overlay. Layout, the reference mapping, breakpoints,
-and rendering details are in [home screen](docs/homescreen.md).
+The command card can sample the local wallpaper through a precompiled Qt
+Quick shader. Other cards use a solid material. Layout, rendering and
+verification commands are in [desktop shell](docs/homescreen.md).
 Module layout and import rules are in [shell/README](shell/README.md).
 
 The dashboard runs in a physical Hyprland session and has native rendering,
@@ -166,7 +164,7 @@ hyprlume transcribe /path/to/english-speech.wav
 
 Requires Rust 1.90 or newer. The checked-in lockfile pins the Rust
 dependencies and the exact HyprPilot commit. On Linux, install Quickshell,
-Qt 6 Quick/Controls/Wayland, **Qt Quick 3D (6.9+)**, Hyprland, PipeWire tools, and
+Qt 6 Quick/Controls/Wayland, Hyprland, PipeWire tools, and
 WirePlumber separately. Native wireless builds also need D-Bus development
 headers and `pkg-config` (`dbus` and `pkgconf` on Arch). The Polkit worker links
 `libpolkit-agent-1` and GLib (`polkit`, `glib2` and `glib2-devel` on Arch).
@@ -206,20 +204,15 @@ Quickshell / QML ← private Unix socket → Rust daemon
 
 Wallpaper and the bar persist; the dashboard unmaps when an app opens. Metrics
 sampling pauses while it is hidden. The clock updates on minute boundaries.
-Glass captures the local room plate at half resolution and reuses it between
-geometry changes. Its optical background is cached separately from controls.
-One 16 Hz clock drives all three water gauges after a reading changes or while
-hovered, then settles after 3.2 seconds. Hidden dashboards and open command
-or Connections overlays stop that clock. Wireless state follows D-Bus events;
-Bluetooth discovery runs only on request and stops after 15 seconds or panel
-closure. The 3D view has no continuous animation loop. Use
-`HYPRLUME_REDUCED_EFFECTS=1 hyprlume shell` for static fills without 3D, glass
-refraction/blur or rim bloom.
+When the command card fits on the dashboard, its glass can sample the local
+wallpaper at half resolution. Use `HYPRLUME_REDUCED_EFFECTS=1 hyprlume shell`
+for solid surfaces and static battery fill. Wireless state follows D-Bus
+events. Bluetooth discovery runs on request and stops after 15 seconds or
+panel closure.
 
 The daemon pushes state over one persistent socket. Audio inference runs on a
 dedicated worker with a bounded 20 ms frame queue; no inference runs on the UI
-thread. Wake spotting uses one CPU thread; ASR/TTS default to two. The visible
-voice illustration animates only with voice enabled. See [the desktop guide](docs/homescreen.md)
+thread. Wake spotting uses one CPU thread and ASR/TTS default to two. See [the desktop guide](docs/homescreen.md)
 for rendering details, real controls, source layout and asset provenance.
 
 Performance goals and measured limits belong in [validation](docs/validation.md).

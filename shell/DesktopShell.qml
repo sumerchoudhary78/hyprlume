@@ -27,7 +27,7 @@ Item {
     required property var clock
     required property var metrics
     required property var workspaces
-    required property var state
+    required property var shellState
 
     // The dashboard belongs to the monitor holding the active workspace.
     // Falling back to the first screen keeps single-monitor sessions simple
@@ -72,7 +72,7 @@ Item {
             SystemFeedback {
                 anchors.fill: parent
                 feedback: desktop.feedback
-                reducedEffects: desktop.state.reducedEffects
+                reducedEffects: desktop.shellState.reducedEffects
             }
         }
     }
@@ -87,8 +87,7 @@ Item {
             TopBar {
                 screen: output.modelData
                 backend: desktop.backend
-                workspaces: desktop.workspaces
-                state: desktop.state
+                clock: desktop.clock
             }
         }
     }
@@ -99,7 +98,7 @@ Item {
         workspaces: desktop.workspaces
         metrics: desktop.metrics
         clock: desktop.clock
-        state: desktop.state
+        shellState: desktop.shellState
     }
 
     Loader {
@@ -124,6 +123,7 @@ Item {
             CommandOverlay {
                 anchors.fill: parent
                 backend: desktop.backend
+                reducedEffects: desktop.shellState.reducedEffects
             }
         }
     }
@@ -139,7 +139,7 @@ Item {
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
             ConnectivityOverlay {
                 anchors.fill: parent; backend: desktop.backend
-                reducedEffects: desktop.state.reducedEffects
+                reducedEffects: desktop.shellState.reducedEffects
             }
         }
     }
@@ -153,7 +153,7 @@ Item {
             WlrLayershell.namespace: "hyprlume-notification-centre"
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
-            NotificationOverlay { anchors.fill: parent; backend: desktop.backend; reducedEffects: desktop.state.reducedEffects }
+            NotificationOverlay { anchors.fill: parent; backend: desktop.backend; reducedEffects: desktop.shellState.reducedEffects }
         }
     }
     Loader {
@@ -172,7 +172,7 @@ Item {
                 id: popupStack
                 anchors.fill: parent; anchors.margins: 9
                 availableHeight: desktop.focusedScreen ? desktop.focusedScreen.height - Theme.barZone - 30 : 800
-                backend: desktop.backend; reducedEffects: desktop.state.reducedEffects
+                backend: desktop.backend; reducedEffects: desktop.shellState.reducedEffects
             }
         }
     }
@@ -188,7 +188,7 @@ Item {
             StorageOverlay {
                 anchors.fill: parent
                 backend: desktop.backend
-                reducedEffects: desktop.state.reducedEffects
+                reducedEffects: desktop.shellState.reducedEffects
             }
         }
     }
@@ -201,7 +201,7 @@ Item {
             WlrLayershell.namespace: "hyprlume-audio"
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
-            AudioOverlay { anchors.fill: parent; backend: desktop.backend; reducedEffects: desktop.state.reducedEffects }
+            AudioOverlay { anchors.fill: parent; backend: desktop.backend; reducedEffects: desktop.shellState.reducedEffects }
         }
     }
     Loader {
@@ -213,7 +213,7 @@ Item {
             WlrLayershell.namespace: "hyprlume-power"
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
-            PowerOverlay { anchors.fill: parent; backend: desktop.backend; reducedEffects: desktop.state.reducedEffects }
+            PowerOverlay { anchors.fill: parent; backend: desktop.backend; reducedEffects: desktop.shellState.reducedEffects }
         }
     }
     Loader {
@@ -225,7 +225,7 @@ Item {
             WlrLayershell.namespace: "hyprlume-tray"
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
-            TrayOverlay { anchors.fill: parent; backend: desktop.backend; reducedEffects: desktop.state.reducedEffects }
+            TrayOverlay { anchors.fill: parent; backend: desktop.backend; reducedEffects: desktop.shellState.reducedEffects }
         }
     }
 
@@ -238,7 +238,7 @@ Item {
             WlrLayershell.namespace: "hyprlume-launcher"
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
-            LauncherOverlay { anchors.fill: parent; backend: desktop.backend; reducedEffects: desktop.state.reducedEffects }
+            LauncherOverlay { anchors.fill: parent; backend: desktop.backend; reducedEffects: desktop.shellState.reducedEffects }
         }
     }
     Loader {
@@ -251,7 +251,7 @@ Item {
             WlrLayershell.namespace: "hyprlume-tools"
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
-            ToolsOverlay { outputName:desktop.focusedScreenName; anchors.fill: parent; backend: desktop.backend; reducedEffects: desktop.state.reducedEffects }
+            ToolsOverlay { outputName:desktop.focusedScreenName; anchors.fill: parent; backend: desktop.backend; reducedEffects: desktop.shellState.reducedEffects }
         }
     }
     Loader {
@@ -264,7 +264,7 @@ Item {
             WlrLayershell.namespace:"hyprlume-settings"
             WlrLayershell.layer:WlrLayer.Overlay
             WlrLayershell.keyboardFocus:settingsSheet.fileDialogVisible ? WlrKeyboardFocus.None : WlrKeyboardFocus.Exclusive
-            SettingsOverlay {id:settingsSheet;anchors.fill:parent;backend:desktop.backend;reducedEffects:desktop.state.reducedEffects}
+            SettingsOverlay {id:settingsSheet;anchors.fill:parent;backend:desktop.backend;reducedEffects:desktop.shellState.reducedEffects}
         }
     }
 }
