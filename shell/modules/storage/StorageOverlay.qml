@@ -58,14 +58,11 @@ Item {
     }
 
     GlassSurface {
+        transform: PanelEntrance { reducedEffects: root.reducedEffects }
         anchors.centerIn: parent
         width: Math.min(690, parent.width - 32)
         height: Math.min(600, parent.height - 32)
         radius: Theme.radiusPanel
-        glowColor: Theme.cyan
-        secondaryColor: Theme.violet
-        tintTop: "#f01a2b45"
-        tint: "#f0081225"
         reducedEffects: root.reducedEffects
 
         MouseArea { anchors.fill: parent }

@@ -135,7 +135,8 @@ hl.layer_rule({ match = { namespace = "^hyprlume-(bar|command|connectivity)$" },
 ```
 
 Refer to your version's [layer-rule documentation](https://wiki.hypr.land/configuring/core/rules/layer-rules/).
-The bar reserves its actual scaled height (72 pixels on a 1920×1080 screen).
+The bar reserves its actual height. At 100% shell scale, a single row uses
+54 logical pixels. Smaller outputs can wrap the system controls into another row.
 Replace an existing bar before starting this one to avoid stacking reservations.
 
 Bind `hyprlume toggle` to your preferred launcher key and `hyprlume voice off`

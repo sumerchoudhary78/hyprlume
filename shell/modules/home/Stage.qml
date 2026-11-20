@@ -4,144 +4,192 @@ import qs.components
 import qs.models
 import qs.theme
 
-// A real command console: every output line is derived from daemon state.
-// A terminal shortcut opens an allowlisted terminal through the same preview.
 GlassSurface {
     id: root
     required property var backend
-    required property var workspaces
-    required property var metrics
-    required property var clock
-    property int mode: 0
-    property int activeTab: 0
-    onModeChanged: activeTab = mode === 4 || mode === 5 ? 2 : mode === 1 ? 1 : 0
-    readonly property var snapshot: backend.snapshot
-    CommandState {
-        id: commandState
-        snapshot: root.snapshot
-    }
-    readonly property var output: {
-        const lines = [];
-        for (const action of (snapshot.actions ?? [])) lines.push({text: action, kind: "plan"});
-        for (const receipt of (snapshot.receipts ?? [])) lines.push({text: receipt, kind: "ok"});
-        if (lines.length === 0) {
-            lines.push({text: snapshot.message || "Your desktop, within reach.", kind: "status"});
-            lines.push({text: snapshot.voice === "off" ? "Voice is off. Enable it when you need it." : "Voice is ready. Say Hey Pilot.", kind: "dim"});
-            lines.push({text: backend.online ? "Connected to your local desktop." : "Waiting for the local agent…", kind: "dim"});
-        }
-        return lines.slice(0, 5);
-    }
-    radius: 25
-    glowColor: Theme.cyan
-    secondaryColor: Theme.violet
+    property bool condensed: false
 
-    function submit() {
-        const text = input.text.trim();
-        if (text && !commandState.busy && !commandState.review && root.backend.online) {
-            root.backend.send({op: "command", text: text, dry_run: true});
-            input.text = "";
-        }
+    readonly property int padding: Theme.px(condensed ? 16 : 26)
+    readonly property var snapshot: backend.snapshot
+    readonly property bool available: backend.online && !commandState.blocked && !backend.locking.active
+    readonly property color statusColor: !backend.online || snapshot.phase === "error" ? Theme.rose
+        : commandState.busy || commandState.review ? Theme.amber : Theme.mint
+    readonly property string status: !backend.online ? "Local agent offline"
+        : commandState.review ? "Review ready"
+        : commandState.busy ? "Command in progress"
+        : snapshot.phase === "error" ? "Command failed"
+        : "Local agent ready"
+    readonly property string activity: commandState.receipts[0] ?? (snapshot.phase === "ready" ? "" : snapshot.message ?? "")
+
+    implicitHeight: body.implicitHeight + padding * 2
+    radius: Theme.radiusPanel
+
+    CommandState { id: commandState; snapshot: root.snapshot }
+
+    function preview(text) {
+        if (!available || !text.trim())
+            return;
+        backend.send({op: "command", text: text.trim(), dry_run: true});
     }
-    Row {
-        x: 25; y: 13; spacing: 8
-        Repeater {
-            model: ["hyprlume / console", "Session activity", "System − live"]
-            delegate: Rectangle {
-                required property string modelData
-                required property int index
-                width: index === 0 ? 205 : 155; height: 38; radius: 11
-                color: root.activeTab === index ? "#3921416a" : "#58051120"
-                border.width: 1
-                border.color: root.activeTab === index ? Theme.violet : "#3157b1d8"
-                Row {
-                    anchors.centerIn: parent; spacing: 8
-                    Icon { name: index === 0 ? "folder" : index === 1 ? "cloud" : "chart"; color: Theme.cyan; size: 16 }
-                    Text { text: modelData; color: root.activeTab === index ? Theme.ink : Theme.inkDim; font.family: Theme.fontSans; font.pixelSize: 12 }
-                }
-                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.activeTab = index }
+
+    ColumnLayout {
+        id: body
+        anchors.fill: parent
+        anchors.margins: root.padding
+        spacing: Theme.px(root.condensed ? 12 : 18)
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: Theme.px(12)
+
+            Rectangle {
+                implicitWidth: Theme.px(39); implicitHeight: implicitWidth
+                radius: Theme.px(11)
+                color: Theme.selection
+                Icon { anchors.centerIn: parent; name: "utilities-terminal"; color: Theme.cyan }
+            }
+
+            Text {
+                Layout.fillWidth: true
+                text: "Desktop command"
+                font.family: Theme.fontSans
+                font.pixelSize: Theme.fontHeadline
+                font.weight: Font.DemiBold
+                color: Theme.ink
+                elide: Text.ElideRight
+                Accessible.role: Accessible.Heading
             }
         }
-        IconTile { iconName: "plus"; size: 36; iconSize: 16; onClicked: root.backend.send({op: "toggle"}) }
-    }
-    Rectangle { x: 14; y: 59; width: parent.width - 28; height: 1; color: "#395cd8ff" }
-    Row {
-        x: 29; y: 83; spacing: 10
-        Text { text: "❯"; color: Theme.amber; font.family: Theme.fontMono; font.pixelSize: 21 }
-        Chip {
-            text: root.snapshot.active_app.length > 0 ? root.snapshot.active_app : "local session"
-            textColor: Theme.ink
-            fillColor: "#805528a3"; strokeColor: "#ba9a6eff"
-            horizontalPadding: 18
-        }
-        Chip {
-            text: "workspace " + (root.snapshot.workspace ?? "—")
-            textColor: Theme.mint; fillColor: "#50206037"; strokeColor: "#7068f0b1"; mono: true
-        }
-    }
-    Row {
-        x: 30; y: 128; spacing: 14
-        visible: root.activeTab !== 2
-        Text { text: "{"; color: Theme.cyan; font.family: Theme.fontMono; font.pixelSize: 22 }
-        TextInput {
-            id: input
-            objectName: "consoleInput"
-            width: Math.max(120, root.width - 250); height: 30
-            color: Theme.ink; font.family: Theme.fontMono; font.pixelSize: 21
-            clip: true; selectByMouse: true; maximumLength: 512
-            enabled: root.backend.online && !commandState.busy && !commandState.review
-            onAccepted: root.submit()
-            Text {
+
+        Rectangle {
+            Layout.fillWidth: true
+            implicitHeight: Theme.px(58)
+            radius: Theme.px(12)
+            color: Theme.field
+            border.width: input.activeFocus ? 2 : 1
+            border.color: input.activeFocus ? Theme.cyan : Theme.rim
+
+            RowLayout {
                 anchors.fill: parent
-                visible: input.text.length === 0
-                text: root.snapshot.transcript || "What would you like to do?"
-                color: root.snapshot.transcript ? Theme.ink : Theme.inkFaint
-                font: input.font
+                anchors.leftMargin: Theme.px(16)
+                anchors.rightMargin: Theme.px(7)
+                spacing: Theme.px(8)
+
+                TextInput {
+                    id: input
+                    objectName: "consoleInput"
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    verticalAlignment: TextInput.AlignVCenter
+                    font.family: Theme.fontSans
+                    font.pixelSize: Theme.fontLabel
+                    color: Theme.ink
+                    selectionColor: Theme.cyan
+                    selectedTextColor: Theme.onAccent
+                    enabled: root.available
+                    activeFocusOnTab: true
+                    selectByMouse: true
+                    maximumLength: 512
+                    clip: true
+                    Accessible.name: "Desktop command"
+                    Accessible.description: "Press Enter to preview the action"
+
+                    onAccepted: {
+                        if (text.trim().length > 0) {
+                            root.preview(text);
+                            clear();
+                        }
+                    }
+
+                    Text {
+                        anchors.fill: parent
+                        verticalAlignment: Text.AlignVCenter
+                        visible: !input.text
+                        text: "Type a command…"
+                        color: Theme.inkFaint
+                        font: input.font
+                        elide: Text.ElideRight
+                    }
+                }
+
+                GlassButton {
+                    objectName: "consolePreview"
+                    text: "Preview"
+                    primary: true
+                    enabled: root.available && input.text.trim().length > 0
+                    onClicked: input.accepted()
+                }
+            }
+        }
+
+        Flow {
+            Layout.fillWidth: true
+            spacing: Theme.px(7)
+
+            GlassButton {
+                objectName: "launcherterminal"
+                text: "Open terminal"
+                iconName: "utilities-terminal"
+                compact: true; quiet: true
+                enabled: root.available
+                onClicked: root.preview("launch terminal")
+            }
+
+            GlassButton {
+                objectName: "agentVolume"
+                text: "Volume 35%"
+                iconName: "audio-volume-high"
+                compact: true; quiet: true
+                enabled: root.available
+                onClicked: root.preview("volume 35")
+            }
+
+            GlassButton {
+                objectName: "dictateNote"
+                text: "Dictate"
+                iconName: "audio-input-microphone"
+                compact: true; quiet: true
+                enabled: root.backend.online && !root.backend.locking.active
+                onClicked: root.backend.send({op: "voice", mode: "dictate"})
+            }
+        }
+
+        Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.divider }
+
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: Theme.px(7)
+
+            StatusDot { color: root.statusColor; size: Theme.px(6); halo: false }
+
+            Text {
+                Layout.fillWidth: true
+                text: root.status
+                color: Theme.inkDim
+                font.family: Theme.fontSans
+                font.pixelSize: Theme.fontCaption
                 elide: Text.ElideRight
             }
-            Accessible.name: "Desktop command. Enter previews the action."
-        }
-    }
-    IconTile {
-        anchors.right: parent.right; anchors.rightMargin: 22; y: 78
-        size: 30; iconName: "expand"; iconSize: 15
-        onClicked: root.backend.send({op: "command", text: "launch terminal", dry_run: true})
-        Accessible.name: "Open terminal preview"
-    }
-    Column {
-        x: 34; y: 181; width: Math.max(140, parent.width - 245); spacing: 9
-        visible: root.activeTab !== 2
-        Repeater {
-            model: root.output
-            delegate: Row {
-                required property var modelData
-                width: parent.width; spacing: 13
-                Text {
-                    text: modelData.kind === "ok" ? "✓" : modelData.kind === "plan" ? "◇" : "│"
-                    color: modelData.kind === "ok" ? Theme.mint : Theme.cyan
-                    font.family: Theme.fontMono; font.pixelSize: 14
-                }
-                Text {
-                    width: parent.width - 25
-                    text: modelData.text
-                    color: modelData.kind === "ok" ? "#ccf4c1" : modelData.kind === "dim" ? Theme.inkFaint : Theme.inkDim
-                    font.family: Theme.fontMono; font.pixelSize: 13
-                    elide: Text.ElideRight
-                }
+
+            GlassButton {
+                visible: commandState.review && !root.snapshot.panel_open
+                text: "Review plan"
+                compact: true
+                onClicked: root.backend.send({op: "toggle"})
             }
         }
-    }
-    Column {
-        x: 40; y: 140; spacing: 16; visible: root.activeTab === 2
-        Text { text: root.mode === 4 ? "LOCAL CONTAINERS / LIVE" : root.mode === 5 ? "NETWORK / LIVE" : "YOUR SYSTEM / LIVE"; color: Theme.cyan; font.family: Theme.fontMono; font.pixelSize: 12; font.letterSpacing: 2 }
-        Text { text: root.mode === 4 ? (root.metrics.containerRuntime || "No runtime") + " · " + root.metrics.containerCount + " running" : "CPU    " + root.metrics.cpu + "%   ·   RAM    " + root.metrics.mem + "%"; color: Theme.ink; font.family: Theme.fontMono; font.pixelSize: 20 }
-        Text { text: root.mode === 4 ? (root.metrics.containerName || "No active containers") : "↑ " + root.metrics.formatRate(root.metrics.netUp) + "    ↓ " + root.metrics.formatRate(root.metrics.netDown); color: Theme.inkDim; font.family: Theme.fontMono; font.pixelSize: 15 }
-        Text { text: "Uptime  " + root.metrics.formatUptime(root.metrics.uptimeMinutes); color: Theme.inkFaint; font.family: Theme.fontMono; font.pixelSize: 13 }
-    }
-    StageBackdrop { x: 7; anchors.bottom: parent.bottom; anchors.bottomMargin: 5; width: parent.width - 14; height: 193 }
-    ClockCard { anchors.right: parent.right; anchors.rightMargin: 22; y: 180; clock: root.clock; metrics: root.metrics }
-    Row {
-        anchors.bottom: parent.bottom; anchors.bottomMargin: 11; x: 25; spacing: 7
-        StatusDot { anchors.verticalCenter: parent.verticalCenter; size: 5; color: root.backend.online ? Theme.mint : Theme.rose }
-        Text { text: root.backend.online ? "LOCAL AGENT CONNECTED" : "AGENT OFFLINE"; color: "#91acc8"; font.family: Theme.fontMono; font.pixelSize: 8; font.letterSpacing: 1.1 }
+
+        Text {
+            visible: !!root.activity
+            Layout.fillWidth: true
+            text: root.activity
+            textFormat: Text.PlainText
+            color: Theme.inkDim
+            font.family: Theme.fontSans
+            font.pixelSize: Theme.fontBody
+            wrapMode: Text.Wrap
+            maximumLineCount: 2
+            elide: Text.ElideRight
+        }
     }
 }

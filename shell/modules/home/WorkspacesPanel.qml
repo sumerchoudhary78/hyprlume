@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import qs.components
 import qs.theme
@@ -6,45 +7,78 @@ import qs.theme
 GlassSurface {
     id: root
     required property var workspaces
-    readonly property var rows: (workspaces.all ?? []).slice(0, 4)
-    glowColor: Theme.violet
-    secondaryColor: Theme.cyan
-    PanelHeader {
-        x: 17; y: 15; width: parent.width - 34
-        title: "Workspaces"; iconName: "layers"; accent: Theme.cyan
-        IconTile { iconName: "plus"; size: 22; iconSize: 14; onClicked: root.workspaces.focusNext() }
+    readonly property var rows: workspaces.all ?? []
+    readonly property int rowHeight: Theme.px(38)
+
+    implicitHeight: content.implicitHeight + Theme.px(36)
+
+    function revealFocused() {
+        const index = rows.findIndex(workspace => workspaces.isFocused(workspace));
+        if (index >= 0)
+            list.positionViewAtIndex(index, ListView.Contain);
     }
-    Column {
-        x: 14; y: 47; width: parent.width - 28; spacing: 3
-        Repeater {
+
+    Connections {
+        target: root.workspaces
+        function onFocusedChanged() { root.revealFocused(); }
+    }
+
+    ColumnLayout {
+        id: content
+        anchors.fill: parent
+        anchors.margins: Theme.px(18)
+        spacing: Theme.px(9)
+
+        PanelHeader {
+            Layout.fillWidth: true
+            title: "Workspaces"
+            IconTile {
+                objectName: "nextWorkspace"
+                iconName: "chevron-right"
+                tooltip: "Next workspace"
+                size: Theme.px(32)
+                quiet: true
+                onClicked: root.workspaces.focusNext()
+            }
+        }
+
+        ListView {
+            id: list
+            Layout.fillWidth: true
+            Layout.preferredHeight: Math.min(count, 4) * root.rowHeight + Math.max(0, Math.min(count, 4) - 1) * spacing
+            visible: count > 0
+            clip: true
+            spacing: Theme.px(2)
+            boundsBehavior: Flickable.StopAtBounds
             model: root.rows
-            delegate: Item {
-                id: row
+            onCountChanged: Qt.callLater(root.revealFocused)
+            ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+
+            delegate: ActionRow {
                 objectName: "workspaceRow" + index
                 required property var modelData
                 required property int index
-                readonly property bool current: root.workspaces.isFocused(modelData)
-                width: parent.width; height: 30
-                Rectangle {
-                    anchors.fill: parent; radius: 12
-                    gradient: Gradient {
-                        orientation: Gradient.Horizontal
-                        GradientStop { position: 0; color: row.current ? "#80543fa1" : "#18131a29" }
-                        GradientStop { position: 1; color: row.current ? "#4b133d6c" : "#10091020" }
-                    }
-                    border.width: row.current ? 1 : 0
-                    border.color: Theme.violet
-                }
-                RowLayout {
-                    anchors.fill: parent; anchors.leftMargin: 12; anchors.rightMargin: 9; spacing: 11
-                    StatusDot { size: 7; color: row.current ? Theme.cyan : row.index === 1 ? Theme.mint : row.index === 2 ? Theme.amber : Theme.mint; halo: row.current }
-                    Text { Layout.fillWidth: true; text: root.workspaces.label(row.modelData); color: Theme.ink; font.family: Theme.fontSans; font.pixelSize: 13; elide: Text.ElideRight }
-                    Icon { name: row.index === 0 ? "code" : row.index === 1 ? "globe" : row.index === 2 ? "package-x-generic" : "preferences-system"; size: 17; color: Theme.inkDim }
-                    Text { text: root.workspaces.countFor(row.modelData); color: Theme.inkFaint; font.family: Theme.fontMono; font.pixelSize: 10 }
-                }
-                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.workspaces.focus(row.modelData) }
+                readonly property int windows: root.workspaces.countFor(modelData)
+                width: ListView.view.width - (ListView.view.count > 4 ? Theme.px(10) : 0)
+                height: root.rowHeight
+                label: root.workspaces.label(modelData)
+                hint: windows === 1 ? "1 window" : windows + " windows"
+                iconName: active ? "workspace-active" : "workspace"
+                active: root.workspaces.isFocused(modelData)
+                quiet: true
+                Accessible.name: label + ", " + hint + (active ? ", current workspace" : "")
+                onActiveFocusChanged: if (activeFocus && ListView.view)
+                    ListView.view.positionViewAtIndex(index, ListView.Contain)
+                onClicked: root.workspaces.focus(modelData)
             }
         }
-        Text { visible: !root.rows.length; text: "No workspaces available"; color: Theme.inkDim; font.family: Theme.fontSans; font.pixelSize: 13 }
+
+        Text {
+            visible: root.rows.length === 0
+            text: "No workspaces available"
+            color: Theme.inkDim
+            font.family: Theme.fontSans
+            font.pixelSize: Theme.fontBody
+        }
     }
 }

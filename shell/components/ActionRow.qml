@@ -1,9 +1,9 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Templates as T
 import qs.theme
 
-// One line of a list: icon, label, optional right-aligned hint.
-Item {
+T.Button {
     id: root
 
     property string iconName: ""
@@ -11,60 +11,59 @@ Item {
     property string label: ""
     property string hint: ""
     property bool active: false
+    property bool quiet: false
     property color accent: Theme.cyan
 
-    signal clicked()
+    implicitHeight: Theme.px(36)
+    implicitWidth: implicitContentWidth + leftPadding + rightPadding
+    leftPadding: Theme.px(10)
+    rightPadding: Theme.px(10)
+    topPadding: 0
+    bottomPadding: 0
+    hoverEnabled: true
+    focusPolicy: Qt.TabFocus
+    Accessible.name: label
+    Keys.onReturnPressed: click()
 
-    implicitHeight: Theme.px(31)
-
-    Rectangle {
-        anchors.fill: parent
-        radius: Theme.px(12)
-        gradient: Gradient {
-            GradientStop { position: 0; color: mouse.containsMouse || root.active ? "#68516a8a" : "#3c32435e" }
-            GradientStop { position: 0.48; color: mouse.containsMouse || root.active ? "#70233550" : "#580d1b31" }
-            GradientStop { position: 1; color: mouse.containsMouse || root.active ? "#603b426b" : "#3a25273f" }
-        }
-        border.width: 1
-        border.color: root.active ? root.accent : "#1c99c9ed"
+    background: Rectangle {
+        radius: Theme.px(8)
+        color: root.down ? Theme.pressed : root.hovered ? Theme.hover : root.active ? Theme.selection
+            : root.quiet ? "transparent" : Theme.control
+        border.width: root.visualFocus ? 2 : 1
+        border.color: root.visualFocus ? Theme.focusRing : root.active ? Theme.rimStrong
+            : root.quiet ? "transparent" : Theme.rim
     }
 
-    RowLayout {
-        anchors.fill: parent
-        anchors.leftMargin: Theme.px(10)
-        anchors.rightMargin: Theme.px(10)
-        spacing: Theme.px(10)
+    contentItem: RowLayout {
+        spacing: Theme.px(9)
 
         Icon {
             name: root.iconName
             glyph: root.glyph
-            color: root.active || mouse.containsMouse ? root.accent : Theme.inkDim
+            color: root.active ? root.accent : Theme.inkDim
             size: Theme.px(16)
         }
 
         Text {
             Layout.fillWidth: true
             text: root.label
+            textFormat: Text.PlainText
             color: Theme.ink
             font.family: Theme.fontSans
             font.pixelSize: Theme.fontBody
+            font.weight: root.active ? Font.DemiBold : Font.Normal
             elide: Text.ElideRight
         }
 
         Text {
-            visible: root.hint.length > 0
+            visible: !!root.hint
             text: root.hint
-            color: Theme.inkFaint
-            font.family: Theme.fontMono
+            textFormat: Text.PlainText
+            color: Theme.inkDim
+            font.family: Theme.fontSans
             font.pixelSize: Theme.fontCaption
         }
     }
 
-    MouseArea {
-        id: mouse
-        anchors.fill: parent
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
-        onClicked: root.clicked()
-    }
+    HoverHandler { cursorShape: Qt.PointingHandCursor }
 }

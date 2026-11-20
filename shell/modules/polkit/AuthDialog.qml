@@ -23,8 +23,6 @@ FocusScope {
         radius: Theme.radiusPanel
         tintTop: "#f5223451"
         tint: "#fa0a1529"
-        glowColor: Theme.amber
-        secondaryColor: Theme.cyan
 
         ScrollView {
             id: scroll

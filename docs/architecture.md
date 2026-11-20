@@ -119,11 +119,10 @@ the reconnecting subscription; `services/Workspaces.qml` wraps Hyprland state;
 `ShellState` are local. Modules receive these as required properties, which keeps
 every panel usable in isolation and previewable without a daemon.
 
-The dashboard's glass samples its own cached wallpaper within QML. Compositor
-blur is optional for the bar/command surfaces; application contents are never
-captured by the glass renderer. One Qt Quick 3D viewport holds the globe and city.
-The reduced-effects profile skips that viewport and local blur. See
-[homescreen](homescreen.md) for composition, responsiveness and data ownership.
+The command card can sample the local wallpaper within QML. Reduced effects,
+high contrast, and a scrolling dashboard use the solid surface. Utility
+windows render with the same palette and native Qt Quick controls. See
+[homescreen](homescreen.md) for composition and responsiveness.
 
 Wireless state and commands have a dedicated controller under `services`,
 outside the planner. NetworkManager and BlueZ supply event-driven hardware

@@ -20,11 +20,11 @@ ColumnLayout {
 
     Rectangle {
         Layout.fillWidth: true
-        implicitHeight: Theme.px(44)
+        implicitHeight: Theme.px(48)
         radius: Theme.px(12)
-        color: Theme.glassInset
-        border.width: 1
-        border.color: input.activeFocus ? Theme.rimStrong : Theme.rim
+        color: Theme.field
+        border.width: input.activeFocus ? 2 : 1
+        border.color: input.activeFocus ? Theme.focusRing : Theme.rim
 
         TextInput {
             id: input
@@ -38,20 +38,26 @@ ColumnLayout {
             font.family: Theme.fontSans
             font.pixelSize: Theme.fontBody
             selectionColor: Theme.cyan
-            selectedTextColor: "#081018"
+            selectedTextColor: Theme.onAccent
             clip: true
+            selectByMouse: true
+            activeFocusOnTab: true
             focus: true
             enabled: !root.blocked
             maximumLength: 512
+            Accessible.name: "Desktop command"
+            Accessible.description: "Press Enter to preview the action"
             onAccepted: root.submit(false)
             Keys.onEscapePressed: root.dismissed()
 
             Text {
-                anchors.verticalCenter: parent.verticalCenter
+                anchors.fill: parent
+                verticalAlignment: Text.AlignVCenter
                 visible: input.text.length === 0
-                text: "workspace 2 · focus firefox · volume 30"
+                text: "Try “workspace 2”"
                 color: Theme.inkFaint
                 font: input.font
+                elide: Text.ElideRight
             }
         }
     }
@@ -77,10 +83,12 @@ ColumnLayout {
 
         Item { Layout.fillWidth: true }
 
-        Chip {
-            text: "ENTER"
-            textColor: Theme.inkFaint
-            mono: true
+        Text {
+            visible: !root.blocked && root.width >= Theme.px(272)
+            text: "Enter to preview"
+            color: Theme.inkFaint
+            font.family: Theme.fontSans
+            font.pixelSize: Theme.fontCaption
         }
     }
 }

@@ -14,9 +14,10 @@ Item {
 
     default property alias trailing: trailingRow.data
 
-    implicitHeight: Math.max(titleLabel.implicitHeight, Theme.px(20))
+    implicitHeight: Math.max(row.implicitHeight, Theme.px(20))
 
     RowLayout {
+        id: row
         anchors.fill: parent
         spacing: root.spacing
 
@@ -28,15 +29,16 @@ Item {
         }
 
         Text {
-            id: titleLabel
+            Layout.fillWidth: true
             text: root.title
+            textFormat: Text.PlainText
             color: Theme.ink
             font.family: Theme.fontSans
             font.pixelSize: Theme.fontLabel
             font.weight: Font.DemiBold
+            elide: Text.ElideRight
+            Accessible.role: Accessible.Heading
         }
-
-        Item { Layout.fillWidth: true }
 
         RowLayout {
             id: trailingRow

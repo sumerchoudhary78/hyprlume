@@ -1,5 +1,43 @@
 # Validation
 
+## Desktop redesign on 20 November 2026
+
+Native Quickshell 0.3.2 and Qt 6.12 rendered the production QML in an isolated
+Arch Linux environment. The wide, compact, command review, Connections,
+reduced-effects and high-contrast renders were inspected using sample session
+data. [Desktop preview](design/shell-preview.webp)
+
+Pointer and keyboard checks passed at 1680×945, 700×620 with reduced effects, and
+520×640 at 120% shell scale with high contrast. They covered command previews
+from Home and the palette, busy and review states, confirmation, direct run,
+microphone controls, workspace selection and system disclosure. Separate
+checks exercised the utility panels, including the recording stop control in
+a wrapped bar.
+
+A private headless Sway session exercised the production Wayland layer
+composition with sample state. A native Wayland window tiled below a
+54-pixel reservation at 1280×800 and moved below a 99-pixel reservation when
+the recording control wrapped the bar at 520×640. Physical Hyprland outputs,
+fractional scaling, GPU performance and live hardware remain to be measured
+for this redesign. [UI design record](design/shell-ui.md)
+
+### 4K rendering and motion
+
+Qt produced and verified 3840×2160 captures of Home, command review and system
+details. The automated checks use a 1920×1080 logical viewport at a device
+pixel ratio of 2 for the full desktop. Headless Sway supplied a 3840×2160
+output at 150% and 200% scale. Qt used native Wayland buffers at those sizes,
+and the pointer and keyboard command flow passed in Qt at 1.25×, 1.5× and 2×.
+A custom 3840×2160 image also decoded at its source dimensions.
+
+The 180 ms panel entrance was sampled in the 4K software OpenGL preview.
+Three frames showed an intermediate position and the first settled frame
+arrived 284 ms after the request. With reduced effects, the first frame was
+already settled and arrived after 47 ms. These are isolated software-renderer
+samples. Physical GPU frame pacing at the display’s refresh rate remains open.
+
+## Earlier release validation
+
 Checked on **16 November 2026**, on Arch Linux x86_64, Ryzen 5 5600H,
 approximately 15 GiB usable RAM, Quickshell 0.3.2, Qt 6.12 and Hyprland 0.57.1
 with a Lua configuration. The physical output was 1920×1080 in its 144 Hz mode.

@@ -24,8 +24,12 @@ def main():
     fonts = ASSETS / "fonts"
     media.mkdir(parents=True, exist_ok=True)
     fonts.mkdir(parents=True, exist_ok=True)
-    for name in ("desktop", "connections"):
-        with Image.open(ROOT / "assets" / f"{name}-preview.png") as original:
+    screenshots = {
+        "desktop": ROOT / "docs/design/shell-preview.webp",
+        "connections": ROOT / "assets/connections-preview.png",
+    }
+    for name, source in screenshots.items():
+        with Image.open(source) as original:
             image = original.convert("RGB")
             for width in (800, 1600):
                 height = round(image.height * width / image.width)

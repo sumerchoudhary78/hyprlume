@@ -17,14 +17,13 @@ and an unrestricted computer-use agent are larger projects.
 
 Delivered in the current tree:
 
-- Always-on bar per monitor, empty-workspace dashboard, and the command panel
-  overlay, sharing one design-token module (`shell/theme/Theme.qml`).
-- Live workspace list, window counts, focus switching, quick actions, voice-mode
-  controls, CPU/memory/GPU/network/disk readouts, and docker/podman state.
-- A compact layout, reduced-effects mode and one two-second sampler that pauses
-  while the dashboard is hidden.
-- Cached wallpaper glass, procedural 3D globe/city and the same command component
-  used by the live shell and native input tests.
+- A per-output status bar, reflowing dashboard for the focused empty workspace,
+  and command overlay. See the [UI design record](design/shell-ui.md).
+- Workspace switching, inline command previews, voice controls and glanceable
+  CPU, memory and GPU readings. System details expose network, disk and
+  Docker/Podman status. The two-second sampler pauses when Home hides.
+- Shared Qt Quick controls, keyboard focus indicators, reduced effects, high
+  contrast and isolated native input tests.
 - Physical-session checks for wallpaper/bar layers, workspace switching, focus,
   window moves and dashboard hide/restore on Hyprland 0.57.1 Lua.
 - The first desktop-service panel: Wi-Fi/Bluetooth through Rust NetworkManager
@@ -33,8 +32,7 @@ Delivered in the current tree:
 
 Still open:
 
-- Full task-specific pages and persisted workflows behind navigation. Existing
-  tabs select the console, action activity, assistant focus or live system data.
+- Persistent, task-specific workflows beyond the existing command palette.
 - Remaining desktop services in the implementation sequence below.
 - A compositor adapter boundary if niri support becomes useful. Hyprland is
   the only implemented compositor backend today.

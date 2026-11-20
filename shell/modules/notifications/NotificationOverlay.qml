@@ -1,4 +1,5 @@
 import QtQuick
+import qs.components
 import qs.theme
 
 Item {
@@ -10,6 +11,7 @@ Item {
         MouseArea { anchors.fill: parent; onClicked: root.backend.send({op:"notifications",request:{action:"close"}}) }
     }
     NotificationCentre {
+        transform: PanelEntrance { reducedEffects: root.reducedEffects }
         anchors.right: parent.right; anchors.top: parent.top
         anchors.rightMargin: 16; anchors.topMargin: Math.min(Theme.barZone + 12, 86)
         width: Math.min(440, root.width - 32)

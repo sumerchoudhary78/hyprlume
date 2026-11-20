@@ -34,14 +34,14 @@ ShellRoot {
     Loader {
         Component.onCompleted: {
             if (root.preview) {
-                setSource("PreviewWindow.qml", { backend: backendService, clock: clock, metrics: metrics, workspaces: workspaces, state: shellState });
+                setSource("PreviewWindow.qml", { backend: backendService, clock: clock, metrics: metrics, workspaces: workspaces, shellState: shellState });
             } else {
                 setSource("DesktopShell.qml", {
                     backend: backendService,
                     clock: clock,
                     metrics: metrics,
                     workspaces: workspaces,
-                    state: shellState
+                    shellState: shellState
                 });
             }
         }

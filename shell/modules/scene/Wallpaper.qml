@@ -4,20 +4,32 @@ import qs.theme
 Item {
     id: root
     property string customPath: Theme.wallpaperPath
+    property bool sampleOnly: false
     property bool failed: false
     readonly property bool custom: customPath !== "" && !failed
+    readonly property real deviceScale: Window.window?.devicePixelRatio ?? Screen.devicePixelRatio
+    // A monitor crossing the size threshold reloads once. A window resize
+    // within the same bucket keeps the existing decoded texture.
+    readonly property int decodeLimit: sampleOnly ? 1600
+        : Math.max(width, height) * deviceScale > 2560 ? 4096 : 2560
     onCustomPathChanged: failed = false
     readonly property bool ready: image.status === Image.Ready
+    clip: true
     Image {
         id: image
-        anchors.fill: parent
+        // Aspect-crop the paint bounds while keeping the decoder's size a cap.
+        readonly property real cover: Math.max(root.width / Math.max(1, implicitWidth),
+            root.height / Math.max(1, implicitHeight))
+        anchors.centerIn: parent
+        width: implicitWidth * cover
+        height: implicitHeight * cover
         source: root.custom
             ? "file://" + root.customPath.split("/").map(part => encodeURIComponent(part)).join("/")
-            : "../../assets/backgrounds/observatory.png"
-        sourceSize.width: root.custom ? 2560 : -1
+            : "../../assets/backgrounds/tidal-eclipse.jpg"
+        sourceSize: root.custom || root.sampleOnly ? Qt.size(root.decodeLimit, root.decodeLimit) : Qt.size(-1, -1)
         onStatusChanged: if (status === Image.Error && root.custom) root.failed = true
-        fillMode: Image.PreserveAspectCrop
         asynchronous: true
+        retainWhileLoading: true
         cache: true
         smooth: true
     }

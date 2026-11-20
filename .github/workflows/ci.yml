@@ -45,10 +45,10 @@ jobs:
     container: archlinux:base
     steps:
       - name: Install the native shell and isolated display tools
-        run: pacman -Syu --noconfirm --needed git python python-pillow python-dbus-next gtk3 pipewire quickshell qt6-quick3d qt6-shadertools xorg-server-xvfb xorg-xauth dbus xdotool inter-font ttf-jetbrains-mono
+        run: pacman -Syu --noconfirm --needed git python python-pillow python-dbus-next gtk3 pipewire quickshell qt6-shadertools xorg-server-xvfb xorg-xauth dbus xdotool inter-font ttf-jetbrains-mono
       - uses: actions/checkout@v4
       - name: Record graphics runtime versions
-        run: pacman -Q quickshell qt6-declarative qt6-quick3d mesa
+        run: pacman -Q quickshell qt6-declarative mesa
       - name: Check QML imports and Python tools
         run: |
           python3 scripts/check-qml.py shell
@@ -62,10 +62,13 @@ jobs:
         run: python3 scripts/qa/check-polkit-ui.py
       - name: Check liquid volume and paused motion
         run: python3 scripts/qa/check-effects.py
-      - name: Render the desktop with real Qt Quick 3D
-        run: python3 scripts/qa/render-desktop.py --width 1920 --height 1080 --output output/design/desktop.png
+      - name: Render a native 4K desktop with Qt Quick
+        run: python3 scripts/qa/render-desktop.py --width 1920 --height 1080 --dpr 2 --output output/design/desktop-4k.png
       - name: Exercise pointer, keyboard, preview and confirmation
-        run: python3 scripts/qa/render-desktop.py --interact
+        run: |
+          python3 scripts/qa/render-desktop.py --interact
+          python3 scripts/qa/render-desktop.py --interact --width 700 --height 620 --dpr 1.5 --reduced-effects
+          python3 scripts/qa/render-desktop.py --interact --width 520 --height 640 --scale 1.20 --high-contrast
       - name: Exercise Wi-Fi and Bluetooth with synthetic hardware
         run: python3 scripts/qa/render-desktop.py --connectivity --interact
       - name: Exercise notifications with synthetic clients
@@ -83,6 +86,7 @@ jobs:
       - name: Exercise clipboard and capture controls with synthetic data
         run: |
           python3 scripts/qa/render-desktop.py --tools --interact
+          python3 scripts/qa/render-desktop.py --tools --interact --width 700 --height 680
           python3 scripts/qa/render-desktop.py --tools --output output/design/tools.png
           python3 scripts/qa/render-desktop.py --tools --width 960 --height 640 --reduced-effects --output output/design/tools-compact.png
       - name: Exercise synthetic lock controls without locking the test display
@@ -142,7 +146,9 @@ jobs:
           python3 scripts/qa/render-desktop.py --connectivity --connectivity-state unavailable --width 960 --height 640 --output output/design/wireless-unavailable.png
       - name: Check compact and reduced-effects compositions
         run: |
-          python3 scripts/qa/render-desktop.py --width 960 --height 640 --output output/design/compact.png
+          python3 scripts/qa/render-desktop.py --width 700 --height 620 --output output/design/compact.png
+          python3 scripts/qa/render-desktop.py --command-review --output output/design/command-review.png
+          python3 scripts/qa/render-desktop.py --width 520 --height 640 --scale 1.20 --high-contrast --output output/design/high-contrast.png
           python3 scripts/qa/render-desktop.py --reduced-effects --output output/design/reduced.png
       - uses: actions/upload-artifact@v4
         if: always()

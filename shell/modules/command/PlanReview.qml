@@ -23,7 +23,7 @@ ColumnLayout {
             required property int index
 
             Layout.fillWidth: true
-            implicitHeight: Theme.px(34)
+            implicitHeight: Math.max(Theme.px(36), action.implicitHeight + Theme.px(16))
             radius: Theme.radiusTile
             color: Theme.glassInset
             border.width: 1
@@ -36,19 +36,21 @@ ColumnLayout {
                 spacing: Theme.px(10)
 
                 Text {
-                    text: (index + 1).toString().padStart(2, "0")
+                    text: index + 1
                     color: Theme.cyan
                     font.family: Theme.fontMono
                     font.pixelSize: Theme.fontCaption
                 }
 
                 Text {
+                    id: action
                     Layout.fillWidth: true
                     text: modelData
+                    textFormat: Text.PlainText
                     color: Theme.ink
                     font.family: Theme.fontSans
                     font.pixelSize: Theme.fontBody
-                    elide: Text.ElideRight
+                    wrapMode: Text.Wrap
                 }
             }
         }
@@ -60,7 +62,7 @@ ColumnLayout {
 
         GlassButton {
             objectName: "confirmPlan"
-            text: "Confirm"
+            text: "Run plan"
             primary: true
             enabled: !root.busy
             onClicked: root.confirmed()

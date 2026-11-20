@@ -9,8 +9,6 @@ GlassSurface {
     required property var backend
     readonly property var snapshot: backend.notifications
     radius: Theme.radiusPanel
-    tintTop: "#f01b2844"; tint: "#f0081123"
-    glowColor: Theme.cyan; secondaryColor: Theme.violet
     focus: true
     function send(request) { backend.send({op:"notifications",request:request}); }
     Keys.onEscapePressed: root.send({action:"close"})

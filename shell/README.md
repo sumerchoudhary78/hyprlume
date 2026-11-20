@@ -8,16 +8,14 @@ shell/
 ├── design-preview.qml        explicitly labelled sample-data preview / QA entry
 ├── ipc-test.qml              actual daemon subscription smoke entry
 ├── assets/
-│   ├── backgrounds/          generated room plate
-│   ├── mascot/               transparent assistant art
-│   ├── data/                 attributed public-domain world geometry
+│   ├── backgrounds/          default wallpaper and lock background
 │   └── shaders/              GLSL sources, portable bytecode and hash manifest
-├── components/               shared glass, icons, gauges, buttons and charts
+├── components/               shared materials, controls, icons and charts
 ├── models/                   derived presentation state, without IPC/processes
 ├── modules/
-│   ├── scene/                wallpaper, Qt Quick 3D view and geometry generation
-│   ├── home/                 dashboard composition, console, cards and action deck
-│   ├── topbar/               bar content and navigation primitives
+│   ├── scene/                wallpaper and background surface
+│   ├── home/                 dashboard, command editor, workspaces and metrics
+│   ├── topbar/               per-output status bar and entry points
 │   ├── command/              panel composition, editor, plan review and overlay
 │   ├── connectivity/         Wi-Fi, Bluetooth and modal pairing prompts
 │   ├── notifications/        centre, shared notice cards and non-focusing popups
@@ -31,12 +29,12 @@ shell/
 
 Visual modules receive small service interfaces as required properties. This
 lets the **same** widget tree run with live services or explicit test fixtures.
-Services own IPC/processes; components own presentation. Geometry belongs in
-`modules/scene/Geometry.js`, composition landmarks in `Dashboard.qml`, shared
-style in `theme`, and asset provenance alongside assets.
+Services own IPC and processes. `Dashboard.qml` owns the responsive layout.
+The shared appearance tokens are in `theme`, and provenance is in
+[the asset catalog](assets/README.md).
 
-`models/CommandState.qml` derives busy/review/voice state from a snapshot for
-the console, agent, command graph and command panel. `CommandEntry.qml` owns
+`models/CommandState.qml` derives busy, review and voice state for
+the dashboard editor and command panel. `CommandEntry.qml` owns
 local input/focus and emits submitted text; `PlanReview.qml` displays actions
 and emits confirm/dismiss signals. `CommandPanel.qml` composes those pieces
 and maps their intent to the existing protocol. None of the editor/review
@@ -67,4 +65,4 @@ requests. The session review has its own token; it never sends an agent command.
 
 Run `python3 scripts/check-qml.py shell` for static checks. Rendering, input QA,
 scaling, layers and reduced effects are documented in
-[the desktop guide](../docs/homescreen.md).
+[the desktop guide](../docs/homescreen.md) and [UI design record](../docs/design/shell-ui.md).

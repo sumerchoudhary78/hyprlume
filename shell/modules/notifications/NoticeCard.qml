@@ -9,10 +9,7 @@ GlassSurface {
     property bool popupView: false
     signal request(var action)
     implicitHeight: content.implicitHeight + 30
-    radius: 19; glowing: popupView
-    tintTop: "#f01b2844"; tint: "#ef081225"
-    secondaryColor: notice.urgency === 2 ? Theme.rose : Theme.violet
-    glowColor: notice.urgency === 2 ? Theme.amber : Theme.cyan
+    radius: 19
     function send(action, extra) {
         root.request(Object.assign({action:action,"id":root.notice.id,revision:root.notice.revision}, extra || {}));
     }
