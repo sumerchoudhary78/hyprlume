@@ -18,6 +18,26 @@ def run(driver):
         assert name not in driver.controls, f'{name} leaked onto the idle desktop'
     for name in ('openOverview', 'openLauncher', 'quickCommand', 'openNotifications', 'quickSettings'):
         assert driver.controls[name]['inside'], f'{name} is outside the bar'
+    driver.wait_stable_controls('homeWindow0xb')
+    driver.click('homeWindow0xb')
+    assert driver.request('focus_window')['address'] == '0xb'
+    assert driver.wait_event(lambda event: event['kind'] == 'workspace')['name'] == 'Research'
+    driver.wait_controls('homeWorkspace0', False)
+    driver.click('openOverview')
+    driver.wait_stable_controls('atlasList')
+    driver.click('atlasList')
+    driver.wait_stable_controls('atlasListWindow0xd')
+    tab_to(driver, 'atlasListWindow0xd')
+    driver.xdo('key', 'Return')
+    assert driver.request('focus_window')['address'] == '0xd'
+    driver.wait_controls('closeDesktopMenu', False)
+    driver.click('openOverview')
+    driver.wait_event(lambda event: event['kind'] == 'controls'
+        and event['controls'].get('workspaceRow2', {}).get('activeFocus'))
+    driver.xdo('key', 'Home', 'Right', 'Left', 'Return')
+    assert driver.wait_event(lambda event: event['kind'] == 'workspace')['name'] == 'Development'
+    driver.wait_controls('expandAtlas')
+    print('PASS the atlas focuses exact windows from a map or keyboard list and returns to an empty workspace')
     driver.click('quickCommand'); driver.request('toggle'); driver.wait_controls('commandInput')
     driver.xdo('type', '--clearmodifiers', '--delay', '25', 'workspace 2'); driver.xdo('key', 'Return')
     r = driver.request('command')
@@ -52,6 +72,7 @@ def run(driver):
     driver.wait_controls('closeDesktopMenu', False)
     driver.click('openOverview')
     driver.wait_stable_controls('consoleInput')
+    tab_to(driver, 'consoleInput')
     driver.click('consoleInput')
     driver.xdo('type', '--clearmodifiers', 'volume 20')
     driver.wait_stable_controls('consolePreview')
@@ -64,6 +85,7 @@ def run(driver):
     print('PASS the Overview editor submits through the same preview and review flow')
     driver.click('openOverview')
     driver.wait_stable_controls('launcherterminal')
+    tab_to(driver, 'launcherterminal')
     driver.click('launcherterminal')
     request = driver.request('command')
     assert request['text'] == 'launch terminal' and request['dry_run'] is True, request

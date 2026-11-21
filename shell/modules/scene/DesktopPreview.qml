@@ -14,6 +14,14 @@ Item {
     property bool presentation: false
 
     Wallpaper { id: backgroundImage; anchors.fill: parent }
+    Loader {
+        anchors.fill: parent
+        active: !!root.workspaces.focused && root.workspaces.countFor(root.workspaces.focused) === 0
+            && !root.shellState.menu && !root.shellState.servicePanelOpen && !root.shellState.locked
+        sourceComponent: AtlasLanding {
+            workspaces: root.workspaces; currentWorkspace: root.workspaces.focused; shellState: root.shellState
+        }
+    }
     BarContent {
         id: bar
         anchors { left: parent.left; right: parent.right; top: parent.top }

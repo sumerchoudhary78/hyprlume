@@ -2,7 +2,9 @@
 
 | Asset | Origin | Use |
 | --- | --- | --- |
-| `backgrounds/first-light.jpg` | Generated with ImageGen and encoded as JPEG | Default desktop wallpaper |
+| `backgrounds/caldera.jpg` | Generated with ImageGen and encoded as JPEG | Default atlas wallpaper |
+| `fonts/instrument-serif/InstrumentSerif-Regular.ttf` | Instrument Serif, distributed through Google Fonts under the [SIL Open Font License](fonts/instrument-serif/OFL.txt) | Atlas heading |
+| `backgrounds/first-light.jpg` | Generated with ImageGen and encoded as JPEG | Earlier alpine wallpaper |
 | `backgrounds/tidal-eclipse.jpg` | Generated with ImageGen and encoded as JPEG | v0.6.0 coastal wallpaper |
 | `backgrounds/observatory.png` | Generated from the user's supplied visual reference | Original observatory wallpaper |
 | `mascot/pilot.png` | Generated with the built-in imagegen tool | Original transparent assistant art |

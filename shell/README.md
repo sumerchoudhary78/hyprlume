@@ -14,7 +14,7 @@ shell/
 ├── models/                   derived presentation state, without IPC/processes
 ├── modules/
 │   ├── scene/                wallpaper and background surface
-│   ├── home/                 Overview and Quick Settings
+│   ├── home/                 workspace atlas and Quick Settings
 │   ├── topbar/               per-output status bar and entry points
 │   ├── command/              panel composition, editor, plan review and overlay
 │   ├── connectivity/         Wi-Fi, Bluetooth and modal pairing prompts
@@ -34,7 +34,7 @@ The shared appearance tokens are in `theme`, and provenance is in
 [the asset catalog](assets/README.md).
 
 `models/CommandState.qml` derives busy, review and voice state for
-the Overview editor and command panel. `CommandEntry.qml` owns
+the atlas command editor and command panel. `CommandEntry.qml` owns
 local input/focus and emits submitted text; `PlanReview.qml` displays actions
 and emits confirm/dismiss signals. `CommandPanel.qml` composes those pieces
 and maps their intent to the existing protocol. None of the editor/review

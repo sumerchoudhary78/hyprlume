@@ -24,7 +24,15 @@ ShellRoot {
         localeName: backendService.settings.values.preferences.desktop.locale.split(/[.@]/)[0]
     }
     Metrics { id: metrics; active: !backendService.locking.active && backendService.settings.values.preferences.appearance.metrics && shellState.menu === "overview" }
-    Workspaces { id: workspaces }
+    Workspaces {
+        id: workspaces
+        atlasVisible: !shellState.locked && !shellState.servicePanelOpen && (shellState.menu === "overview"
+            || (!shellState.menu && (root.preview ? (!!focused && countFor(focused) === 0)
+                : Quickshell.screens.some(screen => {
+                    const workspace = activeOn(screen);
+                    return !!workspace && countFor(workspace) === 0;
+                }))))
+    }
     ShellState { id: shellState; backend: backendService }
     IpcHandler {
         target: "desktop"

@@ -120,11 +120,12 @@ The primary desktop surfaces use these Wayland layer roles.
 | --- | --- |
 | `hyprlume-wallpaper` | persistent background, one per monitor |
 | `hyprlume-bar` | top bar, one per monitor |
-| `hyprlume-desktop-menu` | Overview or Quick Settings |
+| `hyprlume-desktop-menu` | Expanded workspace atlas or Quick Settings |
 | `hyprlume-command` | command panel overlay |
 
-The desktop wallpaper uses `hyprlume-wallpaper` on the Background layer with an
-empty input region. It persists behind apps and does not reserve screen space.
+The desktop wallpaper uses `hyprlume-wallpaper` on the Background layer.
+It accepts pointer input over the empty workspace's atlas controls and yields
+the entire output to applications when the workspace is occupied.
 An open menu on an empty workspace can sample this wallpaper for its glass effect.
 
 For optional blur behind the bar, command and Connections overlays on Lua Hyprland:

@@ -12,31 +12,38 @@ actions. [HyprPilot](https://github.com/sumerchoudhary78/HyprPilot)
 
 ## Desktop preview
 
-Each monitor has a single status bar that reserves 40 logical pixels at the default
-scale. First Light is the default wallpaper. You can choose your own in **Settings
-→ Desktop**. These screenshots show the shell from this checkout with sample session data.
+An empty workspace shows a map of your open windows. Click the right-hand tile
+in a split workspace to jump straight to the window on the right. Click a
+workspace name to switch to it. The map clears when you start working.
+These screenshots use the native shell with sample session data.
 
-![Hyprlume showing the First Light alpine wallpaper, workspace button, clock and status icons](docs/design/first-light-desktop.webp)
+![Hyprlume workspace atlas with four workspace maps beside a copper and teal relief landscape](docs/design/atlas-desktop.webp)
 
-| Overview | Quick Settings |
+Watch the map follow a changing split and jump to the window under the pointer.
+[12-second demo with two live windows](docs/design/atlas-window-switch.webp)
+
+| Workspace atlas | Quick Settings |
 | --- | --- |
-| [![Overview showing workspace names, window counts, command entry and system readings](docs/design/first-light-overview.webp)](docs/design/first-light-overview.webp) | [![Quick Settings showing the volume slider, connections, microphone and session controls](docs/design/first-light-controls.webp)](docs/design/first-light-controls.webp) |
-| Click the workspace name to switch workspaces, preview a command or inspect system readings. | Click the status icons to adjust volume, manage connections, toggle the microphone or lock the session. |
+| [![Expanded workspace atlas with scaled window layouts and a keyboard window list](docs/design/atlas-open.webp)](docs/design/atlas-open.webp) | [![Quick Settings showing volume, connections and session controls](docs/design/atlas-controls.webp)](docs/design/atlas-controls.webp) |
+| Click the workspace name in the bar to open the full map over an app. Arrow keys select a workspace. Enter switches to it. **Window list** lets you select a window by title. | Click the status icons to adjust volume, manage connections, toggle the microphone or lock the session. |
 
 **Apps** opens a keyboard-driven search for applications and windows. **Command**
 opens the command palette. Click the clock for notifications. While the microphone
 or screen recorder is active, you can stop it directly from the bar.
 
-The starter session binds `Super+W` to Overview and `Super+,` to Quick Settings
-when those shortcuts are free. Press `Esc` to dismiss either menu.
+The starter session binds `Super+W` to the atlas and `Super+,` to Quick Settings
+when those shortcuts are free. Press `Esc` to dismiss either. Change the
+Caldera wallpaper in **Settings → Desktop**.
 [Desktop guide](docs/homescreen.md) · [Design research](docs/design/shell-ui.md)
 
 ### Try the desktop in a window
 
-From the repository root on Linux with Quickshell installed, run the interactive
-sample session. It uses simulated devices and workspaces.
+On Linux with Quickshell installed, run the interactive sample session from
+the atlas checkout. It uses simulated devices and workspaces.
 
 ```sh
+git clone --branch codex/workspace-atlas https://github.com/sumerchoudhary78/hyprlume.git
+cd hyprlume
 quickshell -p ./shell/design-preview.qml
 ```
 
@@ -199,8 +206,9 @@ Quickshell / QML ← private Unix socket → Rust daemon
                                              └─ bounded audio worker → wake / ASR / Piper
 ```
 
-The wallpaper and bar stay on each output. Opening Overview starts the optional
-system sampler and closing it stops the process. The clock updates once a minute.
+The wallpaper and 40-pixel bar stay on each output. The atlas reads window
+positions and sizes from Hyprland while a map with windows is visible. The
+expanded atlas also starts the optional system sampler. The clock updates once a minute.
 Menus over an empty workspace can sample the wallpaper for their glass effect.
 Run `HYPRLUME_REDUCED_EFFECTS=1 hyprlume shell` to use solid menu backgrounds
 and disable their entrance animation. Wireless state follows D-Bus events.

@@ -26,3 +26,9 @@ half keeps the workspace title readable. The image contains scenery only.
 ## First Light wallpaper
 
 The source image is a 1672×941 ImageGen landscape, bundled as a JPEG. The brief called for a telephoto view of a granite peak east of center in apricot alpenglow, with successive slate ridges disappearing into lavender mist on the left. The mountain and sky fill the frame so the image can be cropped across monitor shapes.
+
+## Caldera wallpaper
+
+The built-in ImageGen tool generated this 1672×941 image. The bundled JPEG is [caldera.jpg](../../shell/assets/backgrounds/caldera.jpg). The interactive maps are drawn by Qt Quick.
+
+> Wide 16:9 full-bleed native Linux desktop wallpaper. A dramatic, tactile topographic relief sculpture of an imaginary volcanic island seen overhead with a slight oblique angle, as if a master printmaker layered hand-cut sheets of very dark petrol, oxidized teal, faded sea-green, brass and brilliant burnt-orange copper paper on the surface of a midnight survey atlas. One large asymmetric crater and sinuous step-cut ridges in the RIGHT half, cropped by the right edge, bright copper catching precise low raking light at the crest. Thick dark silhouettes and beautiful honest edges, fine etched contour lines tracing the surrounding terrain, fine-grained dark ink on matte stock. The LEFT 52% is open, deep, nearly black petroleum-blue negative space with at most a few extremely faint contour lines at the edges, suitable for live UI set over it. The bottom-left area stays dark too. Chart-like but spare, thoughtfully composed, distinctive material photography, warm vs cool restrained palette, confident high contrast, gallery art direction. No mountain horizon, no lettering, no coordinate numbers, no icons, no markers, no compass, no grid, no diagram panels, no software UI, no logos, no frames or floating interface pieces. Landscape edge to edge, wide 16:9.

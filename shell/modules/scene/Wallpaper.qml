@@ -25,7 +25,7 @@ Item {
         height: implicitHeight * cover
         source: root.custom
             ? "file://" + root.customPath.split("/").map(part => encodeURIComponent(part)).join("/")
-            : "../../assets/backgrounds/first-light.jpg"
+            : "../../assets/backgrounds/caldera.jpg"
         sourceSize: root.custom || root.sampleOnly ? Qt.size(root.decodeLimit, root.decodeLimit) : Qt.size(-1, -1)
         onStatusChanged: if (status === Image.Error && root.custom) root.failed = true
         asynchronous: true

@@ -1,26 +1,25 @@
-# Desktop design
+# Workspace atlas
 
-In the v0.6.0 desktop render, the active workspace name appears in the heading, in the workspace list and again in the latest command receipt. The command editor, starter commands, agent status and three hardware meters are visible before the user has a task. The current design gives that space back to the wallpaper. The bar names the active workspace, offers Apps and Command, and makes notifications and system controls available over a tiled window. [v0.6.0 desktop render](https://github.com/sumerchoudhary78/hyprlume/blob/v0.6.0/docs/design/shell-preview.webp)
+The First Light desktop put workspace names behind a button. The atlas brings the arrangement of the windows themselves onto an empty workspace. A browser beside a narrow notes window is a different target from three tiled terminals, even before you read their titles. [Earlier desktop](first-light-desktop.webp) · [Atlas desktop](atlas-desktop.webp)
 
-## What informed the changes
+## Finding a window
 
-| Design question | Evidence and decision |
-| --- | --- |
-| What deserves a permanent place on screen? | GNOME puts windows and applications in an overview and uses the top bar for access to that overview, notifications and system settings. Hyprlume keeps its distinctive command entry one click away. The workspace button opens a sheet that closes as soon as the user chooses a workspace. [GNOME desktop overview](https://help.gnome.org/gnome-help/shell-introduction.html) |
-| Where should the hardware controls go? | KDE recommends grouping related controls and prioritizing frequent actions. The previous bar exposed nine system buttons at once. Quick Settings now offers output volume and mute directly, alongside named destinations for Connections, Sound, Desktop tools and the app tray. Reaching a detailed device panel costs a second click. [KDE guidance on simplifying controls](https://develop.kde.org/hig/simple_by_default/) |
-| Which state changes need attention? | KDE recommends using color selectively and pairing it with a shape or text. Active voice capture and screen recording get dedicated stop controls in the bar. The current workspace has a check mark, and Quick Settings spells out the microphone and Do Not Disturb states. [KDE status guidance](https://develop.kde.org/hig/status_changes/) |
-| What happens when the monitor gets narrower? | GNOME recommends full keyboard operation. W3C describes a minimum pointer target of 24 CSS pixels or equivalent spacing. Using that as a reference, the smallest Qt bar buttons measure 34 by 40 logical pixels at the default scale. Labels and optional readings collapse first. The menus scroll and keyboard focus reveals controls below the fold. [GNOME keyboard guidance](https://developer.gnome.org/hig/guidelines/keyboard.html) · [W3C target size](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html) |
+Click a shape to focus that exact window. Click a workspace label or the background of its map to switch workspaces. The current workspace has a copper outline and a text label. The empty desktop shows as many maps as fit. Open the atlas from the bar or its own button to see every workspace over an application. [Expanded atlas](atlas-open.webp)
 
-## Materials and rendering
+The expanded view initially focuses the current workspace. The arrow keys move between maps, Home and End jump to the ends, and Enter switches workspaces. The window list also lets you reach small or overlapping windows by title. Window shapes require a pointer target of at least 24 logical pixels in each dimension. Small shapes remain visible. [GNOME keyboard guidance](https://developer.gnome.org/hig/guidelines/keyboard.html) · [W3C target-size guidance](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html)
 
-First Light is a locally bundled alpine landscape with warm highlights and a dark foreground. People who have selected a wallpaper continue to see their own image. The bar and sheets provide their own dark background for text. High contrast uses opaque surfaces and brighter outlines. Inter is the interface face, and JetBrains Mono is used for numeric readouts. [Asset origins](../../shell/assets/README.md) · [Contrast guidance](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html)
+The status bar keeps Apps and Command one click away, with recording and microphone stop controls visible while active. Quick Settings groups the device and session controls. [Quick Settings](atlas-controls.webp) · [KDE guidance on grouping controls](https://develop.kde.org/hig/simple_by_default/)
 
-Quickshell provides per-output panels, Wayland keyboard focus, live workspace objects and native audio. The idle desktop owns a background surface and a 40-logical-pixel bar per output at default scale. Opening a menu creates one overlay on the selected output. Only an open menu over an empty workspace can sample the wallpaper for glass, and opening Overview starts the optional metrics sampler. [Quickshell monitor API](https://quickshell.org/docs/v0.3.0/types/Quickshell.Hyprland/HyprlandMonitor/) · [Quickshell exclusion modes](https://quickshell.org/docs/v0.3.0/types/Quickshell/ExclusionMode/)
+## Drawing the map
 
-## Reviewing the result
+Hyprland supplies the workspace, application, title and rectangle for each window. Window rectangles are converted to the output's logical coordinates, clipped to its edges, and drawn at the output's aspect ratio. Floating windows appear above tiled windows. Entries with missing geometry remain available by title. Focusing a window uses Hyprlume's existing address-based command, which checks that the target still exists and that the compositor focused it. [Quickshell window API](https://quickshell.org/docs/v0.3.0/types/Quickshell.Hyprland/HyprlandToplevel/) · [Quickshell monitor API](https://quickshell.org/docs/v0.3.0/types/Quickshell.Hyprland/HyprlandMonitor/)
 
-These captures use the production QML with sample session data. [Idle desktop](first-light-desktop.webp) · [Overview](first-light-overview.webp) · [Quick Settings](first-light-controls.webp)
+Quickshell exposes window rectangles through its last IPC snapshot. A single refresh runs every 1.8 seconds while a map and at least one window are present. Hiding every map stops that timer. The atlas uses metadata, so it needs no live screenshots or screen-sharing permission. The wallpaper surface accepts pointer events only over the controls on an empty workspace. [Quickshell refresh API](https://quickshell.org/docs/v0.3.0/types/Quickshell.Hyprland/Hyprland/)
 
-The desktop guide includes commands for opening each view, rendering at different scales and running the keyboard and pointer checks. [Desktop guide](../homescreen.md)
+Caldera is a cut-paper relief in petrol, teal and copper. The serif heading is Instrument Serif. App names and controls use the shell's normal text faces. The atlas also works with a custom wallpaper, high contrast and reduced effects. [Asset sources and licenses](../../shell/assets/README.md)
 
-The bar layout test covers 17 widths at two shell scales, with a long workspace name, a 12-hour clock, an active microphone and a screen recording. A two-output headless Wayland session also verified that opening Overview over a tiled app preserves the bar reservation and that dismissing it stops the system sampler.
+## Verification
+
+The design previews use labeled sample data. Native pointer and keyboard checks cover choosing a window from a map and from the title list, returning to an empty workspace and using the compact layout. Geometry tests cover fractional scaling, rotation, clipping and negative monitor origins. [Run the checks](../homescreen.md)
+
+The interaction demo captures two live terminal windows on headless Sway. A test adapter translates their positions and focus events into Hyprland's IPC format. Resizing the editor changes its footprint, clicking the other tile focuses the terminal through the Rust daemon, and closing the editor expands the remaining tile. GPU rendering on a physical Hyprland session still needs verification. [Watch the window switch](atlas-window-switch.webp)

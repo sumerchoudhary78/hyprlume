@@ -28,12 +28,12 @@ Rectangle {
 
         PanelButton {
             objectName: "openOverview"
-            text: root.narrow ? "" : root.workspaceLabel || "Overview"
+            text: root.narrow ? "" : root.workspaceLabel || "Atlas"
             maximumWidth: status.x - navigation.x - separator.width - launcher.width - command.width
                 - navigation.spacing * 3 - clockButton.timeWidth - clockButton.gap * 2
             iconName: "hyprlume"
-            iconColor: Theme.cyan
-            tooltip: root.workspaceLabel ? "Workspace overview · " + root.workspaceLabel : "Workspace overview"
+            iconColor: Theme.atlasCopper
+            tooltip: root.workspaceLabel ? "Workspace atlas · " + root.workspaceLabel : "Workspace atlas"
             showChevron: !root.narrow
             enabled: !root.shellState.servicePanelOpen && !root.shellState.locked
             selected: root.shellState.menu === "overview" && root.shellState.panelScreen === root.outputScreen
