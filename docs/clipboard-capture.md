@@ -1,6 +1,6 @@
 # Clipboard and screen capture
 
-Open the tools button in the bar, `hyprlume clipboard` or `hyprlume capture`.
+Open **Quick settings → Desktop tools** or use `hyprlume clipboard` or `hyprlume capture`.
 These surfaces share the glass theme and do not require the AI planner.
 
 ## Text clipboard history

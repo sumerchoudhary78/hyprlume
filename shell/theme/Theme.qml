@@ -3,8 +3,7 @@ pragma Singleton
 import QtQuick
 import Quickshell
 
-// Shared palette, typography and interaction timing. Spatial landmarks live
-// together in Dashboard.qml; component geometry stays with its component.
+// Shared palette, typography and interaction timing.
 //
 // Sizes are logical pixels for a 1920x1080 workspace. Hyprland already applies
 // the monitor scale factor, so a 4K screen at scale 2 needs no extra maths.
@@ -26,9 +25,9 @@ Singleton {
     property bool highContrast: false
     property string wallpaperPath: ""
 
-    readonly property color ink: highContrast ? "#ffffff" : "#eef6f7"
-    readonly property color inkDim: highContrast ? "#f0f6f7" : "#b5c7cf"
-    readonly property color inkFaint: highContrast ? "#e1f0f4" : "#9db2bd"
+    readonly property color ink: highContrast ? "#ffffff" : "#f4f2f5"
+    readonly property color inkDim: highContrast ? "#f0f6f7" : "#c8c5d0"
+    readonly property color inkFaint: highContrast ? "#e1f0f4" : "#aba8b6"
 
     property string accentName: "cyan"
     readonly property color cyan: accentName === "violet" ? "#bba6ff" : accentName === "mint" ? "#94eab9" : "#8ce3ea"
@@ -37,20 +36,20 @@ Singleton {
     readonly property color mint: "#68f0b1"
     readonly property color rose: "#ff8f9e"
 
-    readonly property color glassTop: highContrast ? "#0b1115" : "#1a2932"
-    readonly property color glass: highContrast ? "#080d11" : "#111e27"
-    readonly property color glassDeep: highContrast ? "#080d11" : "#111e27"
-    readonly property color glassInset: highContrast ? "#080d11" : "#800a141c"
-    readonly property color bar: highContrast ? "#090f13" : "#f20d1922"
-    readonly property color field: highContrast ? "#05090c" : "#0a151d"
-    readonly property color control: highContrast ? "#18252b" : "#14212b"
+    readonly property color glassTop: highContrast ? "#0b1115" : "#28272f"
+    readonly property color glass: highContrast ? "#080d11" : "#201f26"
+    readonly property color glassDeep: highContrast ? "#080d11" : "#201f26"
+    readonly property color glassInset: highContrast ? "#080d11" : "#8015141b"
+    readonly property color bar: highContrast ? "#090f13" : "#fa201f26"
+    readonly property color field: highContrast ? "#05090c" : "#19181e"
+    readonly property color control: highContrast ? "#18252b" : "#33313b"
     readonly property color selection: Qt.rgba(cyan.r, cyan.g, cyan.b, highContrast ? 0.22 : 0.12)
     readonly property color onAccent: "#0b191f"
     readonly property color focusRing: highContrast ? "#ffffff" : cyan
 
-    readonly property color rim: Qt.rgba(0.70, 0.84, 0.88, highContrast ? 0.85 : 0.22)
-    readonly property color rimStrong: Qt.rgba(0.72, 0.90, 0.94, highContrast ? 0.96 : 0.49)
-    readonly property color divider: Qt.rgba(0.72, 0.84, 0.89, highContrast ? 0.54 : 0.15)
+    readonly property color rim: Qt.rgba(0.83, 0.81, 0.87, highContrast ? 0.85 : 0.23)
+    readonly property color rimStrong: Qt.rgba(0.88, 0.86, 0.92, highContrast ? 0.96 : 0.50)
+    readonly property color divider: Qt.rgba(0.83, 0.81, 0.87, highContrast ? 0.54 : 0.16)
 
     readonly property color hover: Qt.rgba(1, 1, 1, 0.06)
     readonly property color pressed: Qt.rgba(1, 1, 1, 0.10)
@@ -84,7 +83,7 @@ Singleton {
     readonly property int gapTight: px(6)
     readonly property int margin: px(20)
 
-    readonly property int barHeight: px(54)
+    readonly property int barHeight: px(40)
     readonly property int barZone: barHeight
 
     readonly property int borderWidth: 1

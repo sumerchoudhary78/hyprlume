@@ -2,7 +2,8 @@
 
 | Asset | Origin | Use |
 | --- | --- | --- |
-| `backgrounds/tidal-eclipse.jpg` | Generated with the built-in imagegen tool and encoded as JPEG | Default desktop wallpaper |
+| `backgrounds/first-light.jpg` | Generated with ImageGen and encoded as JPEG | Default desktop wallpaper |
+| `backgrounds/tidal-eclipse.jpg` | Generated with ImageGen and encoded as JPEG | v0.6.0 coastal wallpaper |
 | `backgrounds/observatory.png` | Generated from the user's supplied visual reference | Original observatory wallpaper |
 | `mascot/pilot.png` | Generated with the built-in imagegen tool | Original transparent assistant art |
 | `data/WorldMap.js` | Natural Earth 1:110m land geometry, rounded coordinates and sampled land points | Original globe asset |

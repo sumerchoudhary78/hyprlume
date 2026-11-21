@@ -2,6 +2,7 @@
 
 
 def run(driver):
+    driver.open_quick_settings()
     driver.wait_controls('openConnectivity')
     assert driver.controls['openConnectivity']['inside'], "Wi-Fi and Bluetooth button is clipped"
     driver.focus_window()

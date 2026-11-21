@@ -1,7 +1,6 @@
 # Application tray
 
-Open the collapsed application tray from the
-grid button in the bar or `hyprlume tray` in a matching development build.
+Open **Quick settings → App tray** or run `hyprlume tray` in a matching development build.
 The glass panel shows active StatusNotifier application icons and their menus.
 Passive items are hidden; attention items get a static badge.
 

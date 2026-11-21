@@ -4,7 +4,7 @@
 shell/
 ├── shell.qml                 services and live/ordinary-window host selection
 ├── DesktopShell.qml          per-output wallpaper/bar, focused home, command layer
-├── PreviewWindow.qml         ordinary-window host for the same live dashboard
+├── PreviewWindow.qml         ordinary-window host for the live desktop
 ├── design-preview.qml        explicitly labelled sample-data preview / QA entry
 ├── ipc-test.qml              actual daemon subscription smoke entry
 ├── assets/
@@ -14,7 +14,7 @@ shell/
 ├── models/                   derived presentation state, without IPC/processes
 ├── modules/
 │   ├── scene/                wallpaper and background surface
-│   ├── home/                 dashboard, command editor, workspaces and metrics
+│   ├── home/                 Overview and Quick Settings
 │   ├── topbar/               per-output status bar and entry points
 │   ├── command/              panel composition, editor, plan review and overlay
 │   ├── connectivity/         Wi-Fi, Bluetooth and modal pairing prompts
@@ -29,12 +29,12 @@ shell/
 
 Visual modules receive small service interfaces as required properties. This
 lets the **same** widget tree run with live services or explicit test fixtures.
-Services own IPC and processes. `Dashboard.qml` owns the responsive layout.
+Services own IPC and processes. `DesktopMenu.qml` presents the same sheets in both window types.
 The shared appearance tokens are in `theme`, and provenance is in
 [the asset catalog](assets/README.md).
 
 `models/CommandState.qml` derives busy, review and voice state for
-the dashboard editor and command panel. `CommandEntry.qml` owns
+the Overview editor and command panel. `CommandEntry.qml` owns
 local input/focus and emits submitted text; `PlanReview.qml` displays actions
 and emits confirm/dismiss signals. `CommandPanel.qml` composes those pieces
 and maps their intent to the existing protocol. None of the editor/review

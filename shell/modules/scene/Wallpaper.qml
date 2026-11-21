@@ -25,20 +25,12 @@ Item {
         height: implicitHeight * cover
         source: root.custom
             ? "file://" + root.customPath.split("/").map(part => encodeURIComponent(part)).join("/")
-            : "../../assets/backgrounds/tidal-eclipse.jpg"
+            : "../../assets/backgrounds/first-light.jpg"
         sourceSize: root.custom || root.sampleOnly ? Qt.size(root.decodeLimit, root.decodeLimit) : Qt.size(-1, -1)
         onStatusChanged: if (status === Image.Error && root.custom) root.failed = true
         asynchronous: true
         retainWhileLoading: true
         cache: true
         smooth: true
-    }
-    Rectangle {
-        anchors.fill: parent
-        gradient: Gradient {
-            GradientStop { position: 0; color: "#09040a16" }
-            GradientStop { position: 0.5; color: "#12020a19" }
-            GradientStop { position: 1; color: "#30020711" }
-        }
     }
 }

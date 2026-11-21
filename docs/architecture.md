@@ -87,15 +87,13 @@ the serial idle queue to avoid deadlocking logind's PrepareForSleep signal.
 Power's manual and automatic suspend paths share a compositor-confirmed lock
 guard. See [idle/sleep](idle-sleep.md) for the limits of external sleep hooks.
 
-Quickshell renders ten layer-shell surface roles and one ordinary window for
-preview:
+Quickshell provides layer-shell surfaces and an ordinary preview window.
 
 - `hyprlume-wallpaper`, one per monitor, Background layer with no input region.
 - `hyprlume-bar`, one per monitor, `WlrLayer.Top`, reserves its scaled visible height at the top
   so Hyprland tiles windows below it.
-- `hyprlume-home`, one on the focused monitor, `WlrLayer.Bottom`. It maps only
-  while the focused workspace has no windows and unmaps otherwise, so an
-  ordinary windowed session pays no rendering cost for it.
+- `hyprlume-desktop-menu`, one overlay for Overview or Quick Settings on the
+  requested output. Dismissal releases keyboard focus and destroys the layer.
 - `hyprlume-command`, `WlrLayer.Overlay` with exclusive keyboard focus, loaded
   only while `snapshot.panel_open` is true.
 - `hyprlume-connectivity`, a separate Overlay loaded only while Connections is
@@ -119,8 +117,8 @@ the reconnecting subscription; `services/Workspaces.qml` wraps Hyprland state;
 `ShellState` are local. Modules receive these as required properties, which keeps
 every panel usable in isolation and previewable without a daemon.
 
-The command card can sample the local wallpaper within QML. Reduced effects,
-high contrast, and a scrolling dashboard use the solid surface. Utility
+Menus over empty workspaces can sample the local wallpaper. Reduced effects,
+high contrast and menus over apps use the solid surface. Utility
 windows render with the same palette and native Qt Quick controls. See
 [homescreen](homescreen.md) for composition and responsiveness.
 

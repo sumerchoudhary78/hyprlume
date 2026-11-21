@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Controls
 import qs.components
 import qs.theme
 
@@ -7,220 +6,173 @@ Rectangle {
     id: root
     required property var backend
     required property var clock
+    required property var shellState
+    property var outputScreen: null
+    property string workspaceLabel: ""
 
-    readonly property int side: Theme.px(width >= Theme.px(720) ? 24 : 12)
-    readonly property int iconSize: Theme.px(18)
-    readonly property int target: Theme.px(36)
-    readonly property int band: Theme.barHeight
-    readonly property bool compact: width < Theme.px(840)
-    readonly property bool stacked: width < nav.implicitWidth + systemControls.naturalWidth + side * 2
-        + time.implicitWidth + Theme.px(24)
-
-    implicitHeight: band + (stacked ? systemControls.implicitHeight + Theme.px(9) : 0)
+    readonly property bool compact: width < Theme.px(760)
+    readonly property bool narrow: width < Theme.px(540)
+    readonly property int inset: Theme.px(compact ? 6 : 16)
+    implicitHeight: Theme.barHeight
     color: Theme.bar
 
-    function togglePanel(panel) {
-        backend.send({op: "panel", panel: panel, open: backend.snapshot.desktop_panel !== panel});
-    }
-
-    Rectangle {
-        anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
-        height: 1
-        color: Theme.divider
+    component PanelButton: BarButton {
+        focusPolicy: root.shellState.menu || root.shellState.servicePanelOpen ? Qt.NoFocus : Qt.TabFocus
     }
 
     Row {
-        id: nav
+        id: navigation
         anchors.left: parent.left
-        anchors.leftMargin: root.side
-        y: (root.band - height) / 2
-        spacing: Theme.px(7)
+        anchors.leftMargin: root.inset
+        spacing: Theme.px(2)
 
-        Brand {
+        PanelButton {
+            objectName: "openOverview"
+            text: root.narrow ? "" : root.workspaceLabel || "Overview"
+            maximumWidth: status.x - navigation.x - separator.width - launcher.width - command.width
+                - navigation.spacing * 3 - clockButton.timeWidth - clockButton.gap * 2
+            iconName: "hyprlume"
+            iconColor: Theme.cyan
+            tooltip: root.workspaceLabel ? "Workspace overview · " + root.workspaceLabel : "Workspace overview"
+            showChevron: !root.narrow
+            enabled: !root.shellState.servicePanelOpen && !root.shellState.locked
+            selected: root.shellState.menu === "overview" && root.shellState.panelScreen === root.outputScreen
+            onClicked: root.shellState.toggleMenu("overview", root.outputScreen)
+        }
+        Rectangle {
+            id: separator
             anchors.verticalCenter: parent.verticalCenter
-            compact: root.width < Theme.px(540)
+            width: 1; height: Theme.px(15)
+            color: Theme.divider
         }
-
-        Item {
-            width: Theme.px(9)
-            height: 1
-            visible: !root.compact
-        }
-
-        GlassButton {
+        PanelButton {
+            id: launcher
             objectName: "openLauncher"
-            iconName: "system-search"
             text: root.compact ? "" : "Apps"
-            quiet: true
-            height: root.target
-            Accessible.name: "Open application and window search"
-            ToolTip.visible: hovered && root.compact
-            ToolTip.text: Accessible.name
-            ToolTip.delay: 550
-            onClicked: root.backend.send({op: "panel", panel: "launcher", open: true})
+            iconName: "grid"
+            tooltip: "Search applications and windows"
+            enabled: root.backend.online && !root.shellState.locked
+            onClicked: root.shellState.openFromBar(root.outputScreen, {op: "panel", panel: "launcher", open: true})
         }
-
-        GlassButton {
+        PanelButton {
+            id: command
             objectName: "quickCommand"
-            iconName: "utilities-terminal"
             text: root.compact ? "" : "Command"
-            height: root.target
-            Accessible.name: "Open command panel"
-            ToolTip.visible: hovered && root.compact
-            ToolTip.text: Accessible.name
-            ToolTip.delay: 550
-            onClicked: root.backend.send({op: "toggle"})
-        }
-
-        GlassButton {
-            objectName: "stopRecording"
-            visible: root.backend.capture.recording
-            iconName: "stop"
-            text: "Stop recording"
-            compact: true
-            height: root.target
-            primary: true
-            accent: Theme.rose
-            onClicked: root.backend.send({op: "capture", request: {action: "stop"}})
+            iconName: "utilities-terminal"
+            tooltip: "Open command panel"
+            enabled: root.backend.online && !root.shellState.locked
+            onClicked: root.shellState.openFromBar(root.outputScreen, {op: "toggle"})
         }
     }
 
-    Row {
-        id: dateAndTime
-        readonly property real start: nav.x + nav.width + Theme.px(12)
-        readonly property real end: (root.stacked ? root.width - root.side : systemControls.x) - Theme.px(12)
-        x: Math.max(start, Math.min((parent.width - width) / 2, end - width))
-        y: (root.band - height) / 2
-        visible: end - start >= time.implicitWidth
-        spacing: Theme.px(10)
-
-        Text {
-            id: date
-            visible: dateAndTime.end - dateAndTime.start >= date.implicitWidth + time.implicitWidth + dateAndTime.spacing
-            text: root.clock.date
-            color: Theme.inkDim
-            font.family: Theme.fontSans
-            font.pixelSize: Theme.fontCaption
-            anchors.verticalCenter: parent.verticalCenter
-        }
-
-        Text {
-            id: time
-            text: root.clock.time
-            color: Theme.ink
-            font.family: Theme.fontSans
-            font.pixelSize: Theme.px(14)
-            font.weight: Font.DemiBold
-            anchors.verticalCenter: parent.verticalCenter
-        }
-    }
-
-    Flow {
-        id: systemControls
-        readonly property int naturalWidth: children.length * root.target + Math.max(0, children.length - 1) * spacing
-        anchors.right: parent.right
-        anchors.rightMargin: root.side
-        y: root.stacked ? root.band : (root.band - height) / 2
-        width: Math.max(0, Math.min(naturalWidth, root.width - root.side * 2))
-        spacing: Theme.px(4)
-
-        IconTile {
-            objectName: "openConnectivity"
-            iconName: "wifi"
-            size: root.target; iconSize: root.iconSize
-            quiet: true
-            tooltip: "Open Wi-Fi and Bluetooth"
-            active: root.backend.connectivity.panel_open
-            onClicked: root.backend.send({op: "connectivity", request: {action: "toggle"}})
-        }
-
-        IconTile {
-            objectName: "openAudio"
-            iconName: "audio-volume-high"
-            size: root.target; iconSize: root.iconSize
-            quiet: true
-            tooltip: "Open sound and media"
-            active: root.backend.snapshot.desktop_panel === "audio"
-            onClicked: root.togglePanel("audio")
-        }
-
-        IconTile {
-            objectName: "openNotifications"
-            iconName: "bell"
-            size: root.target; iconSize: root.iconSize
-            quiet: true
-            tooltip: root.backend.notifications.unread > 0
-                ? "Notifications · " + root.backend.notifications.unread + " unread" : "Open notifications"
-            active: root.backend.notifications.panel_open || root.backend.notifications.dnd
-            onClicked: root.backend.send({op: "notifications", request: {action: "toggle"}})
-            StatusDot {
-                anchors { right: parent.right; top: parent.top; margins: Theme.px(4) }
-                visible: root.backend.notifications.unread > 0
-                size: Theme.px(5)
-                color: Theme.amber
-                halo: false
+    PanelButton {
+        id: clockButton
+        objectName: "openNotifications"
+        readonly property real gap: Theme.px(4)
+        readonly property real timeWidth: leftPadding + rightPadding + time.implicitWidth
+            + (notificationIcon.visible ? notificationIcon.width + clockRow.spacing : 0)
+        readonly property real leftLimit: navigation.x + navigation.width + gap
+        readonly property real room: status.x - gap - leftLimit
+        x: Math.max(leftLimit, Math.min((root.width - width) / 2, status.x - gap - width))
+        tooltip: root.clock.date + " · Notifications" + (root.backend.notifications.dnd ? " · Do not disturb" :
+            root.backend.notifications.unread ? " · " + root.backend.notifications.unread + " unread" : "")
+        onClicked: root.shellState.openFromBar(root.outputScreen, {op: "notifications", request: {action: "toggle"}})
+        contentItem: Row {
+            id: clockRow
+            spacing: Theme.px(8)
+            Text {
+                id: date
+                anchors.verticalCenter: parent.verticalCenter
+                visible: clockButton.room >= implicitWidth + clockRow.spacing + clockButton.timeWidth
+                text: root.clock.date
+                color: Theme.inkDim; font.family: Theme.fontSans; font.pixelSize: Theme.px(12)
+            }
+            Text {
+                id: time
+                anchors.verticalCenter: parent.verticalCenter
+                text: root.clock.time
+                color: Theme.ink; font.family: Theme.fontSans; font.pixelSize: Theme.px(14); font.weight: Font.DemiBold
+            }
+            Icon {
+                id: notificationIcon
+                anchors.verticalCenter: parent.verticalCenter
+                visible: root.backend.online && (root.backend.notifications.unread > 0 || root.backend.notifications.dnd)
+                name: root.backend.notifications.dnd ? "moon" : "bell"
+                size: Theme.px(13)
+                color: Theme.cyan
             }
         }
+    }
 
-        IconTile {
-            objectName: "toggleVoice"
-            iconName: active ? "audio-input-microphone" : "microphone-off"
-            size: root.target; iconSize: root.iconSize
-            quiet: true
-            active: root.backend.snapshot.voice !== "off"
-            tooltip: active ? "Turn microphone off" : "Enable wake word"
-            onClicked: root.backend.send({op: "voice", mode: active ? "off" : "wake"})
+    Row {
+        id: status
+        anchors.right: parent.right
+        anchors.rightMargin: root.inset
+        spacing: Theme.px(3)
+        PanelButton {
+            objectName: "stopRecording"
+            visible: root.backend.online && root.backend.capture.recording
+            iconName: "stop"
+            text: root.compact ? "" : "Stop recording"
+            iconColor: Theme.rose
+            tooltip: "Stop screen recording"
+            onClicked: root.backend.send({op: "capture", request: {action: "stop"}})
         }
-
-        IconTile {
-            objectName: "openTray"
-            iconName: "grid"
-            size: root.target; iconSize: root.iconSize
-            quiet: true
-            tooltip: "Open application tray"
-            active: root.backend.snapshot.desktop_panel === "tray"
-            onClicked: root.togglePanel("tray")
+        PanelButton {
+            objectName: "activeMicrophone"
+            visible: root.backend.online && root.backend.snapshot.voice !== "off"
+            iconName: "audio-input-microphone"
+            iconColor: Theme.mint
+            tooltip: "Turn microphone off"
+            onClicked: root.backend.send({op: "voice", mode: "off"})
         }
-
-        IconTile {
-            objectName: "openDesktopTools"
-            iconName: "layers"
-            size: root.target; iconSize: root.iconSize
-            quiet: true
-            tooltip: "Open clipboard and screen capture"
-            active: ["clipboard", "capture", "storage"].includes(root.backend.snapshot.desktop_panel)
-            onClicked: root.backend.send({op: "panel", panel: "clipboard", open: true})
+        PanelButton {
+            objectName: "quickSettings"
+            tooltip: "Quick settings"
+            enabled: !root.shellState.servicePanelOpen && !root.shellState.locked
+            selected: root.shellState.menu === "controls" && root.shellState.panelScreen === root.outputScreen
+            onClicked: root.shellState.toggleMenu("controls", root.outputScreen)
+            contentItem: Row {
+                spacing: Theme.px(8)
+                Icon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: !root.narrow && root.backend.online && root.shellState.wifi.available
+                    name: root.shellState.connection ? "wifi" : "wifi-off"
+                    size: Theme.px(15); color: Theme.inkDim
+                }
+                Icon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: !root.narrow && root.shellState.hasSound
+                    name: root.shellState.muted ? "volume-muted" : "audio-volume-high"
+                    size: Theme.px(15); color: Theme.inkDim
+                }
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: !root.narrow && root.shellState.hasBattery
+                    text: Math.round(root.shellState.battery.percentage) + "%"
+                    font.family: Theme.fontSans; font.pixelSize: Theme.px(12); color: Theme.ink
+                }
+                Icon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    visible: !root.narrow && root.shellState.hasBattery
+                    name: root.shellState.battery.state === "charging" ? "battery-charging" : "battery"
+                    size: Theme.px(17); color: Theme.inkDim
+                    Rectangle {
+                        visible: root.shellState.hasBattery && root.shellState.battery.state !== "charging"
+                        x: parent.size * 0.19; y: parent.size * 0.36
+                        width: parent.size * 0.54 * Math.min(100, Math.max(0, root.shellState.battery.percentage)) / 100
+                        height: parent.size * 0.28; color: parent.color
+                    }
+                }
+                Icon {
+                    anchors.verticalCenter: parent.verticalCenter
+                    name: "sliders"; size: Theme.px(16); color: Theme.ink
+                }
+            }
         }
-
-        IconTile {
-            objectName: "openSettings"
-            iconName: "preferences-system"
-            size: root.target; iconSize: root.iconSize
-            quiet: true
-            tooltip: "Open settings"
-            active: root.backend.snapshot.desktop_panel === "settings"
-            onClicked: root.backend.send({op: "panel", panel: "settings", open: true})
-        }
-
-        IconTile {
-            objectName: "lockSession"
-            iconName: "lock"
-            size: root.target; iconSize: root.iconSize
-            quiet: true
-            tooltip: enabled ? "Lock session" : root.backend.locking.message || "Lock service unavailable"
-            active: root.backend.locking.active
-            enabled: root.backend.locking.available
-            onClicked: root.backend.send({op: "lock"})
-        }
-
-        IconTile {
-            objectName: "openPower"
-            iconName: "power"
-            size: root.target; iconSize: root.iconSize
-            quiet: true
-            tooltip: "Open power and session controls"
-            active: root.backend.snapshot.desktop_panel === "power"
-            onClicked: root.togglePanel("power")
-        }
+    }
+    Rectangle {
+        anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
+        height: 1; color: Theme.divider
     }
 }

@@ -6,6 +6,13 @@ def run(driver):
     driver.click('openLauncher')
     assert driver.request('panel')['panel'] == 'launcher'
     driver.wait_controls('launcherSearch')
+    driver.xdo('key', 'Return')
+    assert driver.request('launch_desktop')['desktop_id'] == 'org.example.Terminal.desktop'
+    assert driver.request('panel')['open'] is False
+    driver.wait_controls('launcherSearch', False)
+    driver.click('openLauncher')
+    driver.request('panel')
+    driver.wait_controls('launcherSearch')
     driver.click('launcherSearch')
     driver.xdo('type', '--clearmodifiers', 'browser')
     driver.wait_controls('launcherResult1', False)

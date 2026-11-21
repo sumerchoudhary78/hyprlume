@@ -22,8 +22,7 @@ Item {
         }
     }
 
-    // The command surface can take a restrained, static sample of the wallpaper.
-    // Regular cards and overlays never create the off-screen texture.
+    // Only surfaces with a backdrop create an offscreen texture.
     Loader {
         anchors.fill: parent
         active: root.visible && root.backdrop !== null && !root.reducedEffects && !Theme.highContrast && root.refraction > 0

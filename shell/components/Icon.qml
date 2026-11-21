@@ -14,12 +14,19 @@ Item {
     implicitHeight: size
     readonly property string path: {
         const n = name;
+        if (n === "hyprlume") return "M5 5V20M18 5V20M5 12H18M17 3L21 1";
+        if (n === "sliders") return "M2 7H6M12 7H22M2 17H12M18 17H22M12 7A3 3 0 1 1 6 7A3 3 0 1 1 12 7ZM18 17A3 3 0 1 1 12 17A3 3 0 1 1 18 17Z";
+        if (n === "wifi-off") return "M3 3L21 21M2 8C3 7 4 6.5 5.5 6M10 4.5C15 4 19 6 22 8M5 12C7 10 9 9 11 9M16 10C17 10.5 18 11 19 12M8 16C10 13 14 13 16 16M12 20V20.2";
+        if (n === "volume-muted") return "M3 9H7L12 5V19L7 15H3ZM16 9L22 15M22 9L16 15";
+        if (n === "battery" || n === "battery-charging") return "M2 6H20V18H2ZM22 10V14"
+            + (n === "battery-charging" ? "M12 8L8 12H13L10 16" : "");
         if (n === "workspace" || n === "workspace-active") return n === "workspace"
             ? "M4 6H20V18H4Z" : "M4 6H20V18H4ZM8 12L11 15L16 9";
         if (n === "microphone-off") return "M9 6C9 2 15 2 15 6V10M5 11V12C5 21 19 21 19 12M12 19V22M8 22H16M3 3L21 21";
         if (n === "minus") return "M5 12H19";
         if (n === "stop") return "M6 6H18V18H6Z";
         if (n === "chevron-right") return "M8 4L16 12L8 20";
+        if (n === "chevron-down") return "M4 8L12 16L20 8";
         if (n === "power") return "M12 2V12M6 5C-2 11 3 23 12 23C21 23 26 11 18 5";
         if (n === "brightness") return "M16 12A4 4 0 1 1 8 12A4 4 0 1 1 16 12M12 1V4M12 20V23M1 12H4M20 12H23M4 4L6 6M18 18L20 20M4 20L6 18M18 6L20 4";
         if (n === "refresh") return "M20 8C17 0 3 3 3 12C3 22 18 25 21 15M20 2V8H14";

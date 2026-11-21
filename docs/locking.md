@@ -1,6 +1,6 @@
 # Secure session locking
 
-`hyprlume lock` and the lock buttons in the bar and Power panel request a real
+`hyprlume lock` and the lock buttons in Quick Settings and the Power panel request a real
 Wayland session lock. `hyprlume lock --wait` waits for the compositor's lock
 acknowledgment, rather than merely for a process to start. A request can fail;
 only a confirmed lock or the native lock screen establishes protection.

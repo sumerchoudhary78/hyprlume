@@ -2,7 +2,7 @@ import QtQuick
 import Quickshell
 import qs.fixtures
 import qs.theme
-import qs.modules.home
+import qs.modules.scene
 import qs.modules.settings
 import qs.modules.storage
 import qs.modules.tools
@@ -35,11 +35,11 @@ ShellRoot {
             Loader {
                 id: scene
                 anchors.fill: parent
-                sourceComponent: window.effects ? effectsComponent : dashboardComponent
+                sourceComponent: window.effects ? effectsComponent : desktopComponent
             }
             Component {
-                id: dashboardComponent
-                Dashboard {
+                id: desktopComponent
+                DesktopPreview {
                     backend: previewData.backend; workspaces: previewData.workspaces; metrics: previewData.metrics; clock: previewData.clock; shellState: previewData.state
                     presentation: true
                 }
@@ -74,9 +74,9 @@ ShellRoot {
             }
             PopupStack {
                 anchors.right: parent.right; anchors.top: parent.top
-                anchors.rightMargin: 16; anchors.topMargin: 88
+                anchors.rightMargin: 16; anchors.topMargin: Theme.barHeight + 12
                 width: Math.min(380, parent.width - 32)
-                availableHeight: parent.height - 106
+                availableHeight: parent.height - Theme.barHeight - 30
                 backend: previewData.backend; reducedEffects: previewData.state.reducedEffects
             }
             Loader {

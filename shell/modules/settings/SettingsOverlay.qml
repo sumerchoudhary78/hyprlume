@@ -72,7 +72,7 @@ Item {
                     ColumnLayout {
                         visible:root.tab===0; Layout.fillWidth:true; spacing:20
                         SettingsToggle {Layout.fillWidth:true; controlName:"settingsReduced"; label:"Reduced effects"; description:"Pause liquid motion and use simpler glass materials."; checked:root.draft.preferences.appearance.reduced_effects; onToggled:value=>root.edit("appearance","reduced_effects",value)}
-                        SettingsToggle {Layout.fillWidth:true; controlName:"settingsMetrics"; label:"Live system metrics"; description:"Pause the system sampler when disabled. It also pauses behind application windows."; checked:root.draft.preferences.appearance.metrics; onToggled:value=>root.edit("appearance","metrics",value)}
+                        SettingsToggle {Layout.fillWidth:true; controlName:"settingsMetrics"; label:"Live system metrics"; description:"Show CPU, memory and GPU readings while Overview is open."; checked:root.draft.preferences.appearance.metrics; onToggled:value=>root.edit("appearance","metrics",value)}
                         Text {text:"Accent"; color:Theme.inkDim; font.family:Theme.fontSans; font.pixelSize:13}
                         RowLayout {
                             Repeater {model:["cyan","violet","mint"]; GlassButton {required property string modelData; objectName:"settingsAccent"+modelData; text:modelData; primary:root.draft.preferences.appearance.accent===modelData; onClicked:root.edit("appearance","accent",modelData)}}

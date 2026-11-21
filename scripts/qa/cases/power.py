@@ -2,6 +2,7 @@
 
 
 def run(driver, mode, height):
+    driver.open_quick_settings()
     driver.wait_controls('openPower')
     driver.focus_window()
     driver.click('openPower')

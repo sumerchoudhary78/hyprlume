@@ -24,7 +24,7 @@ independent of Hyprlume's source license.
 
 Desktop visual assets
 ---------------------
-Tidal Eclipse, the observatory backdrop and the transparent assistant are
+First Light, Tidal Eclipse, the observatory backdrop and the transparent assistant are
 generated project assets.
 Prompts and origins are documented in shell/assets/README.md and docs/design/.
 The original globe asset uses public-domain Natural Earth land geometry.

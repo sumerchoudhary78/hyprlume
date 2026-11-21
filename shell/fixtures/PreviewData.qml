@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import qs.services
 
 // Explicitly synthetic data for design previews and interaction tests only.
 // The normal shell entry never instantiates this fixture.
@@ -265,12 +266,10 @@ QtObject {
     property QtObject workspaces: QtObject {
         property var all: [{id:2,name:"Development"},{id:3,name:"Research"},{id:4,name:"Operations"},{id:5,name:"Personal"}]
         property var focused: all[0]
-        property bool desktopVisible: true
-        property int focusedWindowCount: 0
         property int nextCount: 0
         function label(w) { return w.name; }
         function countFor(w) { return w.id === 2 ? 0 : w.id === 3 ? 2 : 1; }
-        function isFocused(w) { return focused && w.id === focused.id; }
+        function sameWorkspace(a, b) { return !!a && !!b && a.name === b.name; }
         function focus(w) { focused = w; if (Quickshell.env("HYPRLUME_QA") === "1") console.log("HYPRLUME_QA " + JSON.stringify({kind:"workspace",name:w.name})); }
         function focusNext() { nextCount++; focused = all[(all.indexOf(focused)+1)%all.length]; }
         function focusPrevious() { focused = all[(all.indexOf(focused)+all.length-1)%all.length]; }
@@ -302,10 +301,10 @@ QtObject {
         readonly property string time: "15:27"
         readonly property string date: "Mon, 16 Nov"
     }
-    property QtObject state: QtObject {
-        property bool reducedEffects: Quickshell.env("HYPRLUME_REDUCED_EFFECTS") === "1" || sampleBackend.settings.values.preferences.appearance.reduced_effects
-    }
+    property QtObject state: ShellState { backend: sampleBackend }
     Component.onCompleted: {
+        const menu = Quickshell.env("HYPRLUME_PREVIEW_MENU");
+        if (menu === "overview" || menu === "controls") state.toggleMenu(menu);
         if (Quickshell.env("HYPRLUME_COMMAND_REVIEW") === "1") {
             backend.snapshot = Object.assign({}, backend.snapshot, {
                 phase: "review", message: "Review the action before running it",

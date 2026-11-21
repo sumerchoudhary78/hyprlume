@@ -33,7 +33,8 @@ to use the [individual user services](setup.md#user-services).
 
 The starter profile also binds **Super+T** for a terminal, **Super+B** for the
 default browser, **Super+E** for the home folder, **Super+Tab** for the window
-switcher and **Super+Q** to close the focused window. **Super+1–9, 0** switches
+switcher and **Super+Q** to close the focused window. **Super+W** opens
+Overview and **Super+,** opens Quick Settings. **Super+1–9, 0** switches
 to workspaces 1–10. Add **Shift** to move the focused window there.
 
 Creating `session.lua` gives you control of the starter shortcuts. The three

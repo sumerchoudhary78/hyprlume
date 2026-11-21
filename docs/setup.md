@@ -114,19 +114,18 @@ can overflow tightly fitted rows. No font files are bundled with the package.
 
 ## Blur, layer rules, and shortcuts
 
-The shell uses four Wayland layer roles:
+The primary desktop surfaces use these Wayland layer roles.
 
 | Namespace | Surface |
 | --- | --- |
 | `hyprlume-wallpaper` | persistent background, one per monitor |
 | `hyprlume-bar` | top bar, one per monitor |
-| `hyprlume-home` | empty-workspace dashboard |
+| `hyprlume-desktop-menu` | Overview or Quick Settings |
 | `hyprlume-command` | command panel overlay |
 
-The room wallpaper uses `hyprlume-wallpaper` on the Background layer with an
+The desktop wallpaper uses `hyprlume-wallpaper` on the Background layer with an
 empty input region. It persists behind apps and does not reserve screen space.
-The dashboard samples this same room asset inside QML for its own glass blur.
-It does not need a full-screen compositor blur rule.
+An open menu on an empty workspace can sample this wallpaper for its glass effect.
 
 For optional blur behind the bar, command and Connections overlays on Lua Hyprland:
 
@@ -136,7 +135,7 @@ hl.layer_rule({ match = { namespace = "^hyprlume-(bar|command|connectivity)$" },
 
 Refer to your version's [layer-rule documentation](https://wiki.hypr.land/configuring/core/rules/layer-rules/).
 The bar reserves its actual height. At 100% shell scale, a single row uses
-54 logical pixels. Smaller outputs can wrap the system controls into another row.
+40 logical pixels. Compact controls keep the bar on one row on smaller outputs.
 Replace an existing bar before starting this one to avoid stacking reservations.
 
 Bind `hyprlume toggle` to your preferred launcher key and `hyprlume voice off`

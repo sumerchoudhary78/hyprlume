@@ -8,12 +8,22 @@ import Quickshell.Io
 Item {
     id: root
 
-    property bool active: true
-    onActiveChanged: { restart.stop(); sampler.running = active; }
+    property bool active: false
+    onActiveChanged: {
+        restart.stop();
+        if (active) {
+            cpu = -1;
+            mem = -1;
+            gpu = -1;
+            cpuHistory = [];
+            netHistory = [];
+        }
+        sampler.running = active;
+    }
 
     // -- Latest sample -------------------------------------------------------
-    property int cpu: 0
-    property int mem: 0
+    property int cpu: -1
+    property int mem: -1
     property int memMb: 0
     property int gpu: -1
     property int netUp: 0
@@ -79,8 +89,8 @@ Item {
     }
 
     function pushHistory() {
-        const cpuSamples = root.cpuHistory.concat([root.cpu / 100]);
-        root.cpuHistory = cpuSamples.slice(-root.historyLength);
+        if (root.cpu >= 0)
+            root.cpuHistory = root.cpuHistory.concat([root.cpu / 100]).slice(-root.historyLength);
 
         const netSamples = root.netHistory.concat([(root.netUp + root.netDown) / 1024]);
         root.netHistory = netSamples.slice(-root.historyLength);

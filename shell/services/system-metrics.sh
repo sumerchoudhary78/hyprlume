@@ -60,7 +60,7 @@ while :; do
     read -r _ user nice system idle iowait irq softirq steal _ < /proc/stat
     total=$((user + nice + system + idle + iowait + irq + softirq + steal))
     idle_all=$((idle + iowait))
-    cpu=0
+    cpu=-1
     if [ "$prev_total" -gt 0 ]; then
         delta_total=$((total - prev_total))
         delta_idle=$((idle_all - prev_idle))

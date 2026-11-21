@@ -18,8 +18,7 @@ import qs.modules.scene
 import qs.modules.topbar
 import qs.theme
 
-// Composition root: one bar per monitor, plus the desktop dashboard on the
-// focused monitor, plus mutually exclusive command and connectivity overlays.
+// Persistent surfaces belong to each output. Menus and service panels load on demand.
 Item {
     id: desktop
 
@@ -29,7 +28,6 @@ Item {
     required property var workspaces
     required property var shellState
 
-    // The dashboard belongs to the monitor holding the active workspace.
     // Falling back to the first screen keeps single-monitor sessions simple
     // and keeps the surface visible if Hyprland's monitor list is late.
     readonly property string focusedScreenName: {
@@ -47,6 +45,8 @@ Item {
         }
         return screens.length > 0 ? screens[0] : null;
     }
+
+    readonly property var panelScreen: shellState.panelScreen ?? focusedScreen
 
     readonly property var feedback: backend.online && !backend.locking.active ? backend.snapshot.feedback : null
     property bool feedbackVisible: false
@@ -88,24 +88,36 @@ Item {
                 screen: output.modelData
                 backend: desktop.backend
                 clock: desktop.clock
+                shellState: desktop.shellState
+                workspaceLabel: desktop.workspaces.label(desktop.workspaces.activeOn(output.modelData))
             }
         }
     }
 
-    Home {
-        screen: desktop.focusedScreen
-        backend: desktop.backend
-        workspaces: desktop.workspaces
-        metrics: desktop.metrics
-        clock: desktop.clock
-        shellState: desktop.shellState
+    Loader {
+        active: !!desktop.shellState.menu
+        sourceComponent: ShellWindow {
+            id: menuWindow
+            surfaceName: "desktop-menu"
+            screen: desktop.panelScreen
+            anchors { top: true; bottom: true; left: true; right: true }
+            WlrLayershell.layer: WlrLayer.Overlay
+            WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+            DesktopMenu {
+                anchors.fill: parent
+                backend: desktop.backend; shellState: desktop.shellState
+                workspaces: desktop.workspaces; metrics: desktop.metrics
+                currentWorkspace: menuWindow.screen ? desktop.workspaces.activeOn(menuWindow.screen) : null
+                wallpaperHeight: menuWindow.screen ? menuWindow.screen.height : height
+            }
+        }
     }
 
     Loader {
         active: desktop.backend.online && desktop.backend.snapshot.panel_open && !desktop.backend.snapshot.desktop_panel && !desktop.backend.connectivity.panel_open && !desktop.backend.notifications.panel_open
 
         sourceComponent: PanelWindow {
-            screen: desktop.focusedScreen
+            screen: desktop.panelScreen
 
             anchors {
                 top: true
@@ -131,7 +143,7 @@ Item {
     Loader {
         active: desktop.backend.online && !desktop.backend.snapshot.desktop_panel && desktop.backend.connectivity.panel_open && !desktop.backend.notifications.panel_open
         sourceComponent: PanelWindow {
-            screen: desktop.focusedScreen
+            screen: desktop.panelScreen
             anchors { top: true; bottom: true; left: true; right: true }
             exclusiveZone: 0; color: "transparent"
             WlrLayershell.namespace: "hyprlume-connectivity"
@@ -147,7 +159,7 @@ Item {
     Loader {
         active: desktop.backend.online && desktop.backend.notifications.panel_open
         sourceComponent: PanelWindow {
-            screen: desktop.focusedScreen
+            screen: desktop.panelScreen
             anchors { top: true; bottom: true; left: true; right: true }
             exclusiveZone: 0; color: "transparent"
             WlrLayershell.namespace: "hyprlume-notification-centre"
@@ -179,7 +191,7 @@ Item {
     Loader {
         active: desktop.backend.online && desktop.backend.snapshot.desktop_panel === "storage"
         sourceComponent: PanelWindow {
-            screen: desktop.focusedScreen
+            screen: desktop.panelScreen
             anchors { top: true; bottom: true; left: true; right: true }
             exclusiveZone: 0; color: "transparent"
             WlrLayershell.namespace: "hyprlume-storage"
@@ -195,7 +207,7 @@ Item {
     Loader {
         active: desktop.backend.online && desktop.backend.snapshot.desktop_panel === "audio"
         sourceComponent: PanelWindow {
-            screen: desktop.focusedScreen
+            screen: desktop.panelScreen
             anchors { top: true; bottom: true; left: true; right: true }
             exclusiveZone: 0; color: "transparent"
             WlrLayershell.namespace: "hyprlume-audio"
@@ -207,7 +219,7 @@ Item {
     Loader {
         active: desktop.backend.online && desktop.backend.snapshot.desktop_panel === "power"
         sourceComponent: PanelWindow {
-            screen: desktop.focusedScreen
+            screen: desktop.panelScreen
             anchors { top: true; bottom: true; left: true; right: true }
             exclusiveZone: 0; color: "transparent"
             WlrLayershell.namespace: "hyprlume-power"
@@ -219,7 +231,7 @@ Item {
     Loader {
         active: desktop.backend.online && desktop.backend.snapshot.desktop_panel === "tray"
         sourceComponent: PanelWindow {
-            screen: desktop.focusedScreen
+            screen: desktop.panelScreen
             anchors { top: true; bottom: true; left: true; right: true }
             exclusiveZone: 0; color: "transparent"
             WlrLayershell.namespace: "hyprlume-tray"
@@ -232,7 +244,7 @@ Item {
     Loader {
         active: desktop.backend.online && ["launcher","switcher"].includes(desktop.backend.snapshot.desktop_panel)
         sourceComponent: PanelWindow {
-            screen: desktop.focusedScreen
+            screen: desktop.panelScreen
             anchors { top: true; bottom: true; left: true; right: true }
             exclusiveZone: 0; color: "transparent"
             WlrLayershell.namespace: "hyprlume-launcher"
@@ -245,20 +257,20 @@ Item {
 
         active: desktop.backend.online && ["clipboard","capture"].includes(desktop.backend.snapshot.desktop_panel)
         sourceComponent: PanelWindow {
-            screen: desktop.focusedScreen
+            screen: desktop.panelScreen
             anchors { top: true; bottom: true; left: true; right: true }
             exclusiveZone: 0; color: "transparent"
             WlrLayershell.namespace: "hyprlume-tools"
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
-            ToolsOverlay { outputName:desktop.focusedScreenName; anchors.fill: parent; backend: desktop.backend; reducedEffects: desktop.shellState.reducedEffects }
+            ToolsOverlay { outputName:desktop.panelScreen?.name ?? ""; anchors.fill: parent; backend: desktop.backend; reducedEffects: desktop.shellState.reducedEffects }
         }
     }
     Loader {
 
         active: desktop.backend.online && desktop.backend.snapshot.desktop_panel === "settings"
         sourceComponent: PanelWindow {
-            screen:desktop.focusedScreen
+            screen:desktop.panelScreen
             anchors {top:true;bottom:true;left:true;right:true}
             exclusiveZone:0;color:"transparent"
             WlrLayershell.namespace:"hyprlume-settings"

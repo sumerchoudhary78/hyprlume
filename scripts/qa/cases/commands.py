@@ -1,4 +1,4 @@
-"""Agent command, review and dashboard controls."""
+"""Idle desktop, menus, command review and keyboard navigation."""
 
 
 def tab_to(driver, name):
@@ -14,6 +14,10 @@ def tab_to(driver, name):
 def run(driver):
     driver.wait_controls('quickCommand')
     driver.focus_window()
+    for name in ('consoleInput', 'systemDetails', 'workspaceRow0', 'openConnectivity', 'toggleVoice'):
+        assert name not in driver.controls, f'{name} leaked onto the idle desktop'
+    for name in ('openOverview', 'openLauncher', 'quickCommand', 'openNotifications', 'quickSettings'):
+        assert driver.controls[name]['inside'], f'{name} is outside the bar'
     driver.click('quickCommand'); driver.request('toggle'); driver.wait_controls('commandInput')
     driver.xdo('type', '--clearmodifiers', '--delay', '25', 'workspace 2'); driver.xdo('key', 'Return')
     r = driver.request('command')
@@ -32,11 +36,22 @@ def run(driver):
     driver.wait_event(lambda e:e['kind']=='controls' and 'commandInput' in e['controls'] and e['controls']['commandInput']['enabled'])
     driver.xdo('key','Escape'); driver.request('toggle'); driver.wait_controls('commandInput',False)
     print('PASS direct execution requires the explicit Run direct button')
+    driver.open_quick_settings()
+    driver.click('quickMute')
+    assert driver.wait_event(lambda e: e['kind'] == 'audio' and e['action'] == 'mute')['value'] is True
+    driver.click('quickVolume')
+    assert 0.4 < driver.wait_event(lambda e: e['kind'] == 'audio' and e['action'] == 'volume')['value'] < 0.6
+    driver.click('quickDnd')
+    assert driver.request('notifications')['request'] == {'action': 'dnd', 'enabled': True}
     driver.click('toggleVoice'); r=driver.request('voice'); assert r['mode']=='wake',r
     driver.wait_event(lambda e:e['kind']=='controls')
     driver.click('toggleVoice'); r=driver.request('voice'); assert r['mode']=='off',r
     driver.wait_event(lambda e:e['kind']=='controls')
     print('PASS wake-word control sends wake/off; fixture never opens a microphone')
+    driver.xdo('key', 'Escape')
+    driver.wait_controls('closeDesktopMenu', False)
+    driver.click('openOverview')
+    driver.wait_stable_controls('consoleInput')
     driver.click('consoleInput')
     driver.xdo('type', '--clearmodifiers', 'volume 20')
     driver.wait_stable_controls('consolePreview')
@@ -46,27 +61,31 @@ def run(driver):
     driver.wait_controls('cancelPlan')
     driver.click('cancelPlan'); driver.request('cancel')
     driver.xdo('key','Escape'); driver.request('toggle'); driver.wait_controls('commandInput',False)
-    print('PASS the home editor submits through the same preview and review flow')
-    driver.click('agentVolume'); r=driver.request('command'); assert r['text']=='volume 35' and r['dry_run'] is True,r
+    print('PASS the Overview editor submits through the same preview and review flow')
+    driver.click('openOverview')
+    driver.wait_stable_controls('launcherterminal')
+    driver.click('launcherterminal')
+    request = driver.request('command')
+    assert request['text'] == 'launch terminal' and request['dry_run'] is True, request
     driver.wait_controls('cancelPlan'); driver.click('cancelPlan'); driver.request('cancel')
-    driver.xdo('key','Escape'); driver.request('toggle'); driver.wait_controls('commandInput',False)
-    driver.click('launcherterminal'); r=driver.request('command'); assert r['text']=='launch terminal' and r['dry_run'] is True,r
-    driver.wait_controls('cancelPlan'); driver.click('cancelPlan'); driver.request('cancel')
-    driver.xdo('key','Escape'); driver.request('toggle'); driver.wait_controls('commandInput',False)
-    print('PASS shortcuts preview; dismissal cancels; terminal shortcut still uses the allowlisted alias')
+    driver.xdo('key', 'Escape'); driver.request('toggle'); driver.wait_controls('commandInput', False)
+    print('PASS terminal shortcut previews the configured alias')
 
-    driver.click('consoleInput')
+    driver.click('openOverview')
+    driver.wait_stable_controls('workspaceRow2')
     tab_to(driver, 'workspaceRow2')
     driver.xdo('key', 'space')
     event = driver.wait_event(lambda e: e['kind'] == 'workspace')
     assert event['name'] == 'Operations', event
-    for name in ('quickCommand', 'openLauncher', 'openConnectivity', 'openDesktopTools', 'openSettings', 'openPower'):
-        assert driver.controls[name]['inside'], f'{name} is outside the window'
-    print('PASS Tab reveals the workspace row, Space activates it, and bar controls fit the output')
+    driver.wait_controls('workspaceRow0', False)
+    driver.click('openOverview')
+    driver.wait_stable_controls('systemDetails')
     tab_to(driver, 'systemDetails')
     driver.xdo('key', 'space')
     driver.wait_controls('systemDetailsContent')
     driver.xdo('key', 'space')
     driver.wait_controls('systemDetailsContent', False)
-    print('PASS keyboard disclosure expands and collapses extended system readings')
-    print('INTERACTION PASS: desktop controls and confirmation flow')
+    driver.xdo('key', 'Escape')
+    driver.wait_controls('closeDesktopMenu', False)
+    print('PASS keyboard workspace selection, system disclosure and Escape')
+    print('INTERACTION PASS: desktop menus and confirmation flow')

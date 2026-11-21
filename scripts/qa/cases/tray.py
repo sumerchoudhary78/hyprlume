@@ -2,6 +2,7 @@
 
 
 def run(driver, mode):
+    driver.open_quick_settings()
     driver.wait_controls('openTray')
     driver.focus_window()
     driver.click('openTray')
@@ -19,6 +20,7 @@ def run(driver, mode):
     driver.wait_event(lambda e: e['kind'] == 'tray' and e['action'] == 'activate')
     assert driver.request('panel')['open'] is False
     driver.wait_controls('closeTray', False)
+    driver.open_quick_settings()
     driver.click('openTray')
     assert driver.request('panel')['open'] is True
     driver.wait_controls('trayMenuEntry4')

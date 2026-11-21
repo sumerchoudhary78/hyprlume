@@ -63,6 +63,11 @@ class UiDriver:
 
         self.wait_event(stable)
 
+    def open_quick_settings(self):
+        self.wait_controls('quickSettings')
+        self.click('quickSettings')
+        self.wait_stable_controls('closeDesktopMenu')
+
     def click(self, name):
         if name not in self.controls:
             raise AssertionError(f'control missing: {name}; found {list(self.controls)}')

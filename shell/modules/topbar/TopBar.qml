@@ -7,6 +7,8 @@ ShellWindow {
     surfaceName: "bar"
     required property var backend
     required property var clock
+    required property var shellState
+    required property string workspaceLabel
 
     anchors { top: true; left: true; right: true }
     implicitHeight: bar.implicitHeight
@@ -18,5 +20,8 @@ ShellWindow {
         anchors.fill: parent
         backend: root.backend
         clock: root.clock
+        shellState: root.shellState
+        outputScreen: root.screen
+        workspaceLabel: root.workspaceLabel
     }
 }

@@ -4,35 +4,56 @@
 
 [Project website](https://sumerchoudhary78.github.io/hyprlume/) · [Setup guide](docs/setup.md) · [AUR](https://aur.archlinux.org/packages/hyprlume)
 
-A glass command shell and local English voice companion for **Hyprland**.
-Rust handles desktop services, the agent and speech; Quickshell / Qt Quick renders the interface;
-[HyprPilot](https://github.com/sumerchoudhary78/HyprPilot) supplies typed desktop control.
-
-**v0.6.0 desktop preview** introduces a reflowing dashboard, clearer command
-review and sharper rendering on scaled displays. See
-[release validation](docs/validation.md) for the tested environments.
+Hyprlume is a desktop shell and local English voice companion for **Hyprland**.
+Search applications and open windows, switch workspaces, and preview typed or
+spoken commands before applying them. Rust runs the desktop services and speech
+engine. Quickshell renders the interface, and HyprPilot carries out desktop
+actions. [HyprPilot](https://github.com/sumerchoudhary78/HyprPilot)
 
 ## Desktop preview
 
-The 4K preview shows the new wallpaper, dashboard and compact status bar.
-[Shell UI design](docs/design/shell-ui.md)
+Each monitor has a single status bar that reserves 40 logical pixels at the default
+scale. First Light is the default wallpaper. You can choose your own in **Settings
+→ Desktop**. These screenshots show the shell from this checkout with sample session data.
 
-![Hyprlume desktop rendered at 3840×2160, showing the command field, workspaces and system readings](docs/design/shell-preview.webp)
+![Hyprlume showing the First Light alpine wallpaper, workspace button, clock and status icons](docs/design/first-light-desktop.webp)
 
-### v0.5.0 demo
+| Overview | Quick Settings |
+| --- | --- |
+| [![Overview showing workspace names, window counts, command entry and system readings](docs/design/first-light-overview.webp)](docs/design/first-light-overview.webp) | [![Quick Settings showing the volume slider, connections, microphone and session controls](docs/design/first-light-controls.webp)](docs/design/first-light-controls.webp) |
+| Click the workspace name to switch workspaces, preview a command or inspect system readings. | Click the status icons to adjust volume, manage connections, toggle the microphone or lock the session. |
 
-![Animated preview of Hyprlume’s glass dashboard, command review and display settings](assets/hyprlume-demo.gif)
+**Apps** opens a keyboard-driven search for applications and windows. **Command**
+opens the command palette. Click the clock for notifications. While the microphone
+or screen recorder is active, you can stop it directly from the bar.
+
+The starter session binds `Super+W` to Overview and `Super+,` to Quick Settings
+when those shortcuts are free. Press `Esc` to dismiss either menu.
+[Desktop guide](docs/homescreen.md) · [Design research](docs/design/shell-ui.md)
+
+### Try the desktop in a window
+
+From the repository root on Linux with Quickshell installed, run the interactive
+sample session. It uses simulated devices and workspaces.
+
+```sh
+quickshell -p ./shell/design-preview.qml
+```
+
+To use the redesign with your own Hyprland session, build from this checkout.
+The v0.6.0 preview release contains the earlier dashboard.
+[Build from source](#build-from-source) · [v0.6.0 release](https://github.com/sumerchoudhary78/hyprlume/releases/tag/v0.6.0)
 
 <details>
-<summary>Play the 39-second demo</summary>
+<summary>Watch the v0.5.0 demo (39 seconds)</summary>
+
+![Archived v0.5.0 demo showing the dashboard, command review and display settings](assets/hyprlume-demo.gif)
 
 https://github.com/user-attachments/assets/d1c99a01-4f9b-4a9e-ad00-c62c9d1bb058
 
+Recorded in the Quickshell preview with sample session data. [Download the 1080p video](https://github.com/sumerchoudhary78/hyprlume/releases/download/v0.5.0/hyprlume-v0.5.0-demo.mp4)
+
 </details>
-
-[Download the 39-second demo in 1080p](https://github.com/sumerchoudhary78/hyprlume/releases/download/v0.5.0/hyprlume-v0.5.0-demo.mp4)
-
-The demo was recorded in the Quickshell design preview using sample session data.
 
 ## What works
 
@@ -61,9 +82,6 @@ Hyprlume provides the following desktop services.
 Each service page covers setup and verification. The [Hyprlume session](docs/session.md)
 appears as its own login option.
 
-- A status bar on each output, a reflowing empty-workspace dashboard and a
-  command panel. The dashboard includes workspace switching, command and
-  dictation shortcuts, system meters and on-demand telemetry details.
 - A glass Connections overlay backed by NetworkManager and BlueZ over D-Bus:
   Wi-Fi scans, saved/open/WPA2/WPA3 connections, radio controls, Bluetooth
   discovery, pairing-code prompts, reconnect/disconnect and forgetting devices.
@@ -80,27 +98,6 @@ appears as its own login option.
 Microphone capture starts **off**. Voice commands preview by default. Dictation
 produces selectable text inside the panel; it never becomes a desktop command.
 There is no cloud endpoint, transcript database, or screen recording by default.
-
-## Desktop shell
-
-- **Status bar** reserves space on each monitor and provides application
-  search, Command, microphone state and desktop controls.
-- **Home dashboard** appears on the focused empty workspace. The command card
-  uses live daemon state and previews actions. The sidebar shows workspaces,
-  window counts, and CPU, memory and GPU usage.
-- **Command panel**, an overlay with exclusive keyboard focus, loaded only while
-  the daemon reports it open.
-- **Connections** opens from the bar’s Wi-Fi button or
-  `hyprlume connectivity`. Wireless requests use the connectivity service.
-
-The command card can sample the local wallpaper through a precompiled Qt
-Quick shader. Other cards use a solid material. Layout, rendering and
-verification commands are in [desktop shell](docs/homescreen.md).
-Module layout and import rules are in [shell/README](shell/README.md).
-
-The dashboard runs in a physical Hyprland session and has native rendering,
-input and compositor checks. Hardware, scaling and service integration limits
-are recorded in [validation](docs/validation.md).
 
 ## Install on Arch
 
@@ -202,13 +199,12 @@ Quickshell / QML ← private Unix socket → Rust daemon
                                              └─ bounded audio worker → wake / ASR / Piper
 ```
 
-Wallpaper and the bar persist; the dashboard unmaps when an app opens. Metrics
-sampling pauses while it is hidden. The clock updates on minute boundaries.
-When the command card fits on the dashboard, its glass can sample the local
-wallpaper at half resolution. Use `HYPRLUME_REDUCED_EFFECTS=1 hyprlume shell`
-for solid surfaces and static battery fill. Wireless state follows D-Bus
-events. Bluetooth discovery runs on request and stops after 15 seconds or
-panel closure.
+The wallpaper and bar stay on each output. Opening Overview starts the optional
+system sampler and closing it stops the process. The clock updates once a minute.
+Menus over an empty workspace can sample the wallpaper for their glass effect.
+Run `HYPRLUME_REDUCED_EFFECTS=1 hyprlume shell` to use solid menu backgrounds
+and disable their entrance animation. Wireless state follows D-Bus events.
+Bluetooth discovery ends after 15 seconds or when its panel closes.
 
 The daemon pushes state over one persistent socket. Audio inference runs on a
 dedicated worker with a bounded 20 ms frame queue; no inference runs on the UI
@@ -227,6 +223,7 @@ cargo clippy --locked --all-targets -- -D warnings
 cargo test --locked --all-targets
 python3 scripts/check-qml.py shell
 python3 scripts/build-shaders.py --check
+python3 scripts/qa/check-shell.py
 python3 scripts/qa/check-effects.py
 python3 scripts/qa/render-desktop.py
 python3 scripts/qa/render-desktop.py --interact

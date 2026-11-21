@@ -20,20 +20,10 @@ QtObject {
         return a.name === b.name;
     }
 
-    function isFocused(workspace) {
-        return sameWorkspace(workspace, focused);
+    function activeOn(screen) {
+        const monitor = Hyprland.monitors.values.find(item => item.name === screen.name);
+        return monitor?.activeWorkspace ?? null;
     }
-
-    readonly property int focusedWindowCount: {
-        if (!Hyprland.toplevels || !focused)
-            return 0;
-        return Hyprland.toplevels.values.filter(t => t.workspace && sameWorkspace(t.workspace, focused)).length;
-    }
-
-    // The dashboard only belongs on an empty workspace; with windows open it
-    // would sit behind them and blur the wallpaper for nothing. Count only the
-    // focused workspace: windows elsewhere must not hide this one.
-    readonly property bool desktopVisible: focused !== null && focusedWindowCount === 0
 
     function label(workspace) {
         if (!workspace)

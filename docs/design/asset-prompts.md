@@ -22,3 +22,7 @@ Input: text-only generation. `transparent_background=true`.
 1672×941 and encoded to JPEG. The composition places a cold crescent near the
 upper right of an Icelandic black-sand coast at blue hour. A dark, open left
 half keeps the workspace title readable. The image contains scenery only.
+
+## First Light wallpaper
+
+The source image is a 1672×941 ImageGen landscape, bundled as a JPEG. The brief called for a telephoto view of a granite peak east of center in apricot alpenglow, with successive slate ridges disappearing into lavender mist on the left. The mountain and sky fill the frame so the image can be cropped across monitor shapes.

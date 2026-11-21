@@ -57,6 +57,8 @@ local function bind_starter_keys()
     ]])
     launch("SUPER + E", "xdg-open \"$HOME\"")
     launch("SUPER + Tab", "hyprlume launcher --windows")
+    launch("SUPER + W", "quickshell ipc -p /usr/share/hyprlume/shell/shell.qml call desktop overview")
+    launch("SUPER + comma", "quickshell ipc -p /usr/share/hyprlume/shell/shell.qml call desktop quickSettings")
     bind("SUPER + Q", hl.dsp.window.close())
     for workspace = 1, 10 do
         local key = workspace % 10

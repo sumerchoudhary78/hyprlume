@@ -1,5 +1,6 @@
 """Edit settings through the production QML without touching real configuration."""
 def run(driver):
+    driver.open_quick_settings()
     driver.wait_controls('openSettings');driver.focus_window();driver.click('openSettings')
     assert driver.request('panel')['panel']=='settings'
     driver.wait_controls('settingsReduced');driver.click('settingsReduced')

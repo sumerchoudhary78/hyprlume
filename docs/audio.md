@@ -1,7 +1,7 @@
 # Sound and media
 
 Available in the v0.5.0 desktop preview.
-Open **Sound & media** from the speaker in the bar, or run `hyprlume audio`
+Open **Quick settings → Sound** or run `hyprlume audio`
 from a matching development build. Opening the panel does not alter audio.
 
 ## Supported controls

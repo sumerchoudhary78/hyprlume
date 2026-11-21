@@ -66,6 +66,13 @@ def main():
         output,
     ), output
     print('LIVE SHELL PASS: production entry loads with an offline backend and private audio server')
+    layout = subprocess.run(
+        ['quickshell', '-p', str(ROOT / 'shell/bar-layout-test.qml')],
+        capture_output=True, text=True, timeout=20,
+    )
+    output = layout.stdout + layout.stderr
+    assert layout.returncode == 0 and 'HYPRLUME_BAR_LAYOUT_PASS' in output, output
+    print('BAR LAYOUT PASS: recording, microphone and clock remain reachable across widths and scales')
     return 0
 
 

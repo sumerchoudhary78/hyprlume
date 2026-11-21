@@ -36,6 +36,7 @@ def main():
     parser.add_argument('--high-contrast', action='store_true')
     parser.add_argument('--scale', type=float, default=1.0, help='shell UI scale between 0.85 and 1.20')
     parser.add_argument('--interact', action='store_true')
+    parser.add_argument('--menu', choices=('overview', 'controls'), help='render an open desktop menu')
     parser.add_argument('--command-review', action='store_true', help='render a synthetic command awaiting review')
     parser.add_argument('--connectivity', action='store_true', help='render or exercise the Wi-Fi/Bluetooth panel')
     parser.add_argument('--connectivity-state', choices=['normal', 'unavailable', 'pairing', 'pin'], default='normal')
@@ -56,10 +57,10 @@ def main():
     parser.add_argument('--effects', action='store_true', help='render isolated liquid materials and test their motion clock')
     parser.add_argument('--inside-display', action='store_true', help=argparse.SUPPRESS)
     args = parser.parse_args()
-    if sum([args.effects, args.command_review, args.connectivity, args.notifications, args.notification_popups, args.audio, args.power, args.tray, args.launcher, args.tools, args.settings, args.locking]) > 1:
+    if sum([bool(args.menu), args.effects, args.command_review, args.connectivity, args.notifications, args.notification_popups, args.audio, args.power, args.tray, args.launcher, args.tools, args.settings, args.locking]) > 1:
         parser.error('choose one preview surface per check')
-    if (args.effects or args.command_review) and args.interact:
-        parser.error('--effects and --command-review are render-only checks')
+    if (args.menu or args.effects or args.command_review) and args.interact:
+        parser.error('--menu, --effects and --command-review are render-only checks')
     if not 0.85 <= args.scale <= 1.2:
         parser.error('--scale must be between 0.85 and 1.20')
     if min(args.width, args.height) < 400:
@@ -87,6 +88,7 @@ def main():
     env = os.environ.copy()
     env.update(HYPRLUME_PREVIEW_WIDTH=str(args.width), HYPRLUME_PREVIEW_HEIGHT=str(args.height),
                HYPRLUME_PREVIEW_SCALE=str(args.scale), HYPRLUME_HIGH_CONTRAST='1' if args.high_contrast else '0',
+               HYPRLUME_PREVIEW_MENU=args.menu or '',
                HYPRLUME_COMMAND_REVIEW='1' if args.command_review else '0',
                HYPRLUME_REDUCED_EFFECTS='1' if args.reduced_effects else '0',
                HYPRLUME_SCREENSHOT='' if args.interact else str(args.output),

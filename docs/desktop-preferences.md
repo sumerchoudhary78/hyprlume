@@ -10,7 +10,7 @@ See the [XDG default application specification](https://specifications.freedeskt
 
 ## Appearance and accessibility
 
-- **Wallpaper** accepts a local PNG, JPEG or WebP. Browse for an image, then save to apply it to the desktop. **Restore default** selects the Tidal Eclipse wallpaper. Install `qt6-imageformats` for WebP support where Qt does not provide it.
+- **Wallpaper** accepts a local PNG, JPEG or WebP. Browse for an image, then save to apply it to the desktop. **Restore default** selects the First Light wallpaper. Install `qt6-imageformats` for WebP support where Qt does not provide it.
 - **High contrast** brightens shell text and borders and disables its glass refraction. **Reduced effects** and shell scale remain in **Appearance**. With the Hyprlume portal profile, compatible apps receive contrast, color-scheme, accent and reduced-motion preferences. See [Desktop portals](portals.md).
 - **GTK theme** sets the user launch profile’s theme override, for example `Adwaita:dark`. Leave it blank to inherit the session theme. **Qt Fusion** selects Fusion for compatible Qt widgets. **Qt app scale** sets a scaling factor for new Qt applications.
 - Install **Orca** for the screen reader. **Start Orca screen reader** launches its installed desktop entry. **Enable Qt accessibility for new apps** adds the Qt accessibility setting to the launch profile.

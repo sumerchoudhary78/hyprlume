@@ -3,6 +3,7 @@
 
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import qs.services
 import qs.theme
 
@@ -22,9 +23,14 @@ ShellRoot {
         use24Hour: backendService.settings.values.preferences.desktop.clock_24h
         localeName: backendService.settings.values.preferences.desktop.locale.split(/[.@]/)[0]
     }
-    Metrics { id: metrics; active: !backendService.locking.active && backendService.settings.values.preferences.appearance.metrics && (root.preview || workspaces.desktopVisible) }
+    Metrics { id: metrics; active: !backendService.locking.active && backendService.settings.values.preferences.appearance.metrics && shellState.menu === "overview" }
     Workspaces { id: workspaces }
     ShellState { id: shellState; backend: backendService }
+    IpcHandler {
+        target: "desktop"
+        function overview(): void { shellState.toggleMenu("overview", root.preview ? null : scene.item?.focusedScreen); }
+        function quickSettings(): void { shellState.toggleMenu("controls", root.preview ? null : scene.item?.focusedScreen); }
+    }
     Binding {target:Theme;property:"scale";value:backendService.settings.values.preferences.appearance.scale}
     Binding {target:Theme;property:"accentName";value:backendService.settings.values.preferences.appearance.accent}
     Binding { target: Theme; property: "highContrast"; value: backendService.settings.values.preferences.appearance.high_contrast }
@@ -32,6 +38,7 @@ ShellRoot {
     Binding { target: Theme; property: "glassRefraction"; value: Theme.highContrast ? 0 : backendService.settings.values.preferences.appearance.refraction }
 
     Loader {
+        id: scene
         Component.onCompleted: {
             if (root.preview) {
                 setSource("PreviewWindow.qml", { backend: backendService, clock: clock, metrics: metrics, workspaces: workspaces, shellState: shellState });

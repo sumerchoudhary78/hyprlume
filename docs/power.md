@@ -1,7 +1,7 @@
 # Power and session
 
 Available in the v0.5.0 desktop preview.
-Use the power button in the bar, or a matching development build:
+Select the power button in Quick Settings or use the CLI.
 
 ```sh
 hyprlume power           # open the panel; no settings are changed

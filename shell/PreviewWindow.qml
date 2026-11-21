@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
-import qs.modules.home
+import qs.modules.scene
+import qs.theme
 import qs.modules.settings
 import qs.modules.storage
 import qs.modules.tools
@@ -12,7 +13,7 @@ import qs.modules.command
 import qs.modules.notifications
 import qs.modules.connectivity
 
-// Ordinary-window host for the same live dashboard used by layer-shell.
+// Ordinary-window host for the live desktop and its service panels.
 FloatingWindow {
     id: window
     required property var backend
@@ -26,7 +27,7 @@ FloatingWindow {
     implicitWidth: 1440
     implicitHeight: 810
     color: "#030914"
-    Dashboard {
+    DesktopPreview {
         anchors.fill: parent
         backend: window.backend; workspaces: window.workspaces; metrics: window.metrics; clock: window.clock; shellState: window.shellState
     }
@@ -54,9 +55,9 @@ FloatingWindow {
     }
     PopupStack {
         anchors.right: parent.right; anchors.top: parent.top
-        anchors.rightMargin: 16; anchors.topMargin: 88
+        anchors.rightMargin: 16; anchors.topMargin: Theme.barHeight + 12
         width: Math.min(380, parent.width - 32)
-        availableHeight: parent.height - 106
+        availableHeight: parent.height - Theme.barHeight - 30
         backend: window.backend; reducedEffects: window.shellState.reducedEffects
     }
     Loader {

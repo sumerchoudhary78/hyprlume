@@ -1,6 +1,6 @@
 # Wi-Fi and Bluetooth
 
-Open **Network** or the globe button in the bar, or run:
+Open **Quick settings → Connections** or use the CLI.
 
 ```sh
 hyprlume connectivity

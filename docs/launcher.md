@@ -1,6 +1,6 @@
 # Applications and window switching
 
-The search button opens a keyboard-first glass launcher. Applications are
+The Apps button opens the launcher with keyboard focus in search. Applications are
 indexed by Quickshell's native XDG desktop-entry service; Hidden and NoDisplay
 entries are excluded. Search matches names, generic names, comments, IDs and
 keywords, with title prefixes ranked first. It returns at most 32 results.

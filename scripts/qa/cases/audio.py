@@ -2,6 +2,7 @@
 
 
 def run(driver):
+    driver.open_quick_settings()
     driver.wait_controls('openAudio')
     driver.focus_window()
     driver.click('openAudio')
