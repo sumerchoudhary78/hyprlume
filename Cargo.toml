@@ -1,9 +1,9 @@
 [package]
 name = "hyprlume"
-version = "0.6.0"
+version = "0.7.0"
 edition = "2021"
 rust-version = "1.90"
-description = "A glass command shell and local voice companion for Hyprland, powered by HyprPilot"
+description = "A workspace atlas, desktop shell and local voice companion for Hyprland"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/sumerchoudhary78/hyprlume"
 keywords = ["hyprland", "wayland", "voice", "desktop", "quickshell"]

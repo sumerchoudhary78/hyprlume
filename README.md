@@ -5,8 +5,9 @@
 [Project website](https://sumerchoudhary78.github.io/hyprlume/) · [Setup guide](docs/setup.md) · [AUR](https://aur.archlinux.org/packages/hyprlume)
 
 Hyprlume is a desktop shell and local English voice companion for **Hyprland**.
-Search applications and open windows, switch workspaces, and preview typed or
-spoken commands before applying them. Rust runs the desktop services and speech
+Its workspace atlas lets you find an open window by its shape and click straight
+into it. Search apps or preview typed and spoken commands from the bar.
+Rust runs the desktop services and speech
 engine. Quickshell renders the interface, and HyprPilot carries out desktop
 actions. [HyprPilot](https://github.com/sumerchoudhary78/HyprPilot)
 
@@ -38,18 +39,17 @@ Caldera wallpaper in **Settings → Desktop**.
 
 ### Try the desktop in a window
 
-On Linux with Quickshell installed, run the interactive sample session from
-the atlas checkout. It uses simulated devices and workspaces.
+On Linux with Quickshell installed, run the interactive sample session from the
+0.7.0 release. It uses simulated devices and workspaces.
 
 ```sh
-git clone --branch codex/workspace-atlas https://github.com/sumerchoudhary78/hyprlume.git
+git clone --branch v0.7.0 --depth 1 https://github.com/sumerchoudhary78/hyprlume.git
 cd hyprlume
 quickshell -p ./shell/design-preview.qml
 ```
 
-To use the redesign with your own Hyprland session, build from this checkout.
-The v0.6.0 preview release contains the earlier dashboard.
-[Build from source](#build-from-source) · [v0.6.0 release](https://github.com/sumerchoudhary78/hyprlume/releases/tag/v0.6.0)
+To use the atlas with your own windows, install the Arch package or build the
+release from source. [Install on Arch](#install-on-arch) · [Build from source](#build-from-source) · [v0.7.0 release](https://github.com/sumerchoudhary78/hyprlume/releases/tag/v0.7.0)
 
 <details>
 <summary>Watch the v0.5.0 demo (39 seconds)</summary>
@@ -108,9 +108,13 @@ There is no cloud endpoint, transcript database, or screen recording by default.
 
 ## Install on Arch
 
+Install or upgrade the `hyprlume` package from the AUR. The workspace atlas is
+included from **0.7.0-1**. [AUR package](https://aur.archlinux.org/packages/hyprlume)
+
 ```sh
 yay -S hyprlume
 # or: paru -S hyprlume
+pacman -Q hyprlume
 ```
 
 The AUR recipe builds the Rust application from its release tag. The matching

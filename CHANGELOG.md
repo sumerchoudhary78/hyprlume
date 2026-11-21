@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.0 — 2026-11-21
+
+- Empty workspaces show an atlas of open windows over the new Caldera wallpaper.
+  Click a window's shape to focus it. The maps follow window moves, resizes and closures.
+- Open the atlas over an app with the workspace name in the bar or `Super+W`
+  in the starter session. Navigate with the arrow keys or choose a window by title.
+- Quick Settings groups audio, connection and session controls. The bar keeps
+  active microphone and recording stop controls within reach.
+- Include the Instrument Serif heading font and its license in the Arch package.
+
 ## 0.6.0 — 2026-11-20
 
 - Redesign Home around inline command previews, workspace switching and

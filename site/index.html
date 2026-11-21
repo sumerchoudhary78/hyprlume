@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#090b14" />
     <meta
       name="description"
-      content="Hyprlume is a Hyprland shell with a responsive command dashboard, native desktop controls and a local English voice companion. Built with Rust and Quickshell."
+      content="Hyprlume is a Hyprland shell with a live workspace atlas, native desktop controls and a local English voice companion. Built with Rust and Quickshell."
     />
     <meta
       http-equiv="Content-Security-Policy"
@@ -19,7 +19,7 @@
     />
     <meta
       property="og:description"
-      content="Plan desktop commands, manage workspaces and check system activity in a native Hyprland shell."
+      content="Find a window by its shape, switch workspaces and preview local voice commands in a native Hyprland shell."
     />
     <meta
       property="og:url"
@@ -31,7 +31,7 @@
     />
     <meta
       property="og:image:alt"
-      content="Hyprlume's glass desktop rendered by Quickshell, with labelled sample session data"
+      content="Hyprlume's workspace atlas over a copper relief landscape, rendered by Quickshell with sample session data"
     />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="canonical" href="https://sumerchoudhary78.github.io/hyprlume/" />
@@ -119,8 +119,8 @@
         <div class="hero-topline">
           <a
             class="release-pill"
-            href="https://github.com/sumerchoudhary78/hyprlume/releases/tag/v0.6.0"
-            ><span class="status-light"></span>v0.6.0
+            href="https://github.com/sumerchoudhary78/hyprlume/releases/tag/v0.7.0"
+            ><span class="status-light"></span>v0.7.0
             <span class="pill-divider">/</span> desktop preview
             <span aria-hidden="true">↗</span></a
           ><span class="eyebrow hero-coordinate"
@@ -133,8 +133,8 @@
           </h1>
           <div class="hero-intro">
             <p>
-              A Hyprland shell with a responsive command dashboard, desktop
-              controls and a voice companion that runs locally.
+              Find a window by its shape and click straight into it. Hyprlume
+              brings a workspace atlas and local voice controls to Hyprland.
             </p>
             <a class="button button-primary" href="#install"
               >Install on Arch<svg class="icon" aria-hidden="true">
@@ -158,7 +158,7 @@
               width="1600"
               height="900"
               fetchpriority="high"
-              alt="Hyprlume's command dashboard, workspace list and system readings over a dark coastal wallpaper"
+              alt="Four workspace maps show a browser beside notes, three tiled windows and overlapping apps over a copper relief landscape"
             />
           </div>
           <figcaption>
@@ -199,8 +199,8 @@
               </h2>
             </div>
             <p class="section-intro">
-              Preview a command or switch workspaces from Home. Open system
-              details and Connections when you need them.
+              Open the atlas over an app to switch windows. Quick Settings
+              puts audio, connections and session controls in the bar.
             </p>
           </div>
           <div class="desktop-explorer">
@@ -237,15 +237,15 @@
                 hidden
               >
                 <span class="feature-symbol" aria-hidden="true">◇</span>
-                <h3>Command dashboard</h3>
+                <h3>Workspace atlas</h3>
                 <p>
-                  Enter a desktop command, review the proposed action, and
-                  check CPU, memory and GPU readings.
+                  Click the terminal on the right of a split to focus that
+                  terminal. Resize the split and the map follows.
                 </p>
                 <ul class="detail-list">
-                  <li>Sharp vector icons on scaled displays</li>
-                  <li>Live workspaces and system data</li>
-                  <li>Compact and reduced-effects layouts</li>
+                  <li>Live tiled and floating window layouts</li>
+                  <li>Keyboard navigation and a window list by title</li>
+                  <li>Compact, high-contrast and reduced-effects layouts</li>
                 </ul>
               </div>
               <div
@@ -444,7 +444,8 @@
             <span class="note-number">01 /</span>
             <h3>Get out of the way.</h3>
             <p>
-              The dashboard hides behind open apps and pauses system sampling.
+              The atlas clears when you open an app. Window geometry refreshes
+              only while a map is visible.
             </p>
           </article>
           <article>
@@ -493,8 +494,8 @@
               >AUR package <span aria-hidden="true">↗</span></a
             ><a
               class="text-link"
-              href="https://github.com/sumerchoudhary78/hyprlume/releases/tag/v0.6.0"
-              >v0.6.0 release <span aria-hidden="true">↗</span></a
+              href="https://github.com/sumerchoudhary78/hyprlume/releases/tag/v0.7.0"
+              >v0.7.0 release <span aria-hidden="true">↗</span></a
             >
           </div>
           <div class="preview-notice">
@@ -632,7 +633,7 @@ cargo build --release --locked</code></pre>
               >
             </summary>
             <p>
-              Hyprlume runs on Hyprland and provides a status bar, dashboard,
+              Hyprlume runs on Hyprland and provides a status bar, workspace atlas,
               launcher and desktop services. Start it in an existing Hyprland
               session or choose the optional Hyprlume session at login.
             </p>
