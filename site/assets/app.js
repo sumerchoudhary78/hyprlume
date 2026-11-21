@@ -1,7 +1,7 @@
 const viewData = {
   desktop: {
     image: "desktop",
-    alt: "The Hyprlume desktop showing commands, workspaces and system readings",
+    alt: "Four workspace maps showing tiled and floating windows over a copper relief landscape",
     caption: "Desktop · Quickshell and Qt Quick",
     guide: "docs/homescreen.md",
   },

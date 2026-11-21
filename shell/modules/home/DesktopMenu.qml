@@ -32,6 +32,7 @@ FocusScope {
         active: root.optical && !root.wallpaper
         sourceComponent: Wallpaper { sampleOnly: true }
     }
+    Rectangle { anchors.fill: parent; visible: root.overview; color: "#65081112" }
     MouseArea {
         anchors.fill: parent
         acceptedButtons: Qt.AllButtons
@@ -40,11 +41,13 @@ FocusScope {
     }
     GlassSurface {
         id: sheet
-        x: root.overview ? root.inset : root.width - width - root.inset
-        y: root.inset
-        width: Math.min(Theme.px(398), root.width - root.inset * 2)
+        x: root.overview ? Math.round((root.width - width) / 2) : root.width - width - root.inset
+        y: root.overview ? Math.max(root.inset, Math.min(Theme.px(80), (root.height - height) / 3)) : root.inset
+        width: Math.min(Theme.px(root.overview ? 804 : 398), root.width - root.inset * 2)
         height: Math.min(layout.implicitHeight + root.padding * 2, root.height - root.inset * 2)
         radius: Theme.radiusCard
+        tintTop: root.overview ? "#223433" : Theme.glassTop
+        tint: root.overview ? "#122223" : Theme.glass
         backdrop: root.optical ? (root.wallpaper ?? sample.item) : null
         reducedEffects: root.shellState.reducedEffects
         transform: PanelEntrance { reducedEffects: root.shellState.reducedEffects }
@@ -59,11 +62,15 @@ FocusScope {
 
             RowLayout {
                 Layout.fillWidth: true
+                Icon { visible: root.overview; name: "compass"; size: Theme.px(25); color: Theme.atlasCopper }
                 Text {
                     id: title
                     Layout.fillWidth: true
-                    text: root.overview ? "Overview" : "Quick settings"
-                    color: Theme.ink; font.family: Theme.fontSans; font.pixelSize: Theme.fontHeadline; font.weight: Font.DemiBold
+                    text: root.overview ? "Workspace atlas" : "Quick settings"
+                    color: root.overview ? Theme.atlasPaper : Theme.ink
+                    font.family: root.overview ? Theme.fontAtlas : Theme.fontSans
+                    font.pixelSize: root.overview ? Theme.px(42) : Theme.fontHeadline
+                    font.weight: root.overview ? Font.Normal : Font.DemiBold
                     Accessible.role: Accessible.Heading
                 }
                 IconTile {
@@ -94,6 +101,7 @@ FocusScope {
                 Layout.fillWidth: true
                 workspaces: root.workspaces
                 currentWorkspace: root.currentWorkspace
+                shellState: root.shellState
                 onChosen: root.shellState.closeMenu()
             }
             Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.divider }

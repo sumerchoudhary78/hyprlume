@@ -40,7 +40,7 @@ Singleton {
     readonly property color glass: highContrast ? "#080d11" : "#201f26"
     readonly property color glassDeep: highContrast ? "#080d11" : "#201f26"
     readonly property color glassInset: highContrast ? "#080d11" : "#8015141b"
-    readonly property color bar: highContrast ? "#090f13" : "#fa201f26"
+    readonly property color bar: highContrast ? "#090f13" : "#fa162221"
     readonly property color field: highContrast ? "#05090c" : "#19181e"
     readonly property color control: highContrast ? "#18252b" : "#33313b"
     readonly property color selection: Qt.rgba(cyan.r, cyan.g, cyan.b, highContrast ? 0.22 : 0.12)
@@ -62,6 +62,10 @@ Singleton {
 
     readonly property string fontSans: "Inter"
     readonly property string fontMono: "JetBrains Mono"
+    readonly property FontLoader atlasTypeface: FontLoader { source: "../assets/fonts/instrument-serif/InstrumentSerif-Regular.ttf" }
+    readonly property string fontAtlas: atlasTypeface.status === FontLoader.Ready ? atlasTypeface.name : "serif"
+    readonly property color atlasCopper: highContrast ? "#ffd19e" : "#f3a56e"
+    readonly property color atlasPaper: highContrast ? "#ffffff" : "#f5edda"
 
     readonly property int fontMicro: px(10)
     readonly property int fontCaption: px(12)

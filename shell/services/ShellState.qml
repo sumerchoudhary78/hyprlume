@@ -19,6 +19,30 @@ QtObject {
             panelScreen = null;
     }
     onLockedChanged: if (locked) closeMenu()
+    property int windowRequest: 0
+    property string windowError: ""
+    property Connections windowReplies: Connections {
+        target: root.backend
+        function onResponse(id, ok, result, error) {
+            if (!root.windowRequest || id !== root.windowRequest) return;
+            root.windowRequest = 0;
+            if (!ok) root.windowError = error || "This window could not be focused";
+            else if (root.menu === "overview") root.closeMenu();
+        }
+        function onOnlineChanged() {
+            if (!root.backend.online && root.windowRequest) {
+                root.windowRequest = 0;
+                root.windowError = "Desktop service offline";
+            }
+        }
+    }
+
+    function focusWindow(entry) {
+        if (!backend.online || locked || windowRequest || !entry?.id) return;
+        windowError = "";
+        windowRequest = backend.send({op: "focus_window", address: entry.id}) || 0;
+        if (!windowRequest) windowError = backend.error || "Desktop service offline";
+    }
 
     function toggleMenu(name, screen = null) {
         if (locked || servicePanelOpen)
@@ -28,6 +52,7 @@ QtObject {
             return;
         }
         panelScreen = screen;
+        windowError = "";
         menu = name;
     }
 
@@ -41,6 +66,8 @@ QtObject {
     function closeMenu() {
         menu = "";
         panelScreen = null;
+        windowRequest = 0;
+        windowError = "";
     }
 
     readonly property var wifi: backend.connectivity.wifi

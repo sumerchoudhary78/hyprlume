@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
+import "../models/AtlasGeometry.js" as Atlas
 
 // Read-only view of Hyprland workspaces plus the focus actions the shell needs.
 // Counts come from the toplevel list rather than workspace IPC fields, which
@@ -10,6 +11,38 @@ QtObject {
 
     readonly property var all: Hyprland.workspaces ? Hyprland.workspaces.values : []
     readonly property var focused: Hyprland.focusedWorkspace ?? null
+    property bool atlasVisible: false
+    property var atlasWindows: []
+    readonly property var frames: atlasVisible ? Hyprland.toplevels.values.filter(win => win.workspace).map(win => {
+        const ipc = win.lastIpcObject || {};
+        const bounds = boundsFor(win.monitor ?? win.workspace.monitor);
+        const address = String(ipc.address || win.address || "").replace(/^0x/, "");
+        return {workspace: win.workspace.name, id: /^[0-9a-f]+$/i.test(address) ? "0x" + address : "",
+            app: ipc.class || ipc.initialClass || "", title: win.title || ipc.class || "Window",
+            frame: ipc.hidden || ipc.mapped === false ? null : Atlas.windowFrame(bounds, ipc.at, ipc.size),
+            active: win.activated, floating: !!ipc.floating};
+    }).sort((a, b) => Number(a.floating) - Number(b.floating) || Number(a.active) - Number(b.active)) : []
+    // Geometry snapshots with identical values must preserve focus and hover in the map.
+    onFramesChanged: if (JSON.stringify(frames) !== JSON.stringify(atlasWindows)) atlasWindows = frames;
+
+    property Timer geometryRefresh: Timer {
+        interval: 1800; repeat: true; triggeredOnStart: true
+        running: root.atlasVisible && Hyprland.toplevels.values.length > 0
+        onTriggered: Hyprland.refreshToplevels()
+    }
+
+    function boundsFor(monitor) {
+        return Atlas.outputBounds(monitor, monitor ? Quickshell.screens.find(screen => screen.name === monitor.name) : null);
+    }
+
+    function aspectFor(workspace) {
+        const bounds = boundsFor(workspace?.monitor);
+        return bounds ? bounds.w / bounds.h : 16 / 9;
+    }
+
+    function windowsFor(workspace) {
+        return workspace ? atlasWindows.filter(win => win.workspace === workspace.name) : [];
+    }
 
     // Workspace identity is the name. Hyprland 0.57 gives named workspaces no
     // numeric id, and Quickshell reports -1 for every one of them, so comparing

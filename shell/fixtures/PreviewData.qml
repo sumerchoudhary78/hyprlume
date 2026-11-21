@@ -68,6 +68,15 @@ QtObject {
             if (publicOperation.request && publicOperation.request.value) publicOperation.request.value = "[credential]";
             lastRequest = publicOperation; requestCount++;
             if (Quickshell.env("HYPRLUME_QA") === "1") console.log("HYPRLUME_QA " + JSON.stringify({kind:"request",operation:publicOperation}));
+            if (operation.op === "focus_window") {
+                const sequence = requestCount;
+                const entry = fixture.workspaces.atlasWindows.find(win => win.id === operation.address);
+                Qt.callLater(() => {
+                    if (entry) fixture.workspaces.focus(fixture.workspaces.all.find(workspace => workspace.name === entry.workspace));
+                    sampleBackend.response(sequence, !!entry, null, entry ? "" : "Window closed");
+                });
+                return sequence;
+            }
             if (operation.op === "display") {
                 const sequence = requestCount;
                 const request = operation.request;
@@ -268,7 +277,18 @@ QtObject {
         property var focused: all[0]
         property int nextCount: 0
         function label(w) { return w.name; }
-        function countFor(w) { return w.id === 2 ? 0 : w.id === 3 ? 2 : 1; }
+        property var atlasWindows: [
+            {workspace:"Research", id:"0xb", app:"Firefox", title:"Quickshell documentation", frame:{x:0.015,y:0.065,w:0.61,h:0.91}},
+            {workspace:"Research", id:"0xc", app:"Notes", title:"Reading notes", frame:{x:0.64,y:0.065,w:0.345,h:0.91}},
+            {workspace:"Operations", id:"0xd", app:"Code", title:"Hyprlume — editor", frame:{x:0.015,y:0.065,w:0.57,h:0.91}},
+            {workspace:"Operations", id:"0xe", app:"Terminal", title:"Build log", frame:{x:0.6,y:0.065,w:0.385,h:0.48}},
+            {workspace:"Operations", id:"0xf", app:"Terminal", title:"Services", frame:{x:0.6,y:0.56,w:0.385,h:0.415}},
+            {workspace:"Personal", id:"0x10", app:"Music", title:"Listening queue", frame:{x:0.08,y:0.12,w:0.79,h:0.77}},
+            {workspace:"Personal", id:"0x11", app:"Files", title:"Recordings", floating:true, frame:{x:0.48,y:0.44,w:0.46,h:0.47}}
+        ]
+        function windowsFor(w) { return w ? atlasWindows.filter(win => win.workspace === w.name) : []; }
+        function countFor(w) { return windowsFor(w).length; }
+        function aspectFor(w) { return 16/10; }
         function sameWorkspace(a, b) { return !!a && !!b && a.name === b.name; }
         function focus(w) { focused = w; if (Quickshell.env("HYPRLUME_QA") === "1") console.log("HYPRLUME_QA " + JSON.stringify({kind:"workspace",name:w.name})); }
         function focusNext() { nextCount++; focused = all[(all.indexOf(focused)+1)%all.length]; }

@@ -17,11 +17,11 @@ and an unrestricted computer-use agent are larger projects.
 
 Delivered in the current tree:
 
-- A per-output status bar, reflowing dashboard for the focused empty workspace,
-  and command overlay. See the [UI design record](design/shell-ui.md).
+- A per-output status bar, interactive window maps on empty workspaces,
+  and an atlas you can open over applications. [UI design record](design/shell-ui.md)
 - Workspace switching, inline command previews, voice controls and glanceable
   CPU, memory and GPU readings. System details expose network, disk and
-  Docker/Podman status. The two-second sampler pauses when Home hides.
+  Docker/Podman status. The system sampler pauses when the expanded atlas closes.
 - Shared Qt Quick controls, keyboard focus indicators, reduced effects, high
   contrast and isolated native input tests.
 - Physical-session checks for wallpaper/bar layers, workspace switching, focus,

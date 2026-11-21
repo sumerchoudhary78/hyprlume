@@ -83,7 +83,7 @@ Item {
         delegate: Item {
             id: output
             required property var modelData
-            WallpaperSurface { screen: output.modelData }
+            WallpaperSurface { screen: output.modelData; workspaces: desktop.workspaces; shellState: desktop.shellState }
             TopBar {
                 screen: output.modelData
                 backend: desktop.backend

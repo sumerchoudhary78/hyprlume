@@ -89,10 +89,10 @@ guard. See [idle/sleep](idle-sleep.md) for the limits of external sleep hooks.
 
 Quickshell provides layer-shell surfaces and an ordinary preview window.
 
-- `hyprlume-wallpaper`, one per monitor, Background layer with no input region.
+- `hyprlume-wallpaper`, one per monitor. On an empty workspace its input region covers the atlas controls. With apps open the region is empty.
 - `hyprlume-bar`, one per monitor, `WlrLayer.Top`, reserves its scaled visible height at the top
   so Hyprland tiles windows below it.
-- `hyprlume-desktop-menu`, one overlay for Overview or Quick Settings on the
+- `hyprlume-desktop-menu`, one overlay for the workspace atlas or Quick Settings on the
   requested output. Dismissal releases keyboard focus and destroys the layer.
 - `hyprlume-command`, `WlrLayer.Overlay` with exclusive keyboard focus, loaded
   only while `snapshot.panel_open` is true.

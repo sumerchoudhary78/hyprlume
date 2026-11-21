@@ -73,6 +73,11 @@ def main():
     output = layout.stdout + layout.stderr
     assert layout.returncode == 0 and 'HYPRLUME_BAR_LAYOUT_PASS' in output, output
     print('BAR LAYOUT PASS: recording, microphone and clock remain reachable across widths and scales')
+    atlas = subprocess.run(['quickshell', '-p', str(ROOT/'shell/atlas-geometry-test.qml')],
+                           capture_output=True, text=True, timeout=15)
+    output = atlas.stdout + atlas.stderr
+    assert atlas.returncode == 0 and 'HYPRLUME_ATLAS_GEOMETRY_PASS' in output, output
+    print('ATLAS GEOMETRY PASS: scaled and rotated outputs, negative origins and clipped windows')
     return 0
 
 

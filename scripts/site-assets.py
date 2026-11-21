@@ -25,7 +25,7 @@ def main():
     media.mkdir(parents=True, exist_ok=True)
     fonts.mkdir(parents=True, exist_ok=True)
     screenshots = {
-        "desktop": ROOT / "docs/design/shell-preview.webp",
+        "desktop": ROOT / "docs/design/atlas-desktop.webp",
         "connections": ROOT / "assets/connections-preview.png",
     }
     for name, source in screenshots.items():

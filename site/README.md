@@ -40,7 +40,7 @@ in `index.html`; use the repository's validation notes for performance claims.
 ## Asset provenance
 
 - `media/*.webp` derive from the synthetic-data QML renders in
-  `docs/design/shell-preview.webp` and `assets/connections-preview.png`.
+  `docs/design/atlas-desktop.webp` and `assets/connections-preview.png`.
 - `brand.svg` is the project's existing mark.
 - Space Grotesk is self-hosted under the SIL Open Font License retained in
   `assets/fonts/OFL.txt`. The source is Google Fonts at commit

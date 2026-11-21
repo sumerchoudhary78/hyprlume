@@ -15,6 +15,7 @@ Item {
     readonly property string path: {
         const n = name;
         if (n === "hyprlume") return "M5 5V20M18 5V20M5 12H18M17 3L21 1";
+        if (n === "compass") return "M12 2L20 21L12 17L4 21ZM12 2V17";
         if (n === "sliders") return "M2 7H6M12 7H22M2 17H12M18 17H22M12 7A3 3 0 1 1 6 7A3 3 0 1 1 12 7ZM18 17A3 3 0 1 1 12 17A3 3 0 1 1 18 17Z";
         if (n === "wifi-off") return "M3 3L21 21M2 8C3 7 4 6.5 5.5 6M10 4.5C15 4 19 6 22 8M5 12C7 10 9 9 11 9M16 10C17 10.5 18 11 19 12M8 16C10 13 14 13 16 16M12 20V20.2";
         if (n === "volume-muted") return "M3 9H7L12 5V19L7 15H3ZM16 9L22 15M22 9L16 15";
